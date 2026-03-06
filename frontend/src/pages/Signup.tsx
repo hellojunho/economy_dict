@@ -6,7 +6,7 @@ export default function Signup() {
   const [message, setMessage] = useState('');
 
   const onSignup = async () => {
-    await client.post('/auth/signup', signup);
+    await client.post('/signup', signup);
     setMessage('회원가입 완료. 로그인 해주세요.');
   };
 

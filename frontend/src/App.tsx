@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -14,7 +14,7 @@ export default function App() {
     <div>
       <nav className="container nav">
         <Link to="/">홈</Link>
-        <Link to="/login">로그인</Link>
+        <Link to="/signin">로그인</Link>
         <Link to="/signup">회원가입</Link>
         <Link to="/dictionary">사전</Link>
         <Link to="/quiz">퀴즈</Link>
@@ -24,9 +24,10 @@ export default function App() {
       </nav>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/signin" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/auth" element={<Navigate to="/signin" replace />} />
         <Route path="/dictionary" element={<Dictionary />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/chat" element={<Chat />} />

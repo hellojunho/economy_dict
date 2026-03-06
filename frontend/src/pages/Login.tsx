@@ -7,7 +7,7 @@ export default function Login() {
   const [message, setMessage] = useState('');
 
   const onLogin = async () => {
-    const res = await client.post('/auth/login', login);
+    const res = await client.post('/token', login);
     localStorage.setItem('accessToken', res.data.accessToken);
     setMessage('로그인 완료');
   };
