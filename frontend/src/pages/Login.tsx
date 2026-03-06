@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import client from '../api/client';
 
 export default function Login() {
   const [login, setLogin] = useState({ userId: '', password: '' });
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const onLogin = async () => {
-    const res = await client.post('/token', login);
-    localStorage.setItem('accessToken', res.data.accessToken);
-    setMessage('로그인 완료');
+    setMessage('');
+    try {
+      const res = await client.post('/token', login);
+      localStorage.setItem('accessToken', res.data.accessToken);
+      navigate('/');
+    } catch (err) {
+      setMessage('로그인에 실패했습니다.');
+    }
   };
 
   return (

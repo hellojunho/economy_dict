@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -10,18 +10,51 @@ import Admin from './pages/Admin';
 import Chat from './pages/Chat';
 
 export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isAuthPage = location.pathname === '/signin' || location.pathname === '/signup';
+  const hasToken = Boolean(localStorage.getItem('accessToken'));
+
+  const onLogout = async () => {
+    try {
+      await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken') ?? ''}`
+        }
+      });
+    } finally {
+      localStorage.removeItem('accessToken');
+      navigate('/signin');
+    }
+  };
   return (
     <div>
-      <nav className="container nav">
-        <Link to="/">홈</Link>
-        <Link to="/signin">로그인</Link>
-        <Link to="/signup">회원가입</Link>
-        <Link to="/dictionary">사전</Link>
-        <Link to="/quiz">퀴즈</Link>
-        <Link to="/chat">ChatGPT</Link>
-        <Link to="/mypage">마이페이지</Link>
-        <Link to="/admin">관리자</Link>
-      </nav>
+      {!isAuthPage && (
+        <header className="topbar">
+          <div className="container topbar-inner">
+            <nav className="nav-left">
+              <Link to="/">홈</Link>
+              <Link to="/dictionary">사전</Link>
+              <Link to="/quiz">퀴즈</Link>
+              <Link to="/chat">ChatGPT</Link>
+              <Link to="/mypage">마이페이지</Link>
+              <Link to="/admin">관리자</Link>
+            </nav>
+            <div className="nav-right">
+              {!hasToken && (
+                <>
+                  <Link to="/signin" className="btn-link">Sign In</Link>
+                  <Link to="/signup" className="btn-link">Sign Up</Link>
+                </>
+              )}
+              {hasToken && (
+                <button className="btn-link" onClick={onLogout}>Logout</button>
+              )}
+            </div>
+          </div>
+        </header>
+      )}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/signin" element={<Login />} />

@@ -1,13 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import client from '../api/client';
 
 export default function Signup() {
   const [signup, setSignup] = useState({ userId: '', username: '', password: '', email: '' });
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const onSignup = async () => {
-    await client.post('/signup', signup);
-    setMessage('회원가입 완료. 로그인 해주세요.');
+    setMessage('');
+    try {
+      await client.post('/signup', signup);
+      navigate('/signin');
+    } catch (err) {
+      setMessage('회원가입에 실패했습니다.');
+    }
   };
 
   return (
