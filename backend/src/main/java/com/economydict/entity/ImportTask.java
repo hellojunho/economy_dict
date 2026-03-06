@@ -35,6 +35,12 @@ public class ImportTask {
     @Column(name = "error_log", columnDefinition = "text")
     private String errorLog;
 
+    @Column(name = "total_units")
+    private Integer totalUnits;
+
+    @Column(name = "processed_units")
+    private Integer processedUnits;
+
     @PrePersist
     public void onCreate() {
         if (createdAt == null) {
@@ -99,5 +105,21 @@ public class ImportTask {
 
     public void setErrorLog(String errorLog) {
         this.errorLog = errorLog;
+    }
+
+    public Integer getTotalUnits() {
+        return totalUnits;
+    }
+
+    public void setTotalUnits(Integer totalUnits) {
+        this.totalUnits = totalUnits;
+    }
+
+    public Integer getProcessedUnits() {
+        return processedUnits;
+    }
+
+    public void setProcessedUnits(Integer processedUnits) {
+        this.processedUnits = processedUnits;
     }
 }

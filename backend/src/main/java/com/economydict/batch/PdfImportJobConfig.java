@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.transaction.PlatformTransactionManager;
+import com.economydict.batch.PdfProgressListener;
 
 @Configuration
 @EnableBatchProcessing
@@ -44,13 +45,15 @@ public class PdfImportJobConfig {
                               ItemReader<String> pdfChunkReader,
                               ItemProcessor<String, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor,
                               ItemWriter<java.util.List<OpenAiService.ExtractedTerm>> termWriter,
-                              StepExecutionListener stepListener) {
+                              StepExecutionListener stepListener,
+                              PdfProgressListener pdfProgressListener) {
         return new StepBuilder("pdfImportStep", jobRepository)
                 .<String, java.util.List<OpenAiService.ExtractedTerm>>chunk(1, transactionManager)
                 .reader(pdfChunkReader)
                 .processor(pdfExtractProcessor)
                 .writer(termWriter)
                 .listener(stepListener)
+                .listener(pdfProgressListener)
                 .build();
     }
 
@@ -112,5 +115,11 @@ public class PdfImportJobConfig {
                 return stepExecution.getExitStatus();
             }
         };
+    }
+
+    @Bean
+    @StepScope
+    public PdfProgressListener pdfProgressListener(ImportTaskService taskService) {
+        return new PdfProgressListener(taskService);
     }
 }

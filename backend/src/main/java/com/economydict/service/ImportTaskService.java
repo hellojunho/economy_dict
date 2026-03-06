@@ -4,8 +4,6 @@ import com.economydict.dto.ImportTaskResponse;
 import com.economydict.entity.ImportTask;
 import com.economydict.entity.ImportTaskState;
 import com.economydict.repository.ImportTaskRepository;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -46,6 +44,18 @@ public class ImportTaskService {
         return importTaskRepository.save(task);
     }
 
+    public ImportTask updateProgress(String taskId, int processedUnits, int totalUnits) {
+        ImportTask task = getTask(taskId);
+        task.setProcessedUnits(processedUnits);
+        if (totalUnits > 0) {
+            task.setTotalUnits(totalUnits);
+        }
+        if (task.getState() == ImportTaskState.READY || task.getState() == ImportTaskState.STARTED) {
+            task.setState(ImportTaskState.PENDING);
+        }
+        return importTaskRepository.save(task);
+    }
+
     public ImportTask markFailed(String taskId, String errorLog) {
         ImportTask task = getTask(taskId);
         task.setState(ImportTaskState.FAILED);
@@ -68,6 +78,14 @@ public class ImportTaskService {
         response.setFinishedAt(task.getFinishedAt());
         response.setFailedAt(task.getFailedAt());
         response.setErrorLog(task.getErrorLog());
+        response.setProcessedUnits(task.getProcessedUnits());
+        response.setTotalUnits(task.getTotalUnits());
+        if (task.getTotalUnits() != null && task.getTotalUnits() > 0 && task.getProcessedUnits() != null) {
+            double percent = (task.getProcessedUnits() * 100.0) / task.getTotalUnits();
+            response.setProgressPercent(Math.min(100.0, percent));
+        } else {
+            response.setProgressPercent(0.0);
+        }
         return response;
     }
 
@@ -75,8 +93,8 @@ public class ImportTaskService {
         if (throwable == null) {
             return null;
         }
-        StringWriter sw = new StringWriter();
-        throwable.printStackTrace(new PrintWriter(sw));
+        java.io.StringWriter sw = new java.io.StringWriter();
+        throwable.printStackTrace(new java.io.PrintWriter(sw));
         return sw.toString();
     }
 }

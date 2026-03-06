@@ -36,6 +36,7 @@ public class PdfChunkReader extends ItemStreamSupport implements ItemStreamReade
             document = PDDocument.load(new File(filePath));
             totalPages = document.getNumberOfPages();
             currentPage = 1;
+            executionContext.putInt("totalPages", totalPages);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to open PDF", e);
         }

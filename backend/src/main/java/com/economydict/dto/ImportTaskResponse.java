@@ -11,6 +11,9 @@ public class ImportTaskResponse {
     private Instant finishedAt;
     private Instant failedAt;
     private String errorLog;
+    private Integer totalUnits;
+    private Integer processedUnits;
+    private Double progressPercent;
 
     public String getTaskId() {
         return taskId;
@@ -66,5 +69,29 @@ public class ImportTaskResponse {
 
     public void setErrorLog(String errorLog) {
         this.errorLog = errorLog;
+    }
+
+    public Integer getTotalUnits() {
+        return totalUnits;
+    }
+
+    public void setTotalUnits(Integer totalUnits) {
+        this.totalUnits = totalUnits;
+    }
+
+    public Integer getProcessedUnits() {
+        return processedUnits;
+    }
+
+    public void setProcessedUnits(Integer processedUnits) {
+        this.processedUnits = processedUnits;
+    }
+
+    public Double getProgressPercent() {
+        return progressPercent;
+    }
+
+    public void setProgressPercent(Double progressPercent) {
+        this.progressPercent = progressPercent;
     }
 }

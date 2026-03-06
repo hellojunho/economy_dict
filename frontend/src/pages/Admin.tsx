@@ -77,6 +77,8 @@ export default function Admin() {
   const [pdfMessage, setPdfMessage] = useState('');
   const [pdfTaskId, setPdfTaskId] = useState('');
   const [pdfTaskState, setPdfTaskState] = useState('');
+  const [pdfProgress, setPdfProgress] = useState(0);
+  const maxFileLabel = '20MB';
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [quizForm, setQuizForm] = useState({
@@ -195,10 +197,16 @@ export default function Admin() {
       setPdfTaskId(res.data.taskId);
       setPdfTaskState(res.data.state);
       setPdfMessage('작업이 시작되었습니다. 상태를 확인하세요.');
+      setPdfProgress(0);
       setPdfFile(null);
       pollTask(res.data.taskId);
     } catch (err) {
-      setPdfMessage('PDF 업로드에 실패했습니다.');
+      const status = (err as any)?.response?.status;
+      if (status === 413) {
+        setPdfMessage(`파일이 너무 큽니다. 최대 ${maxFileLabel}까지 업로드할 수 있습니다.`);
+      } else {
+        setPdfMessage('PDF 업로드에 실패했습니다.');
+      }
     }
   };
 
@@ -207,6 +215,9 @@ export default function Admin() {
       try {
         const res = await client.get(`/admin/tasks/${taskId}`);
         setPdfTaskState(res.data.state);
+        if (typeof res.data.progressPercent === 'number') {
+          setPdfProgress(res.data.progressPercent);
+        }
         if (res.data.state === 'FINISHED') {
           setPdfMessage('작업이 완료되었습니다.');
           window.clearInterval(intervalId);
@@ -384,11 +395,20 @@ export default function Admin() {
               <div className="grid">
                 <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)} />
                 <button onClick={importPdf}>Upload & Import</button>
+                <p className="hint">최대 업로드 용량: {maxFileLabel}</p>
                 {pdfMessage && <p>{pdfMessage}</p>}
                 {pdfTaskId && (
                   <p>
                     Task: {pdfTaskId} / State: {pdfTaskState || 'READY'}
                   </p>
+                )}
+                {pdfTaskId && (
+                  <div className="progress">
+                    <div className="progress-bar" style={{ width: `${pdfProgress}%` }} />
+                  </div>
+                )}
+                {pdfTaskId && (
+                  <p>{pdfProgress.toFixed(1)}%</p>
                 )}
               </div>
             </section>
