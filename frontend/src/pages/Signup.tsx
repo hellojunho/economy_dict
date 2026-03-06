@@ -1,33 +1,17 @@
 import { useState } from 'react';
 import client from '../api/client';
 
-export default function Auth() {
-  const [login, setLogin] = useState({ userId: '', password: '' });
+export default function Signup() {
   const [signup, setSignup] = useState({ userId: '', username: '', password: '', email: '' });
   const [message, setMessage] = useState('');
 
-  const onLogin = async () => {
-    const res = await client.post('/auth/login', login);
-    localStorage.setItem('accessToken', res.data.accessToken);
-    setMessage('로그인 완료');
-  };
-
   const onSignup = async () => {
     await client.post('/auth/signup', signup);
-    setMessage('회원가입 완료');
+    setMessage('회원가입 완료. 로그인 해주세요.');
   };
 
   return (
-    <div className="container grid grid-2">
-      <section className="card">
-        <h2>로그인</h2>
-        <div className="grid">
-          <input placeholder="아이디" value={login.userId} onChange={(e) => setLogin({ ...login, userId: e.target.value })} />
-          <input type="password" placeholder="비밀번호" value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} />
-          <button onClick={onLogin}>로그인</button>
-        </div>
-      </section>
-
+    <div className="container">
       <section className="card">
         <h2>회원가입</h2>
         <div className="grid">
