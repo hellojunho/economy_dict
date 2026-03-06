@@ -8,12 +8,17 @@ import Quiz from './pages/Quiz';
 import MyPage from './pages/MyPage';
 import Admin from './pages/Admin';
 import Chat from './pages/Chat';
+import { getRoleFromToken } from './utils/auth';
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthPage = location.pathname === '/signin' || location.pathname === '/signup';
-  const hasToken = Boolean(localStorage.getItem('accessToken'));
+  const hideTopbar = isAuthPage || location.pathname.startsWith('/admin');
+  const token = localStorage.getItem('accessToken');
+  const role = getRoleFromToken(token);
+  const isAdmin = role === 'ADMIN';
+  const hasToken = Boolean(token);
 
   const onLogout = async () => {
     try {
@@ -30,7 +35,7 @@ export default function App() {
   };
   return (
     <div>
-      {!isAuthPage && (
+      {!hideTopbar && (
         <header className="topbar">
           <div className="container topbar-inner">
             <nav className="nav-left">
@@ -38,8 +43,8 @@ export default function App() {
               <Link to="/dictionary">사전</Link>
               <Link to="/quiz">퀴즈</Link>
               <Link to="/chat">ChatGPT</Link>
-              <Link to="/mypage">마이페이지</Link>
-              <Link to="/admin">관리자</Link>
+              {!isAdmin && <Link to="/mypage">마이페이지</Link>}
+              {isAdmin && <Link to="/admin">관리자</Link>}
             </nav>
             <div className="nav-right">
               {!hasToken && (

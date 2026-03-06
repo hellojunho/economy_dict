@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import client from '../api/client';
+import { getRoleFromToken } from '../utils/auth';
 
 export default function Login() {
   const [login, setLogin] = useState({ userId: '', password: '' });
@@ -12,7 +13,12 @@ export default function Login() {
     try {
       const res = await client.post('/token', login);
       localStorage.setItem('accessToken', res.data.accessToken);
-      navigate('/');
+      const role = getRoleFromToken(res.data.accessToken);
+      if (role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/mypage');
+      }
     } catch (err) {
       setMessage('로그인에 실패했습니다.');
     }

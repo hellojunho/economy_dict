@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import client from '../api/client';
+import { getRoleFromToken } from '../utils/auth';
 
 interface Profile {
   userId: string;
@@ -12,11 +14,17 @@ interface Profile {
 export default function MyPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [quizzes, setQuizzes] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const role = getRoleFromToken(localStorage.getItem('accessToken'));
+    if (role === 'ADMIN') {
+      navigate('/admin');
+      return;
+    }
     client.get('/users/me').then((res) => setProfile(res.data));
     client.get('/users/me/quizzes').then((res) => setQuizzes(res.data));
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="container">

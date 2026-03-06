@@ -48,6 +48,10 @@ button {
   cursor: pointer;
 }
 
+button.danger {
+  background: #b91c1c;
+}
+
 input, textarea {
   width: 100%;
   padding: 10px 12px;
@@ -132,4 +136,107 @@ section {
 
 .form-footer .divider {
   margin: 0 8px;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.admin-sidebar {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.admin-section {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-top: 12px;
+}
+
+.admin-nav {
+  background: transparent;
+  color: inherit;
+  border: 1px solid transparent;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.admin-nav.active {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.admin-main {
+  padding: 24px 32px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-card {
+  padding: 16px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 6px;
+  text-align: left;
+}
+
+.admin-table tr:hover {
+  background: #f9fafb;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.error {
+  color: #b91c1c;
 }
