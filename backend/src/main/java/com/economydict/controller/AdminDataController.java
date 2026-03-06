@@ -9,7 +9,7 @@ import com.economydict.dto.AdminQuizRequest;
 import com.economydict.dto.AdminUserDto;
 import com.economydict.dto.AdminUserRequest;
 import com.economydict.dto.DictionaryEntryDto;
-import com.economydict.dto.PdfImportResponse;
+import com.economydict.dto.ImportTaskResponse;
 import com.economydict.entity.DictionaryEntry;
 import com.economydict.entity.Quiz;
 import com.economydict.entity.QuizOption;
@@ -21,7 +21,8 @@ import com.economydict.repository.QuizOptionRepository;
 import com.economydict.repository.QuizQuestionRepository;
 import com.economydict.repository.QuizRepository;
 import com.economydict.repository.UserRepository;
-import com.economydict.service.PdfImportService;
+import com.economydict.service.ImportTaskService;
+import com.economydict.service.PdfImportJobService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -50,7 +51,8 @@ public class AdminDataController {
     private final QuizRepository quizRepository;
     private final QuizQuestionRepository quizQuestionRepository;
     private final QuizOptionRepository quizOptionRepository;
-    private final PdfImportService pdfImportService;
+    private final PdfImportJobService pdfImportJobService;
+    private final ImportTaskService importTaskService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -58,14 +60,16 @@ public class AdminDataController {
                                QuizRepository quizRepository,
                                QuizQuestionRepository quizQuestionRepository,
                                QuizOptionRepository quizOptionRepository,
-                               PdfImportService pdfImportService) {
+                               PdfImportJobService pdfImportJobService,
+                               ImportTaskService importTaskService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
         this.quizRepository = quizRepository;
         this.quizQuestionRepository = quizQuestionRepository;
         this.quizOptionRepository = quizOptionRepository;
-        this.pdfImportService = pdfImportService;
+        this.pdfImportJobService = pdfImportJobService;
+        this.importTaskService = importTaskService;
     }
 
     @GetMapping("/users")
@@ -133,8 +137,13 @@ public class AdminDataController {
     }
 
     @PostMapping("/dictionary/import-pdf")
-    public ResponseEntity<PdfImportResponse> importDictionaryPdf(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(pdfImportService.importPdf(file));
+    public ResponseEntity<ImportTaskResponse> importDictionaryPdf(@RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(pdfImportJobService.submit(file));
+    }
+
+    @GetMapping("/tasks/{taskId}")
+    public ResponseEntity<ImportTaskResponse> getTask(@PathVariable String taskId) {
+        return ResponseEntity.ok(importTaskService.toResponse(importTaskService.getTask(taskId)));
     }
 
     @PutMapping("/dictionary/{id}")

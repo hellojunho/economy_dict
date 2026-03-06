@@ -75,6 +75,8 @@ export default function Admin() {
   });
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfMessage, setPdfMessage] = useState('');
+  const [pdfTaskId, setPdfTaskId] = useState('');
+  const [pdfTaskState, setPdfTaskState] = useState('');
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [quizForm, setQuizForm] = useState({
@@ -190,12 +192,34 @@ export default function Admin() {
       const res = await client.post('/admin/dictionary/import-pdf', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setPdfMessage(`추출 ${res.data.extractedCount}개 / 저장 ${res.data.createdCount}개 / 중복 ${res.data.skippedCount}개`);
+      setPdfTaskId(res.data.taskId);
+      setPdfTaskState(res.data.state);
+      setPdfMessage('작업이 시작되었습니다. 상태를 확인하세요.');
       setPdfFile(null);
-      load();
+      pollTask(res.data.taskId);
     } catch (err) {
       setPdfMessage('PDF 업로드에 실패했습니다.');
     }
+  };
+
+  const pollTask = (taskId: string) => {
+    const intervalId = window.setInterval(async () => {
+      try {
+        const res = await client.get(`/admin/tasks/${taskId}`);
+        setPdfTaskState(res.data.state);
+        if (res.data.state === 'FINISHED') {
+          setPdfMessage('작업이 완료되었습니다.');
+          window.clearInterval(intervalId);
+          load();
+        }
+        if (res.data.state === 'FAILED') {
+          setPdfMessage('작업이 실패했습니다. 관리자 로그를 확인하세요.');
+          window.clearInterval(intervalId);
+        }
+      } catch (err) {
+        window.clearInterval(intervalId);
+      }
+    }, 3000);
   };
 
   const createQuiz = async () => {
@@ -361,6 +385,11 @@ export default function Admin() {
                 <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)} />
                 <button onClick={importPdf}>Upload & Import</button>
                 {pdfMessage && <p>{pdfMessage}</p>}
+                {pdfTaskId && (
+                  <p>
+                    Task: {pdfTaskId} / State: {pdfTaskState || 'READY'}
+                  </p>
+                )}
               </div>
             </section>
 
