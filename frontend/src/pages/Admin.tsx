@@ -73,6 +73,8 @@ export default function Admin() {
     englishWord: '',
     englishMeaning: ''
   });
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfMessage, setPdfMessage] = useState('');
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [quizForm, setQuizForm] = useState({
@@ -175,6 +177,25 @@ export default function Admin() {
   const deleteDictionary = async (id: number) => {
     await client.delete(`/admin/dictionary/${id}`);
     load();
+  };
+
+  const importPdf = async () => {
+    if (!pdfFile) {
+      setPdfMessage('PDF 파일을 선택하세요.');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', pdfFile);
+    try {
+      const res = await client.post('/admin/dictionary/import-pdf', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setPdfMessage(`추출 ${res.data.extractedCount}개 / 저장 ${res.data.createdCount}개 / 중복 ${res.data.skippedCount}개`);
+      setPdfFile(null);
+      load();
+    } catch (err) {
+      setPdfMessage('PDF 업로드에 실패했습니다.');
+    }
   };
 
   const createQuiz = async () => {
@@ -331,6 +352,15 @@ export default function Admin() {
                   <button onClick={createDictionary}>Create</button>
                   <button onClick={updateDictionary}>Update</button>
                 </div>
+              </div>
+            </section>
+
+            <section className="card admin-card">
+              <h3>PDF Import</h3>
+              <div className="grid">
+                <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)} />
+                <button onClick={importPdf}>Upload & Import</button>
+                {pdfMessage && <p>{pdfMessage}</p>}
               </div>
             </section>
 

@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DictionaryEntryRepository extends JpaRepository<DictionaryEntry, Long> {
     List<DictionaryEntry> findByWordContainingIgnoreCase(String word);
+    boolean existsByWordIgnoreCase(String word);
 }

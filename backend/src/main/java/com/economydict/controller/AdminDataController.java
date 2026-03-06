@@ -9,6 +9,7 @@ import com.economydict.dto.AdminQuizRequest;
 import com.economydict.dto.AdminUserDto;
 import com.economydict.dto.AdminUserRequest;
 import com.economydict.dto.DictionaryEntryDto;
+import com.economydict.dto.PdfImportResponse;
 import com.economydict.entity.DictionaryEntry;
 import com.economydict.entity.Quiz;
 import com.economydict.entity.QuizOption;
@@ -20,6 +21,7 @@ import com.economydict.repository.QuizOptionRepository;
 import com.economydict.repository.QuizQuestionRepository;
 import com.economydict.repository.QuizRepository;
 import com.economydict.repository.UserRepository;
+import com.economydict.service.PdfImportService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -35,6 +37,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -46,19 +50,22 @@ public class AdminDataController {
     private final QuizRepository quizRepository;
     private final QuizQuestionRepository quizQuestionRepository;
     private final QuizOptionRepository quizOptionRepository;
+    private final PdfImportService pdfImportService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
                                DictionaryEntryRepository dictionaryEntryRepository,
                                QuizRepository quizRepository,
                                QuizQuestionRepository quizQuestionRepository,
-                               QuizOptionRepository quizOptionRepository) {
+                               QuizOptionRepository quizOptionRepository,
+                               PdfImportService pdfImportService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
         this.quizRepository = quizRepository;
         this.quizQuestionRepository = quizQuestionRepository;
         this.quizOptionRepository = quizOptionRepository;
+        this.pdfImportService = pdfImportService;
     }
 
     @GetMapping("/users")
@@ -123,6 +130,11 @@ public class AdminDataController {
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
         return ResponseEntity.ok(toDictionaryDto(dictionaryEntryRepository.save(entry)));
+    }
+
+    @PostMapping("/dictionary/import-pdf")
+    public ResponseEntity<PdfImportResponse> importDictionaryPdf(@RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(pdfImportService.importPdf(file));
     }
 
     @PutMapping("/dictionary/{id}")
