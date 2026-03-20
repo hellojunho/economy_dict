@@ -1,6 +1,6 @@
 package com.economydict.service;
 
-import com.economydict.dto.ImportTaskResponse;
+import com.economydict.dto.WordUploadStatusResponse;
 import com.economydict.entity.ImportTask;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,11 +26,11 @@ public class PdfImportJobService {
         this.taskService = taskService;
     }
 
-    public ImportTaskResponse submit(MultipartFile file) {
-        ImportTask task = taskService.createTask();
+    public WordUploadStatusResponse submit(MultipartFile file) {
+        ImportTask task = taskService.createTask(file.getOriginalFilename(), file.getContentType());
         String filePath = storeTempFile(task.getTaskId(), file);
         runAsync(task.getTaskId(), filePath);
-        return taskService.toResponse(task);
+        return taskService.toWordUploadStatus(task);
     }
 
     @Async

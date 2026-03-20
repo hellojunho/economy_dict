@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 @Entity
-@Table(name = "import_task")
+@Table(name = "file_uploads")
 public class ImportTask {
     @Id
     @Column(name = "task_id", length = 36, unique = true)
@@ -34,6 +34,12 @@ public class ImportTask {
 
     @Column(name = "error_log", columnDefinition = "text")
     private String errorLog;
+
+    @Column(name = "original_file_name", length = 255)
+    private String originalFileName;
+
+    @Column(name = "file_type", length = 30)
+    private String fileType;
 
     @Column(name = "total_units")
     private Integer totalUnits;
@@ -121,5 +127,21 @@ public class ImportTask {
 
     public void setProcessedUnits(Integer processedUnits) {
         this.processedUnits = processedUnits;
+    }
+
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public void setOriginalFileName(String originalFileName) {
+        this.originalFileName = originalFileName;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 }

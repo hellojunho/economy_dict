@@ -41,10 +41,30 @@ public class OpenAiService {
 
     public List<ExtractedTerm> extractDictionaryTerms(String documentText) {
         String prompt = """
-                You are a precise extractor. Read the document text and extract economic terms.
-                Return ONLY valid JSON array with objects: word, meaning, englishWord, englishMeaning.
-                If englishWord or englishMeaning is not available, set null.
-                Keep words concise and avoid duplicates.
+                You are an expert extractor of economics glossary terms.
+                Task: Extract economics terms from the document for insertion into our database.
+                Database schema (table: words):
+                - id (auto-generated, ignore in output)
+                - word (unique, required)
+                - meaning (required)
+                - english_word (nullable)
+                - english_meaning (nullable)
+                Only include terms whose meaning is explicitly stated in the document.
+                Do NOT use external knowledge or guess missing meanings.
+                If englishWord or englishMeaning are not explicitly stated, set them to null.
+                Output format: valid JSON array ONLY. No markdown, no extra text.
+                Each item must be an object with EXACT keys: word, meaning, englishWord, englishMeaning.
+                Rules:
+                - word must match the term as written in the document.
+                - meaning must match the document statement; otherwise exclude the term.
+                - englishWord and englishMeaning must come only from the document; otherwise null.
+                - Remove duplicates case-insensitively and keep the best entry only.
+                - Keep terms concise; exclude sentences and paragraphs.
+                - If no valid terms exist, output [].
+                Quality check internally before responding:
+                1) Re-scan the document to avoid obvious misses.
+                2) Verify every meaning is grounded in the document.
+                3) Resolve duplicates to a single entry.
                 Document:
                 """ + documentText;
         ChatRequest request = new ChatRequest(model, List.of(
@@ -60,7 +80,7 @@ public class OpenAiService {
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return Collections.emptyList();
         }
-        String content = response.choices.get(0).message.content;
+        String content = extractJsonPayload(response.choices.get(0).message.content);
         try {
             return objectMapper.readValue(content, new TypeReference<List<ExtractedTerm>>() {});
         } catch (Exception e) {
@@ -68,7 +88,113 @@ public class OpenAiService {
         }
     }
 
+    public DefinitionResult getDefinition(String term) {
+        String prompt = """
+                You are an expert extractor of economics glossary terms.
+                Task: produce a database-ready definition for a single economics term.
+                Database schema (table: words):
+                - id (auto-generated, ignore in output)
+                - word (unique, required)
+                - meaning (required)
+                - english_word (nullable)
+                - english_meaning (nullable)
+                Return ONLY valid JSON object with EXACT keys: word, meaning, englishWord, englishMeaning.
+                Rules:
+                - word must be the input term.
+                - meaning must be a concise Korean explanation suitable for an economics glossary.
+                - englishWord and englishMeaning should be null if uncertain.
+                - No markdown, no prose, no code fences.
+                Term: """ + term;
+        ChatRequest request = new ChatRequest(model, List.of(
+                new ChatMessage("system", "You answer in strict JSON only."),
+                new ChatMessage("user", prompt)
+        ));
+        ChatResponse response = webClient.post()
+                .uri("/v1/chat/completions")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatResponse.class)
+                .block();
+        if (response == null || response.choices == null || response.choices.isEmpty()) {
+            return null;
+        }
+        String content = extractJsonPayload(response.choices.get(0).message.content);
+        try {
+            return objectMapper.readValue(content, DefinitionResult.class);
+        } catch (Exception e) {
+            DefinitionResult fallback = new DefinitionResult();
+            fallback.setMeaning(content);
+            fallback.setWord(term);
+            return fallback;
+        }
+    }
+
+    private String extractJsonPayload(String content) {
+        if (content == null) {
+            return "";
+        }
+        String trimmed = content.trim();
+        if (trimmed.startsWith("```")) {
+            trimmed = trimmed.replaceFirst("^```(?:json)?\\s*", "");
+            trimmed = trimmed.replaceFirst("\\s*```$", "");
+        }
+        int objectStart = trimmed.indexOf('{');
+        int arrayStart = trimmed.indexOf('[');
+        if (arrayStart >= 0 && (objectStart < 0 || arrayStart < objectStart)) {
+            int arrayEnd = trimmed.lastIndexOf(']');
+            if (arrayEnd > arrayStart) {
+                return trimmed.substring(arrayStart, arrayEnd + 1);
+            }
+        }
+        if (objectStart >= 0) {
+            int objectEnd = trimmed.lastIndexOf('}');
+            if (objectEnd > objectStart) {
+                return trimmed.substring(objectStart, objectEnd + 1);
+            }
+        }
+        return trimmed;
+    }
+
     public static class ExtractedTerm {
+        private String word;
+        private String meaning;
+        private String englishWord;
+        private String englishMeaning;
+
+        public String getWord() {
+            return word;
+        }
+
+        public void setWord(String word) {
+            this.word = word;
+        }
+
+        public String getMeaning() {
+            return meaning;
+        }
+
+        public void setMeaning(String meaning) {
+            this.meaning = meaning;
+        }
+
+        public String getEnglishWord() {
+            return englishWord;
+        }
+
+        public void setEnglishWord(String englishWord) {
+            this.englishWord = englishWord;
+        }
+
+        public String getEnglishMeaning() {
+            return englishMeaning;
+        }
+
+        public void setEnglishMeaning(String englishMeaning) {
+            this.englishMeaning = englishMeaning;
+        }
+    }
+
+    public static class DefinitionResult {
         private String word;
         private String meaning;
         private String englishWord;

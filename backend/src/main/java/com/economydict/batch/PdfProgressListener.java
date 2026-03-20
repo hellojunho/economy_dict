@@ -4,8 +4,8 @@ import com.economydict.service.ImportTaskService;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.ItemReadListener;
 import org.springframework.batch.core.listener.ItemListenerSupport;
-import org.springframework.batch.item.ItemReadListener;
 
 public class PdfProgressListener extends ItemListenerSupport<String, Object>
         implements StepExecutionListener, ItemReadListener<String> {
@@ -30,8 +30,9 @@ public class PdfProgressListener extends ItemListenerSupport<String, Object>
             return;
         }
         int totalPages = stepExecution.getExecutionContext().getInt("totalPages", 0);
-        int processed = stepExecution.getReadCount();
-        taskService.updateProgress(taskId, processed, totalPages);
+        long processed = stepExecution.getReadCount();
+        int processedInt = processed > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) processed;
+        taskService.updateProgress(taskId, processedInt, totalPages);
     }
 
     @Override

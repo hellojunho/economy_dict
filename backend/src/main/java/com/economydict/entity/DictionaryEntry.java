@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "dictionary", uniqueConstraints = {
+@Table(name = "words", uniqueConstraints = {
         @UniqueConstraint(columnNames = "word")
 })
 public class DictionaryEntry extends BaseEntity {
@@ -28,6 +28,9 @@ public class DictionaryEntry extends BaseEntity {
 
     @Column(name = "english_meaning", length = 500)
     private String englishMeaning;
+
+    @Column(length = 200)
+    private String source;
 
     public Long getId() {
         return id;
@@ -63,5 +66,13 @@ public class DictionaryEntry extends BaseEntity {
 
     public void setEnglishMeaning(String englishMeaning) {
         this.englishMeaning = englishMeaning;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

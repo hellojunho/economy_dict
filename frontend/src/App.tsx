@@ -1,76 +1,108 @@
-import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Terms from './pages/Terms';
-import Dictionary from './pages/Dictionary';
+import Search from './pages/Search';
 import Quiz from './pages/Quiz';
 import MyPage from './pages/MyPage';
 import Admin from './pages/Admin';
-import Chat from './pages/Chat';
-import { getRoleFromToken } from './utils/auth';
+import { clearAuth, getRoleFromToken, hasValidToken } from './utils/auth';
+
+const publicNav = [
+  { to: '/', label: 'Overview' },
+  { to: '/words', label: 'Words' },
+  { to: '/quiz', label: 'Daily Quiz' }
+];
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isAuthPage = location.pathname === '/signin' || location.pathname === '/signup';
-  const hideTopbar = isAuthPage || location.pathname.startsWith('/admin');
+  const isAuthPage = ['/signin', '/signup'].includes(location.pathname);
   const token = localStorage.getItem('accessToken');
+  const hasToken = hasValidToken(token);
   const role = getRoleFromToken(token);
   const isAdmin = role === 'ADMIN';
-  const hasToken = Boolean(token);
 
-  const onLogout = async () => {
+  const handleLogout = async () => {
     try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken') ?? ''}`
-        }
-      });
+      if (token) {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
     } finally {
-      localStorage.removeItem('accessToken');
+      clearAuth();
       navigate('/signin');
     }
   };
+
   return (
-    <div>
-      {!hideTopbar && (
-        <header className="topbar">
-          <div className="container topbar-inner">
-            <nav className="nav-left">
-              <Link to="/">홈</Link>
-              <Link to="/dictionary">사전</Link>
-              <Link to="/quiz">퀴즈</Link>
-              <Link to="/chat">ChatGPT</Link>
-              {!isAdmin && <Link to="/mypage">마이페이지</Link>}
-              {isAdmin && <Link to="/admin">관리자</Link>}
+    <div className="app-shell">
+      {!isAuthPage && (
+        <header className="site-header">
+          <div className="site-frame site-header-inner">
+            <Link to="/" className="brand-mark">
+              <span className="brand-eyebrow">Economy Dictionary & Quiz</span>
+              <strong>Economic Learning Platform</strong>
+            </Link>
+
+            <nav className="site-nav">
+              {publicNav.map((item) => (
+                <Link key={item.to} to={item.to} className="site-nav-link">
+                  {item.label}
+                </Link>
+              ))}
+              {hasToken && !isAdmin && (
+                <Link to="/mypage" className="site-nav-link">
+                  My Page
+                </Link>
+              )}
+              {hasToken && isAdmin && (
+                <Link to="/admin" className="site-nav-link">
+                  Admin
+                </Link>
+              )}
             </nav>
-            <div className="nav-right">
+
+            <div className="site-actions">
               {!hasToken && (
                 <>
-                  <Link to="/signin" className="btn-link">Sign In</Link>
-                  <Link to="/signup" className="btn-link">Sign Up</Link>
+                  <Link to="/signin" className="button button-secondary">
+                    Sign In
+                  </Link>
+                  <Link to="/signup" className="button button-primary">
+                    Sign Up
+                  </Link>
                 </>
               )}
               {hasToken && (
-                <button className="btn-link" onClick={onLogout}>Logout</button>
+                <button type="button" className="button button-secondary" onClick={handleLogout}>
+                  Logout
+                </button>
               )}
             </div>
           </div>
         </header>
       )}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/signin" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/dictionary" element={<Dictionary />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/mypage" element={<MyPage />} />
-        <Route path="/admin" element={<Admin />} />
-      </Routes>
+
+      <main className={isAuthPage ? 'auth-main' : 'site-main'}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/words" element={<Search />} />
+          <Route path="/search" element={<Navigate to="/words" replace />} />
+          <Route path="/dictionary" element={<Navigate to="/words" replace />} />
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/signin" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/chat" element={<Navigate to="/words" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
   );
 }

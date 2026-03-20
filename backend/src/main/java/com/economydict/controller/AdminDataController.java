@@ -8,8 +8,11 @@ import com.economydict.dto.AdminQuizDto;
 import com.economydict.dto.AdminQuizRequest;
 import com.economydict.dto.AdminUserDto;
 import com.economydict.dto.AdminUserRequest;
+import com.economydict.dto.DailyUserStatResponse;
 import com.economydict.dto.DictionaryEntryDto;
 import com.economydict.dto.ImportTaskResponse;
+import com.economydict.dto.RoleUpdateRequest;
+import com.economydict.dto.WordUploadStatusResponse;
 import com.economydict.entity.DictionaryEntry;
 import com.economydict.entity.Quiz;
 import com.economydict.entity.QuizOption;
@@ -21,6 +24,7 @@ import com.economydict.repository.QuizOptionRepository;
 import com.economydict.repository.QuizQuestionRepository;
 import com.economydict.repository.QuizRepository;
 import com.economydict.repository.UserRepository;
+import com.economydict.service.AnalyticsService;
 import com.economydict.service.ImportTaskService;
 import com.economydict.service.PdfImportJobService;
 import jakarta.validation.Valid;
@@ -32,6 +36,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -53,6 +58,7 @@ public class AdminDataController {
     private final QuizOptionRepository quizOptionRepository;
     private final PdfImportJobService pdfImportJobService;
     private final ImportTaskService importTaskService;
+    private final AnalyticsService analyticsService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -61,7 +67,8 @@ public class AdminDataController {
                                QuizQuestionRepository quizQuestionRepository,
                                QuizOptionRepository quizOptionRepository,
                                PdfImportJobService pdfImportJobService,
-                               ImportTaskService importTaskService) {
+                               ImportTaskService importTaskService,
+                               AnalyticsService analyticsService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
@@ -70,11 +77,40 @@ public class AdminDataController {
         this.quizOptionRepository = quizOptionRepository;
         this.pdfImportJobService = pdfImportJobService;
         this.importTaskService = importTaskService;
+        this.analyticsService = analyticsService;
     }
 
     @GetMapping("/users")
     public ResponseEntity<List<AdminUserDto>> listUsers() {
         return ResponseEntity.ok(userRepository.findAll().stream().map(this::toAdminUserDto).collect(Collectors.toList()));
+    }
+
+    @PatchMapping("/users/{id}/role")
+    public ResponseEntity<AdminUserDto> updateRole(@PathVariable Long id, @Valid @RequestBody RoleUpdateRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setRole(request.getRole());
+        return ResponseEntity.ok(toAdminUserDto(userRepository.save(user)));
+    }
+
+    @GetMapping("/stats/daily")
+    public ResponseEntity<List<DailyUserStatResponse>> dailyStats() {
+        analyticsService.refreshDailyStats();
+        analyticsService.refreshTopIncorrectWords();
+        return ResponseEntity.ok(analyticsService.getDailyStats());
+    }
+
+    @GetMapping("/stats/summary")
+    public ResponseEntity<java.util.Map<String, Long>> summary() {
+        long totalUsers = userRepository.count();
+        long activeUsers = userRepository.findAll().stream().filter(user -> user.getStatus() == UserStatus.ACTIVE).count();
+        long totalWords = dictionaryEntryRepository.count();
+        long totalUploads = importTaskService.listRecentTasks().size();
+        return ResponseEntity.ok(java.util.Map.of(
+                "totalUsers", totalUsers,
+                "activeUsers", activeUsers,
+                "totalWords", totalWords,
+                "recentUploads", totalUploads
+        ));
     }
 
     @PostMapping("/users")
@@ -121,32 +157,38 @@ public class AdminDataController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/dictionary")
+    @GetMapping("/words")
     public ResponseEntity<List<DictionaryEntryDto>> listDictionary() {
         return ResponseEntity.ok(dictionaryEntryRepository.findAll().stream().map(this::toDictionaryDto).collect(Collectors.toList()));
     }
 
-    @PostMapping("/dictionary")
+    @PostMapping("/words")
     public ResponseEntity<DictionaryEntryDto> createDictionary(@Valid @RequestBody DictionaryEntryDto dto) {
         DictionaryEntry entry = new DictionaryEntry();
         entry.setWord(dto.getWord());
         entry.setMeaning(dto.getMeaning());
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
+        entry.setSource("MANUAL");
         return ResponseEntity.ok(toDictionaryDto(dictionaryEntryRepository.save(entry)));
     }
 
-    @PostMapping("/dictionary/import-pdf")
-    public ResponseEntity<ImportTaskResponse> importDictionaryPdf(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/words/upload")
+    public ResponseEntity<WordUploadStatusResponse> importDictionaryPdf(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(pdfImportJobService.submit(file));
     }
 
-    @GetMapping("/tasks/{taskId}")
-    public ResponseEntity<ImportTaskResponse> getTask(@PathVariable String taskId) {
-        return ResponseEntity.ok(importTaskService.toResponse(importTaskService.getTask(taskId)));
+    @GetMapping("/words/upload/{taskId}")
+    public ResponseEntity<WordUploadStatusResponse> getUploadStatus(@PathVariable String taskId) {
+        return ResponseEntity.ok(importTaskService.toWordUploadStatus(importTaskService.getTask(taskId)));
     }
 
-    @PutMapping("/dictionary/{id}")
+    @GetMapping("/words/uploads")
+    public ResponseEntity<List<WordUploadStatusResponse>> listUploadStatuses() {
+        return ResponseEntity.ok(importTaskService.listRecentTasks());
+    }
+
+    @PutMapping("/words/{id}")
     public ResponseEntity<DictionaryEntryDto> updateDictionary(@PathVariable Long id, @Valid @RequestBody DictionaryEntryDto dto) {
         DictionaryEntry entry = dictionaryEntryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Dictionary not found"));
         entry.setWord(dto.getWord());
@@ -156,10 +198,40 @@ public class AdminDataController {
         return ResponseEntity.ok(toDictionaryDto(dictionaryEntryRepository.save(entry)));
     }
 
-    @DeleteMapping("/dictionary/{id}")
+    @DeleteMapping("/words/{id}")
     public ResponseEntity<Void> deleteDictionary(@PathVariable Long id) {
         dictionaryEntryRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dictionary")
+    public ResponseEntity<List<DictionaryEntryDto>> listDictionaryLegacy() {
+        return listDictionary();
+    }
+
+    @PostMapping("/dictionary")
+    public ResponseEntity<DictionaryEntryDto> createDictionaryLegacy(@Valid @RequestBody DictionaryEntryDto dto) {
+        return createDictionary(dto);
+    }
+
+    @PutMapping("/dictionary/{id}")
+    public ResponseEntity<DictionaryEntryDto> updateDictionaryLegacy(@PathVariable Long id, @Valid @RequestBody DictionaryEntryDto dto) {
+        return updateDictionary(id, dto);
+    }
+
+    @DeleteMapping("/dictionary/{id}")
+    public ResponseEntity<Void> deleteDictionaryLegacy(@PathVariable Long id) {
+        return deleteDictionary(id);
+    }
+
+    @PostMapping("/dictionary/import-pdf")
+    public ResponseEntity<WordUploadStatusResponse> importDictionaryPdfLegacy(@RequestParam("file") MultipartFile file) {
+        return importDictionaryPdf(file);
+    }
+
+    @GetMapping("/tasks/{taskId}")
+    public ResponseEntity<ImportTaskResponse> getTaskLegacy(@PathVariable String taskId) {
+        return ResponseEntity.ok(importTaskService.toResponse(importTaskService.getTask(taskId)));
     }
 
     @GetMapping("/quizzes")
@@ -270,6 +342,7 @@ public class AdminDataController {
         dto.setMeaning(entry.getMeaning());
         dto.setEnglishWord(entry.getEnglishWord());
         dto.setEnglishMeaning(entry.getEnglishMeaning());
+        dto.setSource(entry.getSource());
         return dto;
     }
 

@@ -13,6 +13,8 @@ public class UserProfileDto {
     private UserStatus status;
     private Instant activatedAt;
     private Instant deactivatedAt;
+    private long learnedWordCount;
+    private double correctRate;
 
     public String getUserId() {
         return userId;
@@ -76,5 +78,21 @@ public class UserProfileDto {
 
     public void setDeactivatedAt(Instant deactivatedAt) {
         this.deactivatedAt = deactivatedAt;
+    }
+
+    public long getLearnedWordCount() {
+        return learnedWordCount;
+    }
+
+    public void setLearnedWordCount(long learnedWordCount) {
+        this.learnedWordCount = learnedWordCount;
+    }
+
+    public double getCorrectRate() {
+        return correctRate;
+    }
+
+    public void setCorrectRate(double correctRate) {
+        this.correctRate = correctRate;
     }
 }

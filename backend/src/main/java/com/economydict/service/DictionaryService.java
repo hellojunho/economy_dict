@@ -28,6 +28,7 @@ public class DictionaryService {
         entry.setMeaning(dto.getMeaning());
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
+        entry.setSource(dto.getSource() == null || dto.getSource().isBlank() ? "MANUAL" : dto.getSource());
         DictionaryEntry saved = repository.save(entry);
         return toDto(saved);
     }
@@ -39,6 +40,7 @@ public class DictionaryService {
         dto.setMeaning(entry.getMeaning());
         dto.setEnglishWord(entry.getEnglishWord());
         dto.setEnglishMeaning(entry.getEnglishMeaning());
+        dto.setSource(entry.getSource());
         return dto;
     }
 }

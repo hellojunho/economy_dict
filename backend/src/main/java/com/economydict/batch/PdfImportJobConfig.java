@@ -53,7 +53,7 @@ public class PdfImportJobConfig {
                 .processor(pdfExtractProcessor)
                 .writer(termWriter)
                 .listener(stepListener)
-                .listener(pdfProgressListener)
+                .listener((org.springframework.batch.core.ItemReadListener<String>) pdfProgressListener)
                 .build();
     }
 

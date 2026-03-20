@@ -1,11 +1,14 @@
 package com.economydict.service;
 
 import com.economydict.dto.ImportTaskResponse;
+import com.economydict.dto.WordUploadStatusResponse;
 import com.economydict.entity.ImportTask;
 import com.economydict.entity.ImportTaskState;
 import com.economydict.repository.ImportTaskRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +24,15 @@ public class ImportTaskService {
         task.setTaskId(UUID.randomUUID().toString());
         task.setState(ImportTaskState.READY);
         task.setCreatedAt(Instant.now());
+        task.setProcessedUnits(0);
+        task.setTotalUnits(0);
+        return importTaskRepository.save(task);
+    }
+
+    public ImportTask createTask(String originalFileName, String fileType) {
+        ImportTask task = createTask();
+        task.setOriginalFileName(originalFileName);
+        task.setFileType(fileType);
         return importTaskRepository.save(task);
     }
 
@@ -69,6 +81,12 @@ public class ImportTaskService {
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
     }
 
+    public List<WordUploadStatusResponse> listRecentTasks() {
+        return importTaskRepository.findTop20ByOrderByCreatedAtDesc().stream()
+                .map(this::toWordUploadStatus)
+                .collect(Collectors.toList());
+    }
+
     public ImportTaskResponse toResponse(ImportTask task) {
         ImportTaskResponse response = new ImportTaskResponse();
         response.setTaskId(task.getTaskId());
@@ -85,6 +103,25 @@ public class ImportTaskService {
             response.setProgressPercent(Math.min(100.0, percent));
         } else {
             response.setProgressPercent(0.0);
+        }
+        return response;
+    }
+
+    public WordUploadStatusResponse toWordUploadStatus(ImportTask task) {
+        WordUploadStatusResponse response = new WordUploadStatusResponse();
+        response.setFileId(task.getTaskId());
+        response.setStatus(task.getState().name());
+        response.setProgressPercent(task.getTotalUnits() != null && task.getTotalUnits() > 0 && task.getProcessedUnits() != null
+                ? Math.min(100.0, task.getProcessedUnits() * 100.0 / task.getTotalUnits())
+                : 0.0);
+        response.setEstimatedTime(response.getProgressPercent() >= 100.0 ? "0m" : "Calculating");
+        response.setErrorLog(task.getErrorLog());
+        switch (task.getState()) {
+            case READY -> response.setMessage("파일 업로드가 접수되었습니다.");
+            case STARTED, PENDING -> response.setMessage("파일 분석이 진행 중입니다.");
+            case FINISHED -> response.setMessage("파일 분석이 완료되었습니다.");
+            case FAILED -> response.setMessage("파일 분석이 실패했습니다.");
+            default -> response.setMessage("상태를 확인하세요.");
         }
         return response;
     }

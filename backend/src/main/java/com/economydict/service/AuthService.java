@@ -5,6 +5,7 @@ import com.economydict.dto.AuthLoginRequest;
 import com.economydict.dto.AuthSignupRequest;
 import com.economydict.entity.RevokedToken;
 import com.economydict.entity.User;
+import com.economydict.entity.UserLogAction;
 import com.economydict.entity.UserStatus;
 import com.economydict.repository.RevokedTokenRepository;
 import com.economydict.repository.UserRepository;
@@ -23,17 +24,20 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final RevokedTokenRepository revokedTokenRepository;
+    private final UserLogService userLogService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        AuthenticationManager authenticationManager,
                        JwtTokenProvider tokenProvider,
-                       RevokedTokenRepository revokedTokenRepository) {
+                       RevokedTokenRepository revokedTokenRepository,
+                       UserLogService userLogService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.revokedTokenRepository = revokedTokenRepository;
+        this.userLogService = userLogService;
     }
 
     @Transactional
@@ -49,10 +53,12 @@ public class AuthService {
         user.setProfilePicture(request.getProfilePicture());
         user.setStatus(UserStatus.ACTIVE);
         user.setActivatedAt(Instant.now());
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        userLogService.log(saved, UserLogAction.SIGNUP, "User signed up");
+        return saved;
     }
 
-    public String login(AuthLoginRequest request) {
+    public User login(AuthLoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUserId(), request.getPassword())
         );
@@ -61,7 +67,8 @@ public class AuthService {
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new IllegalStateException("User is deactivated");
         }
-        return tokenProvider.createToken(user);
+        userLogService.log(user, UserLogAction.LOGIN, "User logged in");
+        return user;
     }
 
     @Transactional
@@ -85,5 +92,10 @@ public class AuthService {
         user.setStatus(UserStatus.DEACTIVATED);
         user.setDeactivatedAt(Instant.now());
         userRepository.save(user);
+        userLogService.log(user, UserLogAction.WITHDRAW, "User withdrew");
+    }
+
+    public String createAccessToken(User user) {
+        return tokenProvider.createToken(user);
     }
 }

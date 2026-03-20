@@ -13,6 +13,7 @@ public class DictionaryEntryDto {
 
     private String englishWord;
     private String englishMeaning;
+    private String source;
 
     public Long getId() {
         return id;
@@ -52,5 +53,13 @@ public class DictionaryEntryDto {
 
     public void setEnglishMeaning(String englishMeaning) {
         this.englishMeaning = englishMeaning;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

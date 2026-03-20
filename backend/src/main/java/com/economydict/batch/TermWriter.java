@@ -4,6 +4,7 @@ import com.economydict.entity.DictionaryEntry;
 import com.economydict.repository.DictionaryEntryRepository;
 import com.economydict.service.OpenAiService;
 import java.util.List;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 
 public class TermWriter implements ItemWriter<List<OpenAiService.ExtractedTerm>> {
@@ -14,7 +15,7 @@ public class TermWriter implements ItemWriter<List<OpenAiService.ExtractedTerm>>
     }
 
     @Override
-    public void write(List<? extends List<OpenAiService.ExtractedTerm>> items) {
+    public void write(Chunk<? extends List<OpenAiService.ExtractedTerm>> items) {
         for (List<OpenAiService.ExtractedTerm> terms : items) {
             for (OpenAiService.ExtractedTerm term : terms) {
                 if (term.getWord() == null || term.getWord().isBlank()) {
@@ -29,6 +30,7 @@ public class TermWriter implements ItemWriter<List<OpenAiService.ExtractedTerm>>
                 entry.setMeaning(term.getMeaning() == null ? "" : term.getMeaning());
                 entry.setEnglishWord(term.getEnglishWord());
                 entry.setEnglishMeaning(term.getEnglishMeaning());
+                entry.setSource("AI_IMPORT");
                 dictionaryEntryRepository.save(entry);
             }
         }
