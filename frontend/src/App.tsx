@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -7,33 +8,39 @@ import Search from './pages/Search';
 import Quiz from './pages/Quiz';
 import MyPage from './pages/MyPage';
 import Admin from './pages/Admin';
-import { clearAuth, getRoleFromToken, hasValidToken } from './utils/auth';
+import Chat from './pages/Chat';
+import client from './api/client';
+import { useAuthStore } from './stores/authStore';
 
 const publicNav = [
   { to: '/', label: 'Overview' },
   { to: '/words', label: 'Words' },
-  { to: '/quiz', label: 'Daily Quiz' }
+  { to: '/quiz', label: 'Daily Quiz' },
+  { to: '/chat', label: 'AI Chat' }
 ];
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthPage = ['/signin', '/signup'].includes(location.pathname);
-  const token = localStorage.getItem('accessToken');
-  const hasToken = hasValidToken(token);
-  const role = getRoleFromToken(token);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const role = useAuthStore((state) => state.role);
+  const hydrateAuth = useAuthStore((state) => state.hydrateAuth);
+  const clearSession = useAuthStore((state) => state.clearSession);
   const isAdmin = role === 'ADMIN';
+
+  useEffect(() => {
+    hydrateAuth();
+  }, [hydrateAuth]);
 
   const handleLogout = async () => {
     try {
-      if (token) {
-        await fetch('/api/logout', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      if (accessToken) {
+        await client.post('/logout');
       }
     } finally {
-      clearAuth();
+      clearSession();
       navigate('/signin');
     }
   };
@@ -54,12 +61,12 @@ export default function App() {
                   {item.label}
                 </Link>
               ))}
-              {hasToken && !isAdmin && (
+              {isAuthenticated && !isAdmin && (
                 <Link to="/mypage" className="site-nav-link">
                   My Page
                 </Link>
               )}
-              {hasToken && isAdmin && (
+              {isAuthenticated && isAdmin && (
                 <Link to="/admin" className="site-nav-link">
                   Admin
                 </Link>
@@ -67,7 +74,7 @@ export default function App() {
             </nav>
 
             <div className="site-actions">
-              {!hasToken && (
+              {!isAuthenticated && (
                 <>
                   <Link to="/signin" className="button button-secondary">
                     Sign In
@@ -77,7 +84,7 @@ export default function App() {
                   </Link>
                 </>
               )}
-              {hasToken && (
+              {isAuthenticated && (
                 <button type="button" className="button button-secondary" onClick={handleLogout}>
                   Logout
                 </button>
@@ -94,12 +101,12 @@ export default function App() {
           <Route path="/search" element={<Navigate to="/words" replace />} />
           <Route path="/dictionary" element={<Navigate to="/words" replace />} />
           <Route path="/quiz" element={<Quiz />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/signin" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/terms" element={<Terms />} />
-          <Route path="/chat" element={<Navigate to="/words" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

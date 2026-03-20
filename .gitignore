@@ -1,3 +1,9 @@
 application.properties
 backend/src/main/resources/application.properties
 backend/files/
+backend/logs/
+backend/chats/
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/

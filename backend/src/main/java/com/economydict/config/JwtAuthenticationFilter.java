@@ -32,8 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = resolveToken(request);
-        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-            if (!revokedTokenRepository.existsByToken(token)) {
+        if (StringUtils.hasText(token)) {
+            if (!tokenProvider.validateToken(token)) {
+                markAuthError(request, "INVALID_TOKEN", "The supplied access token is invalid or expired.", "Generate a new token by signing in again.");
+            } else if (revokedTokenRepository.existsByToken(token)) {
+                markAuthError(request, "TOKEN_REVOKED", "The supplied access token has already been logged out.", "Sign in again to obtain a new token.");
+            } else {
                 String userId = tokenProvider.getUserId(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -51,5 +55,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearer.substring(7);
         }
         return null;
+    }
+
+    private void markAuthError(HttpServletRequest request, String code, String message, String detail) {
+        request.setAttribute("auth.error.code", code);
+        request.setAttribute("auth.error.message", message);
+        request.setAttribute("auth.error.detail", detail);
     }
 }

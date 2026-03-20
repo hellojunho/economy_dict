@@ -1,16 +1,19 @@
 import { FormEvent, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import client from '../api/client';
-import { hasValidToken } from '../utils/auth';
+import { useAuthStore } from '../stores/authStore';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function Signup() {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const role = useAuthStore((state) => state.role);
   const [form, setForm] = useState({ userId: '', username: '', password: '', email: '' });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (hasValidToken(localStorage.getItem('accessToken'))) {
-    return <Navigate to="/" replace />;
+  if (isAuthenticated) {
+    return <Navigate to={role === 'ADMIN' ? '/admin' : '/'} replace />;
   }
 
   const handleSubmit = async (event: FormEvent) => {
@@ -20,8 +23,8 @@ export default function Signup() {
     try {
       await client.post('/signup', form);
       navigate('/signin');
-    } catch {
-      setMessage('회원가입에 실패했습니다. 입력값을 다시 확인하세요.');
+    } catch (error) {
+      setMessage(getApiErrorMessage(error, '회원가입에 실패했습니다. 입력값을 다시 확인하세요.'));
     } finally {
       setLoading(false);
     }

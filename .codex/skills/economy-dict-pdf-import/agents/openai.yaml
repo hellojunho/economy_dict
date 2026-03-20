@@ -1,0 +1,4 @@
+interface:
+  display_name: "Economy Dict PDF Import"
+  short_description: "Work on async PDF import, batch jobs, and task progress"
+  default_prompt: "Modify the economy_dict PDF import pipeline while preserving async task tracking, upload limits, progress visibility, and failure logging."

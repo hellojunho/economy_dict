@@ -1,88 +1,27 @@
-import { FormEvent, useEffect, useState } from 'react';
-import client from '../api/client';
-
-type WordRecord = {
-  id: number;
-  word: string;
-  meaning: string;
-  englishWord?: string | null;
-  englishMeaning?: string | null;
-  source?: string | null;
-};
-
-type WordPage = {
-  content: WordRecord[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-};
+import { FormEvent, useEffect } from 'react';
+import { useSearchStore } from '../stores/searchStore';
 
 export default function Search() {
-  const [query, setQuery] = useState('');
-  const [lookupResult, setLookupResult] = useState<WordRecord | null>(null);
-  const [listResponse, setListResponse] = useState<WordPage | null>(null);
-  const [selectedWord, setSelectedWord] = useState<WordRecord | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [page, setPage] = useState(0);
+  const query = useSearchStore((state) => state.query);
+  const lookupResult = useSearchStore((state) => state.lookupResult);
+  const listResponse = useSearchStore((state) => state.listResponse);
+  const selectedWord = useSearchStore((state) => state.selectedWord);
+  const loading = useSearchStore((state) => state.loading);
+  const message = useSearchStore((state) => state.message);
+  const page = useSearchStore((state) => state.page);
+  const setQuery = useSearchStore((state) => state.setQuery);
+  const selectWord = useSearchStore((state) => state.selectWord);
+  const initialize = useSearchStore((state) => state.initialize);
+  const search = useSearchStore((state) => state.search);
+  const changePage = useSearchStore((state) => state.changePage);
 
-  const loadWords = async (nextQuery: string, nextPage: number) => {
-    const response = await client.get<WordPage>('/words', {
-      params: {
-        q: nextQuery || undefined,
-        page: nextPage,
-        size: 12
-      }
-    });
-    setListResponse(response.data);
-    if (response.data.content.length > 0) {
-      setSelectedWord((current) => current && response.data.content.some((item) => item.id === current.id)
-        ? current
-        : response.data.content[0]);
-    } else {
-      setSelectedWord(null);
-    }
-  };
-
-  const lookupWord = async (term: string) => {
-    if (!term.trim()) {
-      setLookupResult(null);
-      return;
-    }
-    const response = await client.get<WordRecord>('/words/lookup', { params: { q: term } });
-    setLookupResult(response.data);
-    setSelectedWord(response.data);
-  };
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   const handleSearch = async (event?: FormEvent) => {
     event?.preventDefault();
-    setLoading(true);
-    setMessage('');
-    try {
-      await Promise.all([loadWords(query, 0), lookupWord(query)]);
-      setPage(0);
-    } catch {
-      setMessage('검색 요청을 처리하지 못했습니다. 잠시 후 다시 시도하세요.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadWords('', 0).catch(() => setMessage('용어 목록을 불러오지 못했습니다.'));
-  }, []);
-
-  const changePage = async (nextPage: number) => {
-    setLoading(true);
-    try {
-      await loadWords(query, nextPage);
-      setPage(nextPage);
-    } catch {
-      setMessage('페이지를 이동하지 못했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    await search();
   };
 
   return (
@@ -122,7 +61,7 @@ export default function Search() {
                 key={item.id}
                 type="button"
                 className={`word-row ${selectedWord?.id === item.id ? 'selected' : ''}`}
-                onClick={() => setSelectedWord(item)}
+                onClick={() => selectWord(item)}
               >
                 <div>
                   <strong>{item.word}</strong>

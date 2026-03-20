@@ -1,0 +1,4 @@
+interface:
+  display_name: "Economy Dict Fullstack"
+  short_description: "Work on the full Spring Boot + React stack in this repository"
+  default_prompt: "Use the repository conventions for economy_dict and make coordinated backend, frontend, and Docker changes without breaking auth, admin flows, or REST contracts."

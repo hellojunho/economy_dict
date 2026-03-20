@@ -2,7 +2,7 @@ package com.economydict.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class ChatRequest {
+public class ChatMessageRequest {
     @NotBlank
     private String message;
 

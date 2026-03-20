@@ -26,7 +26,26 @@ public class OpenAiService {
     }
 
     public String chat(String message) {
-        ChatRequest request = new ChatRequest(model, List.of(new ChatMessage("user", message)));
+        return chat(List.of(new ChatTurn("user", message)));
+    }
+
+    public String chat(List<ChatTurn> conversation) {
+        List<ChatMessage> messages = new java.util.ArrayList<>();
+        messages.add(new ChatMessage(
+                "system",
+                """
+                You are a senior Korean economics specialist and tutor.
+                Explain concepts as if speaking with a real economics expert.
+                Stay focused on economics, finance, macroeconomics, microeconomics, investing, and policy.
+                Prefer Korean in your answers.
+                Keep explanations precise, structured, and practical.
+                If the user's question is outside economics, answer briefly and steer back to economics context.
+                """
+        ));
+        for (ChatTurn turn : conversation) {
+            messages.add(new ChatMessage(turn.getRole(), turn.getContent()));
+        }
+        ChatRequest request = new ChatRequest(model, messages);
         ChatResponse response = webClient.post()
                 .uri("/v1/chat/completions")
                 .bodyValue(request)
@@ -230,6 +249,24 @@ public class OpenAiService {
 
         public void setEnglishMeaning(String englishMeaning) {
             this.englishMeaning = englishMeaning;
+        }
+    }
+
+    public static class ChatTurn {
+        private final String role;
+        private final String content;
+
+        public ChatTurn(String role, String content) {
+            this.role = role;
+            this.content = content;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public String getContent() {
+            return content;
         }
     }
 

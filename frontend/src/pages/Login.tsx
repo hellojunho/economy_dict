@@ -1,16 +1,20 @@
 import { FormEvent, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import client from '../api/client';
-import { hasValidToken } from '../utils/auth';
+import { useAuthStore } from '../stores/authStore';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function Login() {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const role = useAuthStore((state) => state.role);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const [credentials, setCredentials] = useState({ userId: '', password: '' });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (hasValidToken(localStorage.getItem('accessToken'))) {
-    return <Navigate to="/" replace />;
+  if (isAuthenticated) {
+    return <Navigate to={role === 'ADMIN' ? '/admin' : '/'} replace />;
   }
 
   const handleSubmit = async (event: FormEvent) => {
@@ -19,10 +23,10 @@ export default function Login() {
     setMessage('');
     try {
       const response = await client.post('/token', credentials);
-      localStorage.setItem('accessToken', response.data.accessToken);
+      setAccessToken(response.data.accessToken);
       navigate(response.data.role === 'ADMIN' ? '/admin' : '/mypage');
-    } catch {
-      setMessage('로그인에 실패했습니다. 계정 정보를 다시 확인하세요.');
+    } catch (error) {
+      setMessage(getApiErrorMessage(error, '로그인에 실패했습니다. 계정 정보를 다시 확인하세요.'));
     } finally {
       setLoading(false);
     }

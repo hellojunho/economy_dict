@@ -1,0 +1,4 @@
+interface:
+  display_name: "Economy Dict UI Minimal"
+  short_description: "Keep the frontend white, formal, and minimal"
+  default_prompt: "Redesign the requested frontend surface using the economy_dict minimal white UI rules, with restrained styling and clean structure."

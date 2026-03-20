@@ -1,0 +1,4 @@
+interface:
+  display_name: "Economy Dict Glossary Prompting"
+  short_description: "Refine OpenAI prompts for glossary extraction and explanations"
+  default_prompt: "Revise the economy_dict OpenAI prompt so the response is accurate, concise, and safe for structured DB insertion."

@@ -1,99 +1,28 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import client from '../api/client';
-import { hasValidToken } from '../utils/auth';
-
-type DailyQuizQuestion = {
-  wordId: number;
-  term: string;
-  options: string[];
-};
-
-type DailyQuizResponse = {
-  questions: DailyQuizQuestion[];
-};
-
-type QuizResult = {
-  totalCount: number;
-  correctCount: number;
-};
-
-type IncorrectWord = {
-  wordId: number;
-  term: string;
-  definition: string;
-};
-
-type TopWord = {
-  rank: number;
-  wordId: number;
-  term: string;
-  incorrectCount: number;
-  definition: string;
-};
+import { useAuthStore } from '../stores/authStore';
+import { useQuizStore } from '../stores/quizStore';
 
 export default function Quiz() {
-  const [dailyQuiz, setDailyQuiz] = useState<DailyQuizResponse | null>(null);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [incorrectWords, setIncorrectWords] = useState<IncorrectWord[]>([]);
-  const [topWords, setTopWords] = useState<TopWord[]>([]);
-  const [result, setResult] = useState<QuizResult | null>(null);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const signedIn = hasValidToken(localStorage.getItem('accessToken'));
-
-  const loadQuiz = async () => {
-    if (!signedIn) {
-      return;
-    }
-    const response = await client.get<DailyQuizResponse>('/quizzes/daily');
-    setDailyQuiz(response.data);
-  };
-
-  const loadIncorrectWords = async () => {
-    if (!signedIn) {
-      return;
-    }
-    const response = await client.get<IncorrectWord[]>('/quizzes/incorrect');
-    setIncorrectWords(response.data);
-  };
-
-  const loadTopWords = async () => {
-    const response = await client.get<TopWord[]>('/quizzes/top-100');
-    setTopWords(response.data.slice(0, 10));
-  };
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const dailyQuiz = useQuizStore((state) => state.dailyQuiz);
+  const answers = useQuizStore((state) => state.answers);
+  const incorrectWords = useQuizStore((state) => state.incorrectWords);
+  const topWords = useQuizStore((state) => state.topWords);
+  const result = useQuizStore((state) => state.result);
+  const message = useQuizStore((state) => state.message);
+  const loading = useQuizStore((state) => state.loading);
+  const initialize = useQuizStore((state) => state.initialize);
+  const selectAnswer = useQuizStore((state) => state.selectAnswer);
+  const submit = useQuizStore((state) => state.submit);
 
   useEffect(() => {
-    loadTopWords().catch(() => setTopWords([]));
-    if (signedIn) {
-      loadQuiz().catch(() => setMessage('데일리 퀴즈를 불러오지 못했습니다.'));
-      loadIncorrectWords().catch(() => setIncorrectWords([]));
-    }
-  }, [signedIn]);
+    initialize(isAuthenticated);
+  }, [isAuthenticated, initialize]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!dailyQuiz) {
-      return;
-    }
-    setLoading(true);
-    setMessage('');
-    try {
-      const payload = {
-        answers: dailyQuiz.questions.map((question) => ({
-          wordId: question.wordId,
-          selectedAnswer: answers[question.wordId] ?? ''
-        }))
-      };
-      const response = await client.post<QuizResult>('/quizzes/submit', payload);
-      setResult(response.data);
-      await loadIncorrectWords();
-      await loadTopWords();
-    } catch {
-      setMessage('퀴즈 제출에 실패했습니다. 모든 문항을 확인하세요.');
-    } finally {
-      setLoading(false);
-    }
+    await submit();
   };
 
   const completion = useMemo(() => {
@@ -113,7 +42,7 @@ export default function Quiz() {
           <h1>오늘의 경제 용어 퀴즈</h1>
           <p className="panel-copy">로그인한 사용자에게 10문항 데일리 퀴즈를 제공하고, 결과는 오답 노트와 상위 오답 집계에 반영됩니다.</p>
         </div>
-        {signedIn && (
+        {isAuthenticated && (
           <div className="progress-card">
             <span>Completion</span>
             <strong>{completion}%</strong>
@@ -124,7 +53,7 @@ export default function Quiz() {
         )}
       </section>
 
-      {!signedIn && (
+      {!isAuthenticated && (
         <section className="panel callout-panel">
           <h2>로그인이 필요합니다.</h2>
           <p className="panel-copy">데일리 퀴즈와 오답 노트는 인증된 사용자 기준으로 기록됩니다.</p>
@@ -132,7 +61,7 @@ export default function Quiz() {
         </section>
       )}
 
-      {signedIn && dailyQuiz && (
+      {isAuthenticated && dailyQuiz && (
         <form className="panel quiz-form-panel" onSubmit={handleSubmit}>
           <div className="panel-head">
             <div>
@@ -158,7 +87,7 @@ export default function Quiz() {
                         type="radio"
                         name={`word-${question.wordId}`}
                         checked={answers[question.wordId] === option}
-                        onChange={() => setAnswers((current) => ({ ...current, [question.wordId]: option }))}
+                        onChange={() => selectAnswer(question.wordId, option)}
                       />
                       <span>{option}</span>
                     </label>
@@ -186,8 +115,8 @@ export default function Quiz() {
             </div>
           </div>
           <div className="stack-list">
-            {signedIn && incorrectWords.length === 0 && <p className="muted">기록된 오답이 없습니다.</p>}
-            {!signedIn && <p className="muted">로그인 후 개인 오답 노트를 확인할 수 있습니다.</p>}
+            {isAuthenticated && incorrectWords.length === 0 && <p className="muted">기록된 오답이 없습니다.</p>}
+            {!isAuthenticated && <p className="muted">로그인 후 개인 오답 노트를 확인할 수 있습니다.</p>}
             {incorrectWords.map((item) => (
               <div key={item.wordId} className="list-row-block">
                 <strong>{item.term}</strong>

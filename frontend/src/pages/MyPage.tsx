@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import client from '../api/client';
-import { clearAuth, getRoleFromToken, hasValidToken } from '../utils/auth';
+import { useAuthStore } from '../stores/authStore';
+import { getApiErrorMessage } from '../utils/apiError';
 
 type Profile = {
   userId: string;
@@ -15,15 +16,16 @@ type Profile = {
 };
 
 export default function MyPage() {
-  const token = localStorage.getItem('accessToken');
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const role = useAuthStore((state) => state.role);
+  const clearSession = useAuthStore((state) => state.clearSession);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const role = getRoleFromToken(token);
-  if (!hasValidToken(token)) {
+  if (!isAuthenticated) {
     return <Navigate to="/signin" replace />;
   }
   if (role === 'ADMIN') {
@@ -41,7 +43,7 @@ export default function MyPage() {
   };
 
   useEffect(() => {
-    loadProfile().catch(() => setMessage('프로필을 불러오지 못했습니다.'));
+    loadProfile().catch((error) => setMessage(getApiErrorMessage(error, '프로필을 불러오지 못했습니다.')));
   }, []);
 
   const handleSave = async (event: FormEvent) => {
@@ -53,8 +55,8 @@ export default function MyPage() {
       setProfile(response.data);
       setForm((current) => ({ ...current, password: '' }));
       setMessage('프로필이 저장되었습니다.');
-    } catch {
-      setMessage('프로필 저장에 실패했습니다.');
+    } catch (error) {
+      setMessage(getApiErrorMessage(error, '프로필 저장에 실패했습니다.'));
     } finally {
       setSaving(false);
     }
@@ -64,7 +66,7 @@ export default function MyPage() {
     try {
       await client.post('/logout');
     } finally {
-      clearAuth();
+      clearSession();
       navigate('/signin');
     }
   };
@@ -75,7 +77,7 @@ export default function MyPage() {
       return;
     }
     await client.delete('/users/me');
-    clearAuth();
+    clearSession();
     navigate('/');
   };
 
@@ -148,7 +150,7 @@ export default function MyPage() {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </form>
-          {message && <p className={`form-message ${message.includes('실패') ? 'error-text' : 'success-text'}`}>{message}</p>}
+          {message && <p className={`form-message ${message.includes('실패') || message.includes('못') ? 'error-text' : 'success-text'}`}>{message}</p>}
           <p className="muted">데일리 퀴즈는 <Link to="/quiz">Quiz</Link> 화면에서 바로 이어서 풀 수 있습니다.</p>
         </aside>
       </section>

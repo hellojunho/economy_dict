@@ -20,8 +20,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/economy_dict
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      LOG_PATH: /app/backend/logs
     depends_on:
       - db
+    volumes:
+      - ./backend/logs:/app/backend/logs
+      - ./backend/chats:/app/backend/chats
 
   nginx:
     build:
