@@ -24,6 +24,21 @@ export type AdminWord = {
   sourceName?: string | null;
 };
 
+export type AdminWordPage = {
+  content: AdminWord[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type AdminEnglishTranslationSummary = {
+  processedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  failedCount: number;
+};
+
 export type SourceOption = {
   id: number;
   name: string;
@@ -84,12 +99,15 @@ type AdminState = {
   stats: DailyStat[];
   users: AdminUser[];
   words: AdminWord[];
+  wordListResponse: AdminWordPage | null;
+  wordPage: number;
   uploads: UploadTask[];
   sourceOptions: SourceOption[];
   fileTypeOptions: FileTypeOption[];
   message: string;
   loading: boolean;
   uploading: boolean;
+  translatingWords: boolean;
   selectedFile: File | null;
   uploadSourceId: string;
   uploadSourceName: string;
@@ -107,13 +125,17 @@ type AdminState = {
   resetWordForm: () => void;
   clearMessage: () => void;
   refreshCurrentSection: () => Promise<void>;
+  changeWordPage: (page: number) => Promise<void>;
   loadUploads: () => Promise<void>;
   saveUser: () => Promise<void>;
   deleteUser: (id: number) => Promise<void>;
   saveWord: () => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
+  translateWordsToEnglish: () => Promise<void>;
   uploadSelectedFile: () => Promise<void>;
 };
+
+const WORDS_PAGE_SIZE = 10;
 
 const defaultUserForm: UserFormState = {
   id: 0,
@@ -155,8 +177,13 @@ async function fetchUsers() {
   return response.data;
 }
 
-async function fetchWords() {
-  const response = await client.get<AdminWord[]>('/admin/words');
+async function fetchWords(page: number) {
+  const response = await client.get<AdminWordPage>('/admin/words', {
+    params: {
+      page,
+      size: WORDS_PAGE_SIZE
+    }
+  });
   return response.data;
 }
 
@@ -187,18 +214,31 @@ function buildWordPayload(wordForm: WordFormState) {
   };
 }
 
+async function fetchWordSection(page: number) {
+  const [wordListResponse, sourceOptions, fileTypeOptions] = await Promise.all([
+    fetchWords(page),
+    fetchSources(),
+    fetchFileTypes()
+  ]);
+
+  return { wordListResponse, sourceOptions, fileTypeOptions };
+}
+
 export const useAdminStore = create<AdminState>((set, get) => ({
   section: 'overview',
   summary: null,
   stats: [],
   users: [],
   words: [],
+  wordListResponse: null,
+  wordPage: 0,
   uploads: [],
   sourceOptions: [],
   fileTypeOptions: [],
   message: '',
   loading: false,
   uploading: false,
+  translatingWords: false,
   selectedFile: null,
   uploadSourceId: '',
   uploadSourceName: '',
@@ -248,8 +288,15 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         set({ users: await fetchUsers() });
       }
       if (section === 'words') {
-        const [words, sourceOptions, fileTypeOptions] = await Promise.all([fetchWords(), fetchSources(), fetchFileTypes()]);
-        set({ words, sourceOptions, fileTypeOptions });
+        const { wordPage } = get();
+        const { wordListResponse, sourceOptions, fileTypeOptions } = await fetchWordSection(wordPage);
+        set({
+          words: wordListResponse.content,
+          wordListResponse,
+          wordPage: wordListResponse.page,
+          sourceOptions,
+          fileTypeOptions
+        });
       }
       if (section === 'uploads') {
         const [uploads, sourceOptions] = await Promise.all([fetchUploads(), fetchSources()]);
@@ -257,6 +304,21 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }
     } catch (error) {
       set({ message: getApiErrorMessage(error, '관리자 데이터를 불러오지 못했습니다.') });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  changeWordPage: async (page) => {
+    set({ loading: true, message: '' });
+    try {
+      const wordListResponse = await fetchWords(page);
+      set({
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '단어 페이지를 불러오지 못했습니다.') });
     } finally {
       set({ loading: false });
     }
@@ -298,14 +360,23 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     const { wordForm } = get();
     set({ message: '' });
     try {
+      const targetPage = wordForm.id ? get().wordPage : 0;
       const payload = buildWordPayload(wordForm);
       if (wordForm.id) {
         await client.put(`/admin/words/${wordForm.id}`, payload);
       } else {
         await client.post('/admin/words', payload);
       }
-      const [words, sourceOptions] = await Promise.all([fetchWords(), fetchSources()]);
-      set({ wordForm: defaultWordForm, words, sourceOptions, message: '단어 정보가 저장되었습니다.' });
+      const { wordListResponse, sourceOptions, fileTypeOptions } = await fetchWordSection(targetPage);
+      set({
+        wordForm: defaultWordForm,
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page,
+        sourceOptions,
+        fileTypeOptions,
+        message: '단어 정보가 저장되었습니다.'
+      });
     } catch (error) {
       set({ message: getApiErrorMessage(error, '단어 정보를 저장하지 못했습니다.') });
     }
@@ -313,13 +384,38 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   deleteWord: async (id) => {
     try {
       await client.delete(`/admin/words/${id}`);
-      const words = await fetchWords();
+      const currentPage = get().wordPage;
+      let wordListResponse = await fetchWords(currentPage);
+      if (!wordListResponse.content.length && currentPage > 0) {
+        wordListResponse = await fetchWords(currentPage - 1);
+      }
       set((state) => ({
-        words,
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page,
         wordForm: state.wordForm.id === id ? defaultWordForm : state.wordForm
       }));
     } catch (error) {
       set({ message: getApiErrorMessage(error, '단어 삭제에 실패했습니다.') });
+    }
+  },
+  translateWordsToEnglish: async () => {
+    set({ translatingWords: true, message: '' });
+    try {
+      const response = await client.post<AdminEnglishTranslationSummary>('/admin/words/to-english');
+      const { wordPage } = get();
+      const wordListResponse = await fetchWords(wordPage);
+      const { processedCount, updatedCount, skippedCount, failedCount } = response.data;
+      set({
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page,
+        message: `영문화 작업 완료: 전체 ${processedCount}건, 업데이트 ${updatedCount}건, 건너뜀 ${skippedCount}건, 실패 ${failedCount}건`
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '영문화 작업에 실패했습니다.') });
+    } finally {
+      set({ translatingWords: false });
     }
   },
   uploadSelectedFile: async () => {

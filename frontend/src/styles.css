@@ -678,6 +678,11 @@ textarea {
   letter-spacing: 0.08em;
 }
 
+.table-empty {
+  color: #6b7280;
+  text-align: center;
+}
+
 .link-button,
 .chat-thread-delete {
   padding: 0;

@@ -276,6 +276,63 @@ public class OpenAiService {
         }
     }
 
+    public DefinitionResult translateTermToEnglish(String term, String rawMeaning) {
+        DefinitionResult fallback = new DefinitionResult();
+        fallback.setWord(term);
+        fallback.setMeaning(rawMeaning);
+
+        if (term == null || term.isBlank()) {
+            return fallback;
+        }
+
+        String prompt = """
+                You are translating Korean economics glossary entries for database storage.
+                Return ONLY a valid JSON object with EXACT keys:
+                word, meaning, englishWord, englishMeaning
+
+                Rules:
+                - word must equal the supplied Korean term.
+                - meaning must stay unchanged from the supplied Korean meaning.
+                - englishWord must be the most common English economics term.
+                - englishMeaning must be a concise English explanation suitable for storage.
+                - If uncertain, use null for englishWord or englishMeaning.
+                - Do not use markdown, code fences, or extra prose.
+
+                Term: %s
+                Korean meaning: %s
+                """.formatted(term, rawMeaning == null ? "" : rawMeaning);
+
+        ChatRequest request = new ChatRequest(model, List.of(
+                new ChatMessage("system", "You return strict JSON for glossary translation."),
+                new ChatMessage("user", prompt)
+        ));
+
+        ChatResponse response = webClient.post()
+                .uri("/v1/chat/completions")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatResponse.class)
+                .block();
+
+        if (response == null || response.choices == null || response.choices.isEmpty()) {
+            return fallback;
+        }
+
+        String content = extractJsonPayload(response.choices.get(0).message.content);
+        try {
+            DefinitionResult parsed = objectMapper.readValue(content, DefinitionResult.class);
+            if (parsed.getWord() == null || parsed.getWord().isBlank()) {
+                parsed.setWord(term);
+            }
+            if (parsed.getMeaning() == null || parsed.getMeaning().isBlank()) {
+                parsed.setMeaning(rawMeaning);
+            }
+            return parsed;
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
     private String extractJsonPayload(String content) {
         if (content == null) {
             return "";

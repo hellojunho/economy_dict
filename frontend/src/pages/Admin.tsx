@@ -18,11 +18,14 @@ export default function Admin() {
   const stats = useAdminStore((state) => state.stats);
   const users = useAdminStore((state) => state.users);
   const words = useAdminStore((state) => state.words);
+  const wordListResponse = useAdminStore((state) => state.wordListResponse);
+  const wordPage = useAdminStore((state) => state.wordPage);
   const uploads = useAdminStore((state) => state.uploads);
   const sourceOptions = useAdminStore((state) => state.sourceOptions);
   const message = useAdminStore((state) => state.message);
   const loading = useAdminStore((state) => state.loading);
   const uploading = useAdminStore((state) => state.uploading);
+  const translatingWords = useAdminStore((state) => state.translatingWords);
   const uploadSourceId = useAdminStore((state) => state.uploadSourceId);
   const uploadSourceName = useAdminStore((state) => state.uploadSourceName);
   const userForm = useAdminStore((state) => state.userForm);
@@ -38,11 +41,13 @@ export default function Admin() {
   const resetUserForm = useAdminStore((state) => state.resetUserForm);
   const resetWordForm = useAdminStore((state) => state.resetWordForm);
   const refreshCurrentSection = useAdminStore((state) => state.refreshCurrentSection);
+  const changeWordPage = useAdminStore((state) => state.changeWordPage);
   const loadUploads = useAdminStore((state) => state.loadUploads);
   const saveUser = useAdminStore((state) => state.saveUser);
   const deleteUser = useAdminStore((state) => state.deleteUser);
   const saveWord = useAdminStore((state) => state.saveWord);
   const deleteWord = useAdminStore((state) => state.deleteWord);
+  const translateWordsToEnglish = useAdminStore((state) => state.translateWordsToEnglish);
   const uploadSelectedFile = useAdminStore((state) => state.uploadSelectedFile);
 
   if (!isAuthenticated || role !== 'ADMIN') {
@@ -224,26 +229,61 @@ export default function Admin() {
               </form>
             </section>
             <section className="panel">
-              <div className="panel-head compact"><div><p className="section-label">Records</p><h2>단어 목록</h2></div></div>
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">Records</p>
+                  <h2>단어 목록</h2>
+                  <p className="panel-copy">Words Dashboard는 페이지당 10개씩 표시되며, 전체 용어를 한 번에 영문화할 수 있습니다.</p>
+                </div>
+                <div className="admin-actions">
+                  <button type="button" className="button button-secondary" onClick={() => translateWordsToEnglish()} disabled={translatingWords}>
+                    {translatingWords ? 'Translating...' : 'To English'}
+                  </button>
+                </div>
+              </div>
               <div className="table-wrap">
                 <table className="data-table">
                   <thead><tr><th>Word</th><th>English</th><th>Source</th><th>Action</th></tr></thead>
                   <tbody>
-                    {words.map((word) => (
-                      <tr key={word.id}>
-                        <td>{word.word}</td>
-                        <td>{word.englishWord ?? '-'}</td>
-                        <td>{word.sourceName ?? '-'}</td>
-                        <td>
-                          <div className="table-actions">
-                            <button type="button" className="link-button" onClick={() => editWord(word)}>Edit</button>
-                            <button type="button" className="link-button danger-text" onClick={() => deleteWord(word.id)}>Delete</button>
-                          </div>
-                        </td>
+                    {words.length > 0 ? (
+                      words.map((word) => (
+                        <tr key={word.id}>
+                          <td>{word.word}</td>
+                          <td>{word.englishWord ?? '-'}</td>
+                          <td>{word.sourceName ?? '-'}</td>
+                          <td>
+                            <div className="table-actions">
+                              <button type="button" className="link-button" onClick={() => editWord(word)}>Edit</button>
+                              <button type="button" className="link-button danger-text" onClick={() => deleteWord(word.id)}>Delete</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="table-empty">등록된 단어가 없습니다.</td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
+                <div className="pager-row">
+                  <p className="pager-meta">
+                    Page {(wordListResponse?.page ?? 0) + 1} / {Math.max(wordListResponse?.totalPages ?? 1, 1)} · Total {wordListResponse?.totalElements ?? 0}
+                  </p>
+                  <div className="button-row">
+                    <button type="button" className="button button-secondary" onClick={() => changeWordPage(wordPage - 1)} disabled={loading || wordPage <= 0}>
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      className="button button-secondary"
+                      onClick={() => changeWordPage(wordPage + 1)}
+                      disabled={loading || !wordListResponse || wordPage + 1 >= wordListResponse.totalPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             </section>
           </div>

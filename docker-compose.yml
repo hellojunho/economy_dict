@@ -26,6 +26,7 @@ services:
     volumes:
       - ./backend/logs:/app/backend/logs
       - ./backend/chats:/app/backend/chats
+      - ./secrets.json:/app/secrets.json:ro
 
   nginx:
     build:
