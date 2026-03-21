@@ -159,7 +159,7 @@ type AdminState = {
   resetUserForm: () => void;
   resetWordForm: () => void;
   clearMessage: () => void;
-  refreshCurrentSection: () => Promise<void>;
+  refreshCurrentSection: (sectionOverride?: SectionKey) => Promise<void>;
   changeWordPage: (page: number) => Promise<void>;
   loadUploads: () => Promise<void>;
   saveUser: () => Promise<void>;
@@ -326,8 +326,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   resetUserForm: () => set({ userForm: defaultUserForm }),
   resetWordForm: () => set({ wordForm: defaultWordForm }),
   clearMessage: () => set({ message: '' }),
-  refreshCurrentSection: async () => {
-    const { section } = get();
+  refreshCurrentSection: async (sectionOverride) => {
+    const section = sectionOverride ?? get().section;
     set({ loading: true, message: '' });
     try {
       if (section === 'overview') {

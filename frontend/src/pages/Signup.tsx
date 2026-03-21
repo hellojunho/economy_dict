@@ -13,7 +13,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) {
-    return <Navigate to={role === 'ADMIN' ? '/admin' : '/'} replace />;
+    return <Navigate to={role === 'ADMIN' ? '/admin/overview' : '/'} replace />;
   }
 
   const handleSubmit = async (event: FormEvent) => {
