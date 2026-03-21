@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const runtimeFile = path.join(rootDir, 'runtime.env');
+const preferredJavaHome = 'C:\\Program Files\\JetBrains\\PyCharm 2023.3.3\\jbr';
 
 function parseEnvFile(filePath) {
   const file = fs.readFileSync(filePath, 'utf8');
@@ -64,13 +65,32 @@ function ensureDirectory(targetPath) {
   fs.mkdirSync(toAbsolutePath(targetPath), { recursive: true });
 }
 
+function resolveJavaHome(runtimeEnv) {
+  const configured = runtimeEnv.JAVA_HOME?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  if (fs.existsSync(preferredJavaHome)) {
+    return preferredJavaHome;
+  }
+
+  return process.env.JAVA_HOME;
+}
+
 function createLocalEnv(runtimeEnv) {
+  const javaHome = resolveJavaHome(runtimeEnv);
+  const javaBin = javaHome ? path.join(javaHome, 'bin') : null;
+  const mergedPath = javaBin ? `${javaBin}${path.delimiter}${process.env.Path ?? process.env.PATH ?? ''}` : (process.env.Path ?? process.env.PATH ?? '');
   return {
     ...process.env,
     ...runtimeEnv,
+    JAVA_HOME: javaHome,
     BACKEND_PORT: runtimeEnv.BACKEND_PORT ?? '8081',
     FRONTEND_PORT: runtimeEnv.FRONTEND_PORT ?? '4321',
     DB_PORT: runtimeEnv.DB_PORT ?? '9001',
+    Path: mergedPath,
+    PATH: mergedPath,
     GRADLE_USER_HOME: path.join(rootDir, '.gradle-user-home'),
     SPRING_DATASOURCE_URL:
       runtimeEnv.LOCAL_SPRING_DATASOURCE_URL ?? 'jdbc:postgresql://localhost:9001/economy_dict',

@@ -5,3 +5,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/playwright-report/
 frontend/test-results/
+runtime.env
+runtime.env.local
+!runtime.env.example
+runtime.env
