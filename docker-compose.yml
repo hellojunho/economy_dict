@@ -2,11 +2,11 @@ services:
   db:
     image: postgres:16
     ports:
-      - "9001:5432"
+      - "${DB_PORT:-9001}:5432"
     environment:
-      POSTGRES_DB: economy_dict
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-economy_dict}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - db_data:/var/lib/postgresql/data
 
@@ -15,12 +15,20 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     ports:
-      - "8081:8081"
+      - "${BACKEND_PORT:-8081}:8081"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/economy_dict
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      LOG_PATH: /app/backend/logs
+      BACKEND_PORT: ${BACKEND_PORT:-8081}
+      SPRING_DATASOURCE_URL: ${DOCKER_SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/economy_dict}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-CHANGE_ME_JWT_SECRET_32_BYTES_MINIMUM_1234567890}
+      APP_JWT_EXPIRATION_MS: ${APP_JWT_EXPIRATION_MS:-86400000}
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL:-https://api.openai.com}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-REPLACE_ME}
+      OPENAI_API_MODEL: ${OPENAI_API_MODEL:-gpt-4o-mini}
+      LOG_PATH: ${CONTAINER_LOG_PATH:-/app/backend/logs}
+      APP_ERROR_LOG_STORAGE_PATH: ${CONTAINER_LOG_PATH:-/app/backend/logs}
+      APP_CHAT_STORAGE_PATH: ${CONTAINER_CHAT_STORAGE_PATH:-/app/backend/chats}
     depends_on:
       - db
     volumes:
@@ -32,7 +40,7 @@ services:
       context: .
       dockerfile: docker/nginx/Dockerfile
     ports:
-      - "4321:80"
+      - "${FRONTEND_PORT:-4321}:80"
     depends_on:
       - backend
 

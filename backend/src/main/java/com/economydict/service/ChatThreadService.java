@@ -31,7 +31,7 @@ public class ChatThreadService {
     public ChatThreadService(UserService userService,
                              OpenAiService openAiService,
                              ObjectMapper objectMapper,
-                             @Value("${app.chat.storage-path:/app/backend/chats}") String storagePath) {
+                             @Value("${app.chat.storage-path:backend/chats}") String storagePath) {
         this.userService = userService;
         this.openAiService = openAiService;
         this.objectMapper = objectMapper;
