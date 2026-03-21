@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { AdminQuizQuestion, AdminUser, DIRECT_SOURCE_OPTION, SectionKey, useAdminStore } from '../stores/adminStore';
 
@@ -10,6 +10,19 @@ const sections: { key: SectionKey; label: string }[] = [
   { key: 'uploads', label: 'Uploads' },
   { key: 'quizzes', label: 'Quizzes' }
 ];
+
+const sectionPathMap: Record<SectionKey, string> = {
+  overview: '/admin/overview',
+  users: '/admin/users',
+  words: '/admin/words',
+  uploads: '/admin/uploads',
+  quizzes: '/admin/quizzes'
+};
+
+function resolveSection(pathname: string): SectionKey {
+  const matched = sections.find((item) => pathname === sectionPathMap[item.key]);
+  return matched?.key ?? 'overview';
+}
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -35,9 +48,10 @@ function renderQuestionRate(question: AdminQuizQuestion) {
 }
 
 export default function Admin() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const role = useAuthStore((state) => state.role);
-  const section = useAdminStore((state) => state.section);
   const summary = useAdminStore((state) => state.summary);
   const stats = useAdminStore((state) => state.stats);
   const users = useAdminStore((state) => state.users);
@@ -78,24 +92,26 @@ export default function Admin() {
   const uploadSelectedFile = useAdminStore((state) => state.uploadSelectedFile);
   const selectQuiz = useAdminStore((state) => state.selectQuiz);
   const generateQuiz = useAdminStore((state) => state.generateQuiz);
+  const currentSection = useMemo(() => resolveSection(location.pathname), [location.pathname]);
 
   if (!isAuthenticated || role !== 'ADMIN') {
     return <Navigate to="/signin" replace />;
   }
 
   useEffect(() => {
-    refreshCurrentSection();
-  }, [section, refreshCurrentSection]);
+    setSection(currentSection);
+    refreshCurrentSection(currentSection);
+  }, [currentSection, refreshCurrentSection, setSection]);
 
   useEffect(() => {
-    if (section !== 'uploads') {
+    if (currentSection !== 'uploads') {
       return;
     }
     const timer = window.setInterval(() => {
       loadUploads();
     }, 4000);
     return () => window.clearInterval(timer);
-  }, [section, loadUploads]);
+  }, [currentSection, loadUploads]);
 
   const handleSaveUser = async (event: FormEvent) => {
     event.preventDefault();
@@ -122,8 +138,8 @@ export default function Admin() {
             <button
               key={item.key}
               type="button"
-              className={`admin-nav-item ${section === item.key ? 'active' : ''}`}
-              onClick={() => setSection(item.key)}
+              className={`admin-nav-item ${currentSection === item.key ? 'active' : ''}`}
+              onClick={() => navigate(sectionPathMap[item.key])}
             >
               {item.label}
             </button>
@@ -134,17 +150,17 @@ export default function Admin() {
       <main className="admin-main formal-admin-main">
         <header className="admin-topbar">
           <div>
-            <p className="section-label">{section}</p>
-            <h2>{sections.find((item) => item.key === section)?.label}</h2>
+            <p className="section-label">{currentSection}</p>
+            <h2>{sections.find((item) => item.key === currentSection)?.label}</h2>
           </div>
-          <button type="button" className="button button-secondary" onClick={() => refreshCurrentSection()} disabled={loading}>
+          <button type="button" className="button button-secondary" onClick={() => refreshCurrentSection(currentSection)} disabled={loading}>
             {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </header>
 
         {message && <p className={`form-message ${message.includes('못') || message.includes('실패') || message.includes('최대') ? 'error-text' : 'success-text'}`}>{message}</p>}
 
-        {section === 'overview' && (
+        {currentSection === 'overview' && (
           <div className="page-stack">
             <section className="stat-grid admin-stats-grid">
               <article className="stat-card"><span>Total Users</span><strong>{summary?.totalUsers ?? '-'}</strong><p>전체 등록 사용자</p></article>
@@ -185,7 +201,7 @@ export default function Admin() {
           </div>
         )}
 
-        {section === 'users' && (
+        {currentSection === 'users' && (
           <div className="content-grid columns-1-2">
             <section className="panel">
               <div className="panel-head compact"><div><p className="section-label">CRUD</p><h2>사용자 편집</h2></div></div>
@@ -229,7 +245,7 @@ export default function Admin() {
           </div>
         )}
 
-        {section === 'words' && (
+        {currentSection === 'words' && (
           <div className="content-grid columns-1-2">
             <section className="panel">
               <div className="panel-head compact"><div><p className="section-label">CRUD</p><h2>단어 편집</h2></div></div>
@@ -318,7 +334,7 @@ export default function Admin() {
           </div>
         )}
 
-        {section === 'uploads' && (
+        {currentSection === 'uploads' && (
           <div className="page-stack">
             <section className="panel">
               <div className="panel-head compact">
@@ -396,7 +412,7 @@ export default function Admin() {
           </div>
         )}
 
-        {section === 'quizzes' && (
+        {currentSection === 'quizzes' && (
           <div className="content-grid columns-1-2">
             <section className="panel">
               <div className="panel-head compact">

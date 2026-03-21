@@ -69,7 +69,7 @@ export default function App() {
                 </Link>
               )}
               {isAuthenticated && isAdmin && (
-                <Link to="/admin" className="site-nav-link">
+                <Link to="/admin/overview" className="site-nav-link">
                   Admin
                 </Link>
               )}
@@ -107,7 +107,12 @@ export default function App() {
           <Route path="/top-incorrect" element={<TopIncorrectWords />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
+          <Route path="/admin/overview" element={<Admin />} />
+          <Route path="/admin/users" element={<Admin />} />
+          <Route path="/admin/words" element={<Admin />} />
+          <Route path="/admin/uploads" element={<Admin />} />
+          <Route path="/admin/quizzes" element={<Admin />} />
           <Route path="/signin" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/terms" element={<Terms />} />

@@ -11,3 +11,8 @@ runtime.env
 runtime.env.local
 !runtime.env.example
 runtime.env
+application.properties
+.idea/
+.gradle-user-home/
+backend/.gradle/
+.codex/

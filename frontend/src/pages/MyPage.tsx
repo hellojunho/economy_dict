@@ -29,7 +29,7 @@ export default function MyPage() {
     return <Navigate to="/signin" replace />;
   }
   if (role === 'ADMIN') {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/overview" replace />;
   }
 
   const loadProfile = async () => {

@@ -14,7 +14,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) {
-    return <Navigate to={role === 'ADMIN' ? '/admin' : '/'} replace />;
+    return <Navigate to={role === 'ADMIN' ? '/admin/overview' : '/'} replace />;
   }
 
   const handleSubmit = async (event: FormEvent) => {
@@ -24,7 +24,7 @@ export default function Login() {
     try {
       const response = await client.post('/token', credentials);
       setAccessToken(response.data.accessToken);
-      navigate(response.data.role === 'ADMIN' ? '/admin' : '/mypage');
+      navigate(response.data.role === 'ADMIN' ? '/admin/overview' : '/mypage');
     } catch (error) {
       setMessage(getApiErrorMessage(error, '로그인에 실패했습니다. 계정 정보를 다시 확인하세요.'));
     } finally {
