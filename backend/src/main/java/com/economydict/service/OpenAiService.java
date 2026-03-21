@@ -14,12 +14,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 public class OpenAiService {
     private final WebClient webClient;
+    private final String apiKey;
     private final String model;
     private final ObjectMapper objectMapper;
 
     public OpenAiService(@Value("${openai.api.base-url}") String baseUrl,
                          @Value("${openai.api.key}") String apiKey,
                          @Value("${openai.api.model}") String model) {
+        this.apiKey = apiKey;
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + apiKey)
@@ -49,12 +51,7 @@ public class OpenAiService {
             messages.add(new ChatMessage(turn.getRole(), turn.getContent()));
         }
         ChatRequest request = new ChatRequest(model, messages);
-        ChatResponse response = webClient.post()
-                .uri("/v1/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatResponse.class)
-                .block();
+        ChatResponse response = executeChatRequest(request);
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return "";
         }
@@ -93,12 +90,7 @@ public class OpenAiService {
                 new ChatMessage("system", "You are an expert in economics glossary extraction."),
                 new ChatMessage("user", prompt)
         ));
-        ChatResponse response = webClient.post()
-                .uri("/v1/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatResponse.class)
-                .block();
+        ChatResponse response = executeChatRequest(request);
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return Collections.emptyList();
         }
@@ -131,12 +123,7 @@ public class OpenAiService {
                 new ChatMessage("system", "You answer in strict JSON only."),
                 new ChatMessage("user", prompt)
         ));
-        ChatResponse response = webClient.post()
-                .uri("/v1/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatResponse.class)
-                .block();
+        ChatResponse response = executeChatRequest(request);
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return null;
         }
@@ -196,12 +183,7 @@ public class OpenAiService {
                 new ChatMessage("user", prompt)
         ));
 
-        ChatResponse response = webClient.post()
-                .uri("/v1/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatResponse.class)
-                .block();
+        ChatResponse response = executeChatRequest(request);
 
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return fallback;
@@ -253,12 +235,7 @@ public class OpenAiService {
                 new ChatMessage("user", prompt)
         ));
 
-        ChatResponse response = webClient.post()
-                .uri("/v1/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatResponse.class)
-                .block();
+        ChatResponse response = executeChatRequest(request);
 
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return fallback;
@@ -310,12 +287,7 @@ public class OpenAiService {
                 new ChatMessage("user", prompt)
         ));
 
-        ChatResponse response = webClient.post()
-                .uri("/v1/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatResponse.class)
-                .block();
+        ChatResponse response = executeChatRequest(request);
 
         if (response == null || response.choices == null || response.choices.isEmpty()) {
             return fallback;
@@ -384,12 +356,7 @@ public class OpenAiService {
                     new ChatMessage("user", prompt)
             ));
 
-            ChatResponse response = webClient.post()
-                    .uri("/v1/chat/completions")
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(ChatResponse.class)
-                    .block();
+            ChatResponse response = executeChatRequest(request);
 
             if (response == null || response.choices == null || response.choices.isEmpty()) {
                 throw new IllegalStateException("OpenAI가 퀴즈 문항 응답을 비워서 반환했습니다: " + seed.getWord());
@@ -424,6 +391,28 @@ public class OpenAiService {
             return normalized;
         }
         return normalized.substring(0, 240);
+    }
+
+    private ChatResponse executeChatRequest(ChatRequest request) {
+        if (apiKey == null || apiKey.isBlank() || "REPLACE_ME".equals(apiKey)) {
+            throw new IllegalStateException(
+                    "OpenAI API key is not configured. Set OPENAI_API_KEY or provide openai.api.key in secrets.json.");
+        }
+        try {
+            return webClient.post()
+                    .uri("/v1/chat/completions")
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(ChatResponse.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw new IllegalStateException(
+                    "OpenAI request failed. status=" + e.getStatusCode().value()
+                            + " body=" + summarizeErrorBody(e.getResponseBodyAsString()),
+                    e);
+        } catch (WebClientRequestException e) {
+            throw new IllegalStateException("OpenAI server connection failed. " + e.getMessage(), e);
+        }
     }
 
     private String extractJsonPayload(String content) {
