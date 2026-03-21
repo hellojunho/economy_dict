@@ -267,7 +267,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   uploadSelectedFile: async () => {
     const { selectedFile } = get();
     if (!selectedFile) {
-      set({ message: '업로드할 PDF 파일을 선택하세요. 최대 20MB까지 허용됩니다.' });
+      set({ message: '업로드할 파일을 선택하세요. 지원 형식: pdf, txt, xlsx, csv, json, zip. 최대 20MB까지 허용됩니다.' });
       return;
     }
 
@@ -286,7 +286,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       });
     } catch (error: any) {
       if (error?.response?.status === 413) {
-        set({ message: '파일이 너무 큽니다. 최대 20MB까지 업로드할 수 있습니다.' });
+        set({ message: '파일이 너무 큽니다. 최대 20MB까지 업로드할 수 있습니다. 지원 형식: pdf, txt, xlsx, csv, json, zip.' });
       } else {
         set({ message: getApiErrorMessage(error, 'PDF 업로드를 시작하지 못했습니다.') });
       }

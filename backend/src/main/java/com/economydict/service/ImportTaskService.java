@@ -9,14 +9,18 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ImportTaskService {
     private final ImportTaskRepository importTaskRepository;
+    private final ErrorLogService errorLogService;
 
-    public ImportTaskService(ImportTaskRepository importTaskRepository) {
+    public ImportTaskService(ImportTaskRepository importTaskRepository, ErrorLogService errorLogService) {
         this.importTaskRepository = importTaskRepository;
+        this.errorLogService = errorLogService;
     }
 
     public ImportTask createTask() {
@@ -26,6 +30,7 @@ public class ImportTaskService {
         task.setCreatedAt(Instant.now());
         task.setProcessedUnits(0);
         task.setTotalUnits(0);
+        task.setRequestedByUserId(resolveCurrentUserId());
         return importTaskRepository.save(task);
     }
 
@@ -53,6 +58,15 @@ public class ImportTaskService {
         ImportTask task = getTask(taskId);
         task.setState(ImportTaskState.FINISHED);
         task.setFinishedAt(Instant.now());
+        if (task.getTotalUnits() != null && task.getTotalUnits() > 0) {
+            task.setProcessedUnits(task.getTotalUnits());
+        }
+        return importTaskRepository.save(task);
+    }
+
+    public ImportTask updateTotalUnits(String taskId, int totalUnits) {
+        ImportTask task = getTask(taskId);
+        task.setTotalUnits(Math.max(0, totalUnits));
         return importTaskRepository.save(task);
     }
 
@@ -72,7 +86,19 @@ public class ImportTaskService {
         ImportTask task = getTask(taskId);
         task.setState(ImportTaskState.FAILED);
         task.setFailedAt(Instant.now());
-        task.setErrorLog(errorLog);
+        String logFile = errorLogService.writeBackgroundError(
+                UUID.randomUUID().toString(),
+                "IMPORT_TASK_FAILED",
+                "The import task failed during asynchronous processing.",
+                List.of(
+                        "taskId=" + task.getTaskId(),
+                        "originalFileName=" + safeValue(task.getOriginalFileName()),
+                        "fileType=" + safeValue(task.getFileType())
+                ),
+                task.getRequestedByUserId(),
+                errorLog
+        );
+        task.setErrorLog(logFile == null ? errorLog : "logFile=" + logFile + "\n" + errorLog);
         return importTaskRepository.save(task);
     }
 
@@ -133,5 +159,17 @@ public class ImportTaskService {
         java.io.StringWriter sw = new java.io.StringWriter();
         throwable.printStackTrace(new java.io.PrintWriter(sw));
         return sw.toString();
+    }
+
+    private String resolveCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            return "anonymous";
+        }
+        return authentication.getName();
+    }
+
+    private String safeValue(String value) {
+        return value == null || value.isBlank() ? "-" : value;
     }
 }

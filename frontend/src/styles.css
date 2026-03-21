@@ -7,6 +7,13 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --frame-width: 1180px;
+  --frame-gutter: clamp(16px, 4vw, 48px);
+  --section-gap: clamp(18px, 2.6vw, 28px);
+  --panel-padding: clamp(18px, 2.8vw, 28px);
+  --panel-radius: clamp(16px, 2vw, 22px);
+  --card-radius: clamp(14px, 1.6vw, 18px);
+  --control-height: clamp(40px, 4vw, 46px);
 }
 
 * {
@@ -17,6 +24,10 @@ html,
 body,
 #root {
   min-height: 100%;
+}
+
+html {
+  font-size: clamp(14px, 0.18vw + 13.4px, 16px);
 }
 
 body {
@@ -47,8 +58,8 @@ select {
   width: 100%;
   border: 1px solid #e5e7eb;
   background: #ffffff;
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: clamp(10px, 1.2vw, 12px);
+  padding: clamp(11px, 1vw, 13px) clamp(12px, 1.4vw, 15px);
   color: #111827;
   outline: none;
 }
@@ -71,11 +82,11 @@ textarea {
 
 .site-main,
 .auth-main {
-  padding-bottom: 48px;
+  padding-bottom: clamp(28px, 4vw, 48px);
 }
 
 .site-frame {
-  width: min(1180px, calc(100% - 48px));
+  width: min(var(--frame-width), calc(100% - var(--frame-gutter)));
   margin: 0 auto;
 }
 
@@ -91,9 +102,9 @@ textarea {
 .site-header-inner {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 24px;
+  gap: clamp(16px, 2.2vw, 24px);
   align-items: center;
-  padding: 18px 0;
+  padding: clamp(14px, 1.8vw, 18px) 0;
 }
 
 .brand-mark {
@@ -138,13 +149,13 @@ textarea {
 
 .site-nav {
   display: flex;
-  gap: 18px;
+  gap: clamp(12px, 1.8vw, 18px);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .site-nav-link {
-  font-size: 14px;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
   color: #4b5563;
 }
 
@@ -156,7 +167,7 @@ textarea {
 .upload-row,
 .admin-actions {
   display: flex;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -165,10 +176,10 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 10px;
-  font-size: 14px;
+  min-height: var(--control-height);
+  padding: 0 clamp(14px, 1.8vw, 18px);
+  border-radius: clamp(10px, 1.2vw, 12px);
+  font-size: clamp(13px, 0.3vw + 12px, 14px);
   font-weight: 600;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
@@ -196,8 +207,8 @@ textarea {
 
 .page-stack {
   display: grid;
-  gap: 24px;
-  padding-top: 32px;
+  gap: var(--section-gap);
+  padding-top: clamp(20px, 3vw, 32px);
 }
 
 .hero-panel,
@@ -215,14 +226,14 @@ textarea {
 .panel,
 .auth-panel,
 .callout-panel {
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
 }
 
 .hero-panel {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
-  gap: 24px;
+  gap: var(--section-gap);
   align-items: stretch;
 }
 
@@ -241,7 +252,7 @@ textarea {
 .chat-bubble p {
   margin: 0;
   color: #6b7280;
-  font-size: 14px;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
 }
 
 .stat-grid,
@@ -249,13 +260,13 @@ textarea {
 .compact-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
 }
 
 .stat-card,
 .progress-card {
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: var(--card-radius);
+  padding: clamp(16px, 2vw, 20px);
 }
 
 .stat-card span,
@@ -270,22 +281,22 @@ textarea {
 .progress-card strong {
   display: block;
   margin-top: 10px;
-  font-size: 28px;
+  font-size: clamp(22px, 2.6vw, 28px);
   font-weight: 700;
   color: #111827;
 }
 
 .content-grid {
   display: grid;
-  gap: 24px;
+  gap: var(--section-gap);
 }
 
 .columns-2-1 {
-  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.95fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(clamp(280px, 30vw, 360px), 0.95fr);
 }
 
 .columns-1-2 {
-  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  grid-template-columns: minmax(clamp(280px, 30vw, 380px), 0.9fr) minmax(0, 1fr);
 }
 
 .panel-head,
@@ -294,9 +305,9 @@ textarea {
 .admin-topbar {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
   align-items: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: clamp(14px, 2vw, 18px);
 }
 
 .panel-head.compact {
@@ -330,7 +341,7 @@ textarea {
 .word-list,
 .table-wrap {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
 }
 
 .word-row,
@@ -348,9 +359,9 @@ textarea {
 .word-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
   align-items: flex-start;
-  padding: 16px;
+  padding: clamp(14px, 1.8vw, 16px);
   text-align: left;
 }
 
@@ -385,12 +396,12 @@ textarea {
 .definition-block,
 .chat-empty-state {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
 }
 
 .meta-list {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
   margin: 0;
 }
 
@@ -401,7 +412,7 @@ textarea {
 .meta-list div {
   display: grid;
   grid-template-columns: 140px 1fr;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
 }
 
 .meta-list dt {
@@ -414,7 +425,7 @@ textarea {
 
 .meta-list dd {
   margin: 0;
-  font-size: 14px;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
 }
 
 .pager-row {
@@ -424,21 +435,21 @@ textarea {
 
 .pager-meta {
   color: #6b7280;
-  font-size: 14px;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
 }
 
 .search-form,
 .upload-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
 }
 
 .quiz-hero,
 .profile-hero {
   display: grid;
   grid-template-columns: 1.3fr 0.9fr;
-  gap: 24px;
+  gap: var(--section-gap);
 }
 
 .progress-track {
@@ -463,12 +474,12 @@ textarea {
 }
 
 .question-card {
-  padding: 18px;
+  padding: clamp(16px, 2vw, 18px);
 }
 
 .question-head {
   display: flex;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
   align-items: center;
   margin-bottom: 12px;
 }
@@ -490,14 +501,14 @@ textarea {
 .option-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
 }
 
 .option-card {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  padding: 14px;
+  padding: clamp(12px, 1.6vw, 14px);
 }
 
 .option-card input {
@@ -517,12 +528,12 @@ textarea {
 .list-row-block {
   display: grid;
   gap: 6px;
-  padding: 16px;
+  padding: clamp(14px, 1.8vw, 16px);
 }
 
 .rank-item {
   grid-template-columns: auto 1fr auto;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
   align-items: start;
 }
 
@@ -530,7 +541,7 @@ textarea {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 32px 24px;
+  padding: clamp(20px, 4vw, 32px) clamp(16px, 3vw, 24px);
   background: #ffffff;
 }
 
@@ -540,7 +551,7 @@ textarea {
 
 .auth-footer-links {
   display: flex;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
   margin-top: 16px;
   font-size: 13px;
   color: #6b7280;
@@ -558,7 +569,7 @@ textarea {
 
 .form-message {
   margin: 0;
-  font-size: 14px;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
 }
 
 .error-text {
@@ -571,27 +582,27 @@ textarea {
 
 .callout-panel {
   display: grid;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
 }
 
 .admin-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: clamp(220px, 24vw, 280px) minmax(0, 1fr);
   background: #ffffff;
 }
 
 .formal-sidebar {
-  padding: 28px 20px;
+  padding: clamp(20px, 3vw, 28px) clamp(16px, 2vw, 20px);
   background: #111827;
   color: #ffffff;
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: var(--section-gap);
 }
 
 .formal-admin-main {
-  padding: 28px;
+  padding: clamp(18px, 3vw, 28px);
 }
 
 .admin-nav-list {
@@ -615,7 +626,7 @@ textarea {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 640px;
+  min-width: clamp(520px, 72vw, 640px);
 }
 
 .data-table th,
@@ -624,7 +635,7 @@ textarea {
   border-bottom: 1px solid #f3f4f6;
   text-align: left;
   vertical-align: top;
-  font-size: 14px;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
 }
 
 .data-table th {
@@ -652,7 +663,7 @@ textarea {
 
 .error-log {
   margin: 0;
-  padding: 14px;
+  padding: clamp(12px, 1.6vw, 14px);
   border-radius: 12px;
   background: #111827;
   color: #f9fafb;
@@ -666,17 +677,17 @@ textarea {
 
 .chat-shell {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 20px;
-  min-height: 720px;
+  grid-template-columns: clamp(240px, 28vw, 300px) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 20px);
+  min-height: clamp(560px, 72vh, 720px);
 }
 
 .chat-sidebar {
   border-right: 1px solid #f3f4f6;
-  padding-right: 20px;
+  padding-right: clamp(14px, 2vw, 20px);
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
 }
 
 .chat-thread-list {
@@ -699,13 +710,13 @@ textarea {
 .chat-main {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 16px;
+  gap: clamp(12px, 1.8vw, 16px);
   min-height: 0;
 }
 
 .chat-message-list {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
   align-content: start;
   padding-right: 4px;
   overflow-y: auto;
@@ -716,7 +727,7 @@ textarea {
   display: grid;
   gap: 8px;
   max-width: 85%;
-  padding: 16px;
+  padding: clamp(14px, 1.8vw, 16px);
   border-radius: 16px;
   border: 1px solid #f3f4f6;
   background: #f9fafb;
@@ -737,9 +748,76 @@ textarea {
   justify-self: start;
 }
 
+.chat-bubble-content {
+  display: grid;
+  gap: 10px;
+  color: #1f2937;
+  line-height: 1.7;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
+}
+
+.chat-bubble-content > * {
+  margin: 0;
+}
+
+.chat-bubble-content p,
+.chat-bubble-content ul,
+.chat-bubble-content ol,
+.chat-bubble-content pre,
+.chat-bubble-content blockquote {
+  margin: 0;
+}
+
+.chat-bubble-content ul,
+.chat-bubble-content ol {
+  padding-left: 20px;
+}
+
+.chat-bubble-content li + li {
+  margin-top: 6px;
+}
+
+.chat-bubble-content strong {
+  color: #111827;
+}
+
+.chat-bubble-content code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-size: 13px;
+}
+
+.chat-bubble-content pre {
+  overflow-x: auto;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+.chat-bubble-content pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.chat-bubble.user .chat-bubble-content,
+.chat-bubble.user .chat-bubble-content strong,
+.chat-bubble.user .chat-bubble-content p,
+.chat-bubble.user .chat-bubble-content li {
+  color: #ffffff;
+}
+
+.chat-bubble.user .chat-bubble-content code {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.chat-bubble.user .chat-bubble-content pre {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .chat-composer {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1.2vw, 12px);
   border-top: 1px solid #f3f4f6;
   padding-top: 16px;
 }
@@ -777,7 +855,7 @@ textarea {
 
 @media (max-width: 640px) {
   .site-frame {
-    width: min(100%, calc(100% - 32px));
+    width: min(100%, calc(100% - 24px));
   }
 
   .search-form,
@@ -808,4 +886,15 @@ textarea {
   .table-actions {
     width: 100%;
   }
+}
+
+.chat-composer-actions {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-composer-hint {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
 }

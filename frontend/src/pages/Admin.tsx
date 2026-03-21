@@ -237,16 +237,16 @@ export default function Admin() {
             <section className="panel">
               <div className="panel-head compact">
                 <div>
-                  <p className="section-label">Import PDF</p>
+                  <p className="section-label">Import Files</p>
                   <h2>문서 업로드</h2>
                 </div>
               </div>
               <div className="form-stack">
                 <label>
-                  <span>PDF File</span>
-                  <input type="file" accept="application/pdf" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
+                  <span>Supported File</span>
+                  <input type="file" accept=".pdf,.txt,.xlsx,.csv,.json,.zip,application/pdf,text/plain,text/csv,application/json,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
                 </label>
-                <p className="muted">최대 업로드 용량은 20MB입니다. 대용량 문서는 비동기 Batch 작업으로 등록됩니다.</p>
+                <p className="muted">최대 업로드 용량은 20MB입니다. 지원 형식은 pdf, txt, xlsx, csv, json, zip 이며, zip은 내부 파일을 순차적으로 파싱합니다.</p>
                 <div className="button-row">
                   <button type="button" className="button button-primary" onClick={() => uploadSelectedFile()} disabled={uploading}>
                     {uploading ? 'Uploading...' : 'Start Import'}

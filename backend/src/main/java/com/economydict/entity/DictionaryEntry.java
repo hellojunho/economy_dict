@@ -20,13 +20,13 @@ public class DictionaryEntry extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String word;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, columnDefinition = "text")
     private String meaning;
 
     @Column(name = "english_word", length = 100)
     private String englishWord;
 
-    @Column(name = "english_meaning", length = 500)
+    @Column(name = "english_meaning", columnDefinition = "text")
     private String englishMeaning;
 
     @Column(length = 200)

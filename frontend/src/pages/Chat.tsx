@@ -1,7 +1,18 @@
-import { FormEvent, useEffect } from 'react';
+import { FormEvent, KeyboardEvent, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useChatStore } from '../stores/chatStore';
+
+function formatAssistantMarkdown(content: string) {
+  return content
+    .replace(/\r\n/g, '\n')
+    .replace(/:\s+(?=\d+\.\s)/g, ':\n\n')
+    .replace(/([^\.\n])\.\s+(?=\d+\.\s)/g, '$1.\n\n')
+    .replace(/\s+-\s+(?=\*\*)/g, '\n- ')
+    .trim();
+}
 
 export default function Chat() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -30,6 +41,21 @@ export default function Chat() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     await sendMessage();
+  };
+
+  const handleComposerKeyDown = async (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    if (event.metaKey || event.ctrlKey) {
+      return;
+    }
+
+    event.preventDefault();
+    if (!loading) {
+      await sendMessage();
+    }
   };
 
   if (!isAuthenticated) {
@@ -96,7 +122,13 @@ export default function Chat() {
             {(activeThread?.messages ?? []).map((item, index) => (
               <article key={`${item.createdAt}-${index}`} className={`chat-bubble ${item.role}`}>
                 <span>{item.role === 'assistant' ? 'AI' : 'You'}</span>
-                <p>{item.content}</p>
+                <div className="chat-bubble-content">
+                  {item.role === 'assistant' ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{formatAssistantMarkdown(item.content)}</ReactMarkdown>
+                  ) : (
+                    <p>{item.content}</p>
+                  )}
+                </div>
               </article>
             ))}
           </div>
@@ -106,9 +138,11 @@ export default function Chat() {
               rows={4}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={handleComposerKeyDown}
               placeholder="경제 용어 또는 경제 이슈를 입력하세요."
             />
-            <div className="button-row">
+            <div className="button-row chat-composer-actions">
+              <p className="chat-composer-hint">`Enter` 전송, `Cmd+Enter` 또는 `Ctrl+Enter` 줄바꿈</p>
               <button type="submit" className="button button-primary" disabled={loading}>
                 {loading ? 'Sending...' : 'Send'}
               </button>

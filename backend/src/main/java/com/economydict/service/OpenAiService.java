@@ -179,6 +179,7 @@ public class OpenAiService {
         private String meaning;
         private String englishWord;
         private String englishMeaning;
+        private String source;
 
         public String getWord() {
             return word;
@@ -210,6 +211,14 @@ public class OpenAiService {
 
         public void setEnglishMeaning(String englishMeaning) {
             this.englishMeaning = englishMeaning;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
         }
     }
 

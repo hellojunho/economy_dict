@@ -1,6 +1,7 @@
 package com.economydict.config;
 
 import com.economydict.dto.ApiErrorResponse;
+import com.economydict.service.ErrorLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,9 +21,11 @@ import org.springframework.stereotype.Component;
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     private static final Logger errorLogger = LoggerFactory.getLogger("com.economydict.error");
     private final ObjectMapper objectMapper;
+    private final ErrorLogService errorLogService;
 
-    public RestAuthenticationEntryPoint(ObjectMapper objectMapper) {
+    public RestAuthenticationEntryPoint(ObjectMapper objectMapper, ErrorLogService errorLogService) {
         this.objectMapper = objectMapper;
+        this.errorLogService = errorLogService;
     }
 
     @Override
@@ -42,14 +45,16 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
         body.setTraceId(traceId);
         body.setDetails(details);
 
+        String logFile = errorLogService.writeRequestError(traceId, code, message, details, request, authException);
         errorLogger.error(
-                "traceId={} status={} code={} path={} message={} details={}",
+                "traceId={} status={} code={} path={} message={} details={} logFile={}",
                 traceId,
                 HttpStatus.UNAUTHORIZED.value(),
                 code,
                 request.getRequestURI(),
                 message,
                 details,
+                logFile,
                 authException
         );
 

@@ -1,6 +1,7 @@
 package com.economydict.config;
 
 import com.economydict.dto.ApiErrorResponse;
+import com.economydict.service.ErrorLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,9 +21,11 @@ import org.springframework.stereotype.Component;
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
     private static final Logger errorLogger = LoggerFactory.getLogger("com.economydict.error");
     private final ObjectMapper objectMapper;
+    private final ErrorLogService errorLogService;
 
-    public RestAccessDeniedHandler(ObjectMapper objectMapper) {
+    public RestAccessDeniedHandler(ObjectMapper objectMapper, ErrorLogService errorLogService) {
         this.objectMapper = objectMapper;
+        this.errorLogService = errorLogService;
     }
 
     @Override
@@ -38,14 +41,23 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
         body.setTraceId(traceId);
         body.setDetails(List.of("Required authority is missing for this request."));
 
+        String logFile = errorLogService.writeRequestError(
+                traceId,
+                "ACCESS_DENIED",
+                body.getMessage(),
+                body.getDetails(),
+                request,
+                accessDeniedException
+        );
         errorLogger.error(
-                "traceId={} status={} code={} path={} message={} details={}",
+                "traceId={} status={} code={} path={} message={} details={} logFile={}",
                 traceId,
                 HttpStatus.FORBIDDEN.value(),
                 "ACCESS_DENIED",
                 request.getRequestURI(),
                 body.getMessage(),
                 body.getDetails(),
+                logFile,
                 accessDeniedException
         );
 

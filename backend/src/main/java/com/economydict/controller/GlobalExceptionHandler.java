@@ -1,6 +1,7 @@
 package com.economydict.controller;
 
 import com.economydict.dto.ApiErrorResponse;
+import com.economydict.service.ErrorLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +22,11 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger errorLogger = LoggerFactory.getLogger("com.economydict.error");
+    private final ErrorLogService errorLogService;
+
+    public GlobalExceptionHandler(ErrorLogService errorLogService) {
+        this.errorLogService = errorLogService;
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleBadRequest(IllegalArgumentException ex, HttpServletRequest request) {
@@ -120,14 +126,16 @@ public class GlobalExceptionHandler {
         body.setTraceId(traceId);
         body.setDetails(details);
 
+        String logFile = errorLogService.writeRequestError(traceId, code, message, details, request, ex);
         errorLogger.error(
-                "traceId={} status={} code={} path={} message={} details={}",
+                "traceId={} status={} code={} path={} message={} details={} logFile={}",
                 traceId,
                 status.value(),
                 code,
                 request.getRequestURI(),
                 message,
                 details,
+                logFile,
                 ex
         );
 

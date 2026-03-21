@@ -41,6 +41,9 @@ public class ImportTask {
     @Column(name = "file_type", length = 30)
     private String fileType;
 
+    @Column(name = "requested_by_user_id", length = 120)
+    private String requestedByUserId;
+
     @Column(name = "total_units")
     private Integer totalUnits;
 
@@ -143,5 +146,13 @@ public class ImportTask {
 
     public void setFileType(String fileType) {
         this.fileType = fileType;
+    }
+
+    public String getRequestedByUserId() {
+        return requestedByUserId;
+    }
+
+    public void setRequestedByUserId(String requestedByUserId) {
+        this.requestedByUserId = requestedByUserId;
     }
 }

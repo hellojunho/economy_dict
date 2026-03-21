@@ -30,7 +30,7 @@ public class TermWriter implements ItemWriter<List<OpenAiService.ExtractedTerm>>
                 entry.setMeaning(term.getMeaning() == null ? "" : term.getMeaning());
                 entry.setEnglishWord(term.getEnglishWord());
                 entry.setEnglishMeaning(term.getEnglishMeaning());
-                entry.setSource("AI_IMPORT");
+                entry.setSource(term.getSource() == null || term.getSource().isBlank() ? "AI_IMPORT" : term.getSource());
                 dictionaryEntryRepository.save(entry);
             }
         }
