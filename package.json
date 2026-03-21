@@ -1,0 +1,14 @@
+{
+  "name": "economy-dict-workspace",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/runtime-runner.mjs docker-up",
+    "stop": "node scripts/runtime-runner.mjs docker-down",
+    "logs": "node scripts/runtime-runner.mjs docker-logs",
+    "backend": "node scripts/runtime-runner.mjs backend",
+    "backend:test": "node scripts/runtime-runner.mjs backend-test",
+    "frontend": "node scripts/runtime-runner.mjs frontend",
+    "frontend:build": "node scripts/runtime-runner.mjs frontend-build",
+    "create-admin": "node scripts/runtime-runner.mjs create-admin"
+  }
+}
