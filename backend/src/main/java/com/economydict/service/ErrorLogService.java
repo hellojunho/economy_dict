@@ -24,7 +24,7 @@ public class ErrorLogService {
     private final Path basePath;
     private final ZoneId zoneId = ZoneId.systemDefault();
 
-    public ErrorLogService(@Value("${app.error-log.storage-path:${LOG_PATH:/app/backend/logs}}") String basePath) {
+    public ErrorLogService(@Value("${app.error-log.storage-path:${LOG_PATH:backend/logs}}") String basePath) {
         this.basePath = Path.of(basePath);
     }
 
