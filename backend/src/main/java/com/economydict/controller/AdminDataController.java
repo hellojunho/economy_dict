@@ -1,6 +1,5 @@
 package com.economydict.controller;
 
-import com.economydict.dto.AdminEnglishTranslationResponse;
 import com.economydict.dto.AdminOptionDto;
 import com.economydict.dto.AdminOptionRequest;
 import com.economydict.dto.AdminQuestionDto;
@@ -29,15 +28,14 @@ import com.economydict.repository.QuizQuestionRepository;
 import com.economydict.repository.QuizRepository;
 import com.economydict.repository.UserRepository;
 import com.economydict.service.AnalyticsService;
+import com.economydict.service.EnglishTranslationJobService;
 import com.economydict.service.ImportTaskService;
-import com.economydict.service.OpenAiService;
 import com.economydict.service.PdfImportJobService;
 import com.economydict.service.QuizService;
 import com.economydict.service.WordMetadataService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -71,7 +69,7 @@ public class AdminDataController {
     private final ImportTaskService importTaskService;
     private final AnalyticsService analyticsService;
     private final WordMetadataService wordMetadataService;
-    private final OpenAiService openAiService;
+    private final EnglishTranslationJobService englishTranslationJobService;
     private final QuizService quizService;
 
     public AdminDataController(UserRepository userRepository,
@@ -84,7 +82,7 @@ public class AdminDataController {
                                ImportTaskService importTaskService,
                                AnalyticsService analyticsService,
                                WordMetadataService wordMetadataService,
-                               OpenAiService openAiService,
+                               EnglishTranslationJobService englishTranslationJobService,
                                QuizService quizService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -96,7 +94,7 @@ public class AdminDataController {
         this.importTaskService = importTaskService;
         this.analyticsService = analyticsService;
         this.wordMetadataService = wordMetadataService;
-        this.openAiService = openAiService;
+        this.englishTranslationJobService = englishTranslationJobService;
         this.quizService = quizService;
     }
 
@@ -255,43 +253,8 @@ public class AdminDataController {
     }
 
     @PostMapping("/words/to-english")
-    public ResponseEntity<AdminEnglishTranslationResponse> translateWordsToEnglish() {
-        List<DictionaryEntry> entries = dictionaryEntryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
-        AdminEnglishTranslationResponse response = new AdminEnglishTranslationResponse();
-
-        for (DictionaryEntry entry : entries) {
-            response.setProcessedCount(response.getProcessedCount() + 1);
-            if (entry.getWord() == null || entry.getWord().isBlank()) {
-                response.setSkippedCount(response.getSkippedCount() + 1);
-                continue;
-            }
-            try {
-                OpenAiService.DefinitionResult result = openAiService.translateTermToEnglish(entry.getWord(), entry.getMeaning());
-                boolean changed = false;
-                String englishWord = normalize(result.getEnglishWord());
-                String englishMeaning = normalize(result.getEnglishMeaning());
-
-                if (!Objects.equals(normalize(entry.getEnglishWord()), englishWord) && englishWord != null) {
-                    entry.setEnglishWord(englishWord);
-                    changed = true;
-                }
-                if (!Objects.equals(normalize(entry.getEnglishMeaning()), englishMeaning) && englishMeaning != null) {
-                    entry.setEnglishMeaning(englishMeaning);
-                    changed = true;
-                }
-
-                if (changed) {
-                    dictionaryEntryRepository.save(entry);
-                    response.setUpdatedCount(response.getUpdatedCount() + 1);
-                } else {
-                    response.setSkippedCount(response.getSkippedCount() + 1);
-                }
-            } catch (Exception ex) {
-                response.setFailedCount(response.getFailedCount() + 1);
-            }
-        }
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<WordUploadStatusResponse> translateWordsToEnglish() {
+        return ResponseEntity.ok(englishTranslationJobService.submit());
     }
 
     @GetMapping("/dictionary")
@@ -478,13 +441,5 @@ public class AdminDataController {
         dto.setOptionOrder(option.getOptionOrder());
         dto.setCorrect(option.isCorrect());
         return dto;
-    }
-
-    private String normalize(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
     }
 }

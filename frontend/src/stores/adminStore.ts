@@ -32,13 +32,6 @@ export type AdminWordPage = {
   totalPages: number;
 };
 
-export type AdminEnglishTranslationSummary = {
-  processedCount: number;
-  updatedCount: number;
-  skippedCount: number;
-  failedCount: number;
-};
-
 export type SourceOption = {
   id: number;
   name: string;
@@ -458,15 +451,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   translateWordsToEnglish: async () => {
     set({ translatingWords: true, message: '' });
     try {
-      const response = await client.post<AdminEnglishTranslationSummary>('/admin/words/to-english');
-      const { wordPage } = get();
-      const wordListResponse = await fetchWords(wordPage);
-      const { processedCount, updatedCount, skippedCount, failedCount } = response.data;
+      const response = await client.post<UploadTask>('/admin/words/to-english');
+      const uploads = await fetchUploads();
       set({
-        words: wordListResponse.content,
-        wordListResponse,
-        wordPage: wordListResponse.page,
-        message: `영문화 작업 완료: 전체 ${processedCount}건, 업데이트 ${updatedCount}건, 건너뜀 ${skippedCount}건, 실패 ${failedCount}건`
+        uploads,
+        message: response.data.message
       });
     } catch (error) {
       set({ message: getApiErrorMessage(error, '영문화 작업에 실패했습니다.') });

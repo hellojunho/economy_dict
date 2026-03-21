@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ImportTaskService {
+    private static final String ENGLISH_TRANSLATION_TASK_TYPE = "ENGLISH_TRANSLATION";
+
     private final ImportTaskRepository importTaskRepository;
     private final ErrorLogService errorLogService;
 
@@ -144,6 +146,19 @@ public class ImportTaskService {
                 : 0.0);
         response.setEstimatedTime(response.getProgressPercent() >= 100.0 ? "0m" : "Calculating");
         response.setErrorLog(task.getErrorLog());
+        if (isEnglishTranslationTask(task)) {
+            switch (task.getState()) {
+                case READY -> response.setMessage("영문화 작업이 등록되었습니다.");
+                case STARTED, PENDING -> response.setMessage("영문화 작업이 진행 중입니다.");
+                case FINISHED -> response.setMessage(task.getTotalUnits() == null || task.getTotalUnits() == 0
+                        ? "영문화 대상이 없습니다."
+                        : "영문화 작업이 완료되었습니다.");
+                case FAILED -> response.setMessage("영문화 작업이 실패했습니다.");
+                default -> response.setMessage("상태를 확인하세요.");
+            }
+            return response;
+        }
+
         switch (task.getState()) {
             case READY -> response.setMessage("파일 업로드가 접수되었습니다.");
             case STARTED, PENDING -> response.setMessage("파일 분석이 진행 중입니다.");
@@ -173,5 +188,9 @@ public class ImportTaskService {
 
     private String safeValue(String value) {
         return value == null || value.isBlank() ? "-" : value;
+    }
+
+    private boolean isEnglishTranslationTask(ImportTask task) {
+        return ENGLISH_TRANSLATION_TASK_TYPE.equals(task.getFileType());
     }
 }
