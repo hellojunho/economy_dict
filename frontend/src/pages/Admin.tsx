@@ -278,7 +278,7 @@ export default function Admin() {
                 <div>
                   <p className="section-label">Records</p>
                   <h2>단어 목록</h2>
-                  <p className="panel-copy">Words Dashboard는 페이지당 10개씩 표시되며, 전체 용어를 한 번에 영문화할 수 있습니다.</p>
+                  <p className="panel-copy">Words Dashboard는 페이지당 10개씩 표시되며, 영문 필드가 비어 있는 용어만 비동기로 영문화합니다.</p>
                 </div>
                 <div className="admin-actions">
                   <button type="button" className="button button-secondary" onClick={() => translateWordsToEnglish()} disabled={translatingWords}>
