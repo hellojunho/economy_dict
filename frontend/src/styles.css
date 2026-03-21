@@ -399,6 +399,38 @@ textarea {
   gap: clamp(10px, 1.2vw, 12px);
 }
 
+.definition-markdown {
+  display: grid;
+  gap: 10px;
+  color: #1f2937;
+  line-height: 1.7;
+  font-size: clamp(13px, 0.25vw + 12px, 14px);
+}
+
+.definition-markdown > * {
+  margin: 0;
+}
+
+.definition-markdown p,
+.definition-markdown ul,
+.definition-markdown ol,
+.definition-markdown blockquote {
+  margin: 0;
+}
+
+.definition-markdown ul,
+.definition-markdown ol {
+  padding-left: 20px;
+}
+
+.definition-markdown li + li {
+  margin-top: 6px;
+}
+
+.definition-markdown strong {
+  color: #111827;
+}
+
 .meta-list {
   display: grid;
   gap: clamp(10px, 1.2vw, 12px);

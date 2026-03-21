@@ -4,6 +4,8 @@ import com.economydict.service.ImportContentExtractor;
 import com.economydict.service.ImportTaskService;
 import com.economydict.service.OpenAiService;
 import com.economydict.repository.DictionaryEntryRepository;
+import com.economydict.repository.FileTypeRepository;
+import com.economydict.repository.WordSourceRepository;
 import java.io.File;
 import java.util.stream.Collectors;
 import org.springframework.batch.core.Job;
@@ -71,8 +73,14 @@ public class PdfImportJobConfig {
     }
 
     @Bean
-    public ItemWriter<java.util.List<OpenAiService.ExtractedTerm>> termWriter(DictionaryEntryRepository dictionaryEntryRepository) {
-        return new TermWriter(dictionaryEntryRepository);
+    @StepScope
+    public ItemWriter<java.util.List<OpenAiService.ExtractedTerm>> termWriter(
+            DictionaryEntryRepository dictionaryEntryRepository,
+            FileTypeRepository fileTypeRepository,
+            WordSourceRepository wordSourceRepository,
+            @Value("#{jobParameters['sourceId']}") String sourceIdValue) {
+        Long sourceId = sourceIdValue == null || sourceIdValue.isBlank() ? null : Long.valueOf(sourceIdValue);
+        return new TermWriter(dictionaryEntryRepository, fileTypeRepository, wordSourceRepository, sourceId);
     }
 
     @Bean

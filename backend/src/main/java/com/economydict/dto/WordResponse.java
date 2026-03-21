@@ -5,8 +5,6 @@ public class WordResponse {
     private String word;
     private String meaning;
     private String englishWord;
-    private String englishMeaning;
-    private String source;
 
     public Long getId() {
         return id;
@@ -38,21 +36,5 @@ public class WordResponse {
 
     public void setEnglishWord(String englishWord) {
         this.englishWord = englishWord;
-    }
-
-    public String getEnglishMeaning() {
-        return englishMeaning;
-    }
-
-    public void setEnglishMeaning(String englishMeaning) {
-        this.englishMeaning = englishMeaning;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
     }
 }

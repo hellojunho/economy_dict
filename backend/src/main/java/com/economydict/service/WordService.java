@@ -14,10 +14,14 @@ import org.springframework.stereotype.Service;
 public class WordService {
     private final DictionaryEntryRepository dictionaryEntryRepository;
     private final OpenAiService openAiService;
+    private final WordMetadataService wordMetadataService;
 
-    public WordService(DictionaryEntryRepository dictionaryEntryRepository, OpenAiService openAiService) {
+    public WordService(DictionaryEntryRepository dictionaryEntryRepository,
+                       OpenAiService openAiService,
+                       WordMetadataService wordMetadataService) {
         this.dictionaryEntryRepository = dictionaryEntryRepository;
         this.openAiService = openAiService;
+        this.wordMetadataService = wordMetadataService;
     }
 
     public PagedResponse<WordResponse> getWords(String query, int page, int size) {
@@ -60,7 +64,7 @@ public class WordService {
         entry.setMeaning(result.getMeaning());
         entry.setEnglishWord(result.getEnglishWord());
         entry.setEnglishMeaning(result.getEnglishMeaning());
-        entry.setSource("AI_LOOKUP");
+        entry.setFileType(wordMetadataService.resolveFileType("AI_LOOKUP"));
         return toResponse(dictionaryEntryRepository.save(entry));
     }
 
@@ -70,8 +74,6 @@ public class WordService {
         response.setWord(entry.getWord());
         response.setMeaning(entry.getMeaning());
         response.setEnglishWord(entry.getEnglishWord());
-        response.setEnglishMeaning(entry.getEnglishMeaning());
-        response.setSource(entry.getSource());
         return response;
     }
 }

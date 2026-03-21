@@ -148,6 +148,134 @@ public class OpenAiService {
         }
     }
 
+    public DefinitionResult summarizeUploadedTerm(String term, String rawMeaning) {
+        DefinitionResult fallback = new DefinitionResult();
+        fallback.setWord(term);
+        fallback.setMeaning(rawMeaning);
+
+        if (term == null || term.isBlank() || rawMeaning == null || rawMeaning.isBlank()) {
+            return fallback;
+        }
+
+        String prompt = """
+                You are preparing a polished Korean economics glossary entry for end users.
+                Return ONLY a valid JSON object with EXACT keys:
+                word, meaning, englishWord, englishMeaning
+
+                Output rules for meaning:
+                1. The first line must be a short Korean explanation wrapped in double quotes.
+                2. Add one blank line.
+                3. Add one explanatory paragraph that starts with the term itself.
+                4. Add one blank line.
+                5. Add the heading **핵심 정리**
+                6. Add 3 to 5 bullet points summarizing the concept.
+
+                Output rules for englishWord and englishMeaning:
+                - englishWord must be the commonly used English economics term.
+                - englishMeaning must be a concise English explanation for internal storage.
+                - If uncertain, use null.
+
+                Style rules:
+                - Prefer Korean for meaning.
+                - Make the first line easy enough for a beginner to understand.
+                - Keep the explanation polished and readable, similar to a well-formatted chat answer.
+                - Use line breaks and emphasis naturally inside the meaning field.
+                - Do not use code fences.
+                - If the original meaning is brief, you may expand it into a helpful glossary explanation.
+                - Stay economically accurate and centered on the term.
+
+                Term: %s
+                Original meaning: %s
+                """.formatted(term, rawMeaning);
+
+        ChatRequest request = new ChatRequest(model, List.of(
+                new ChatMessage("system", "You return strict JSON for Korean economics glossary entries."),
+                new ChatMessage("user", prompt)
+        ));
+
+        ChatResponse response = webClient.post()
+                .uri("/v1/chat/completions")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatResponse.class)
+                .block();
+
+        if (response == null || response.choices == null || response.choices.isEmpty()) {
+            return fallback;
+        }
+
+        String content = extractJsonPayload(response.choices.get(0).message.content);
+        try {
+            DefinitionResult parsed = objectMapper.readValue(content, DefinitionResult.class);
+            if (parsed.getWord() == null || parsed.getWord().isBlank()) {
+                parsed.setWord(term);
+            }
+            if (parsed.getMeaning() == null || parsed.getMeaning().isBlank()) {
+                parsed.setMeaning(rawMeaning);
+            }
+            return parsed;
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    public DefinitionResult enrichImportedTerm(String term, String rawMeaning) {
+        DefinitionResult fallback = new DefinitionResult();
+        fallback.setWord(term);
+        fallback.setMeaning(rawMeaning);
+
+        if (term == null || term.isBlank()) {
+            return fallback;
+        }
+
+        String prompt = """
+                You are enriching an economics glossary entry for database storage.
+                Return ONLY a valid JSON object with EXACT keys:
+                word, meaning, englishWord, englishMeaning
+
+                Rules:
+                - word must equal the supplied term.
+                - meaning must preserve the original Korean meaning with only minimal cleanup for spacing and punctuation.
+                - englishWord must be the commonly used English economics term.
+                - englishMeaning must be a concise English explanation for internal storage.
+                - If uncertain, use null for englishWord or englishMeaning.
+                - Do not use markdown, code fences, or extra prose.
+
+                Term: %s
+                Original meaning: %s
+                """.formatted(term, rawMeaning == null ? "" : rawMeaning);
+
+        ChatRequest request = new ChatRequest(model, List.of(
+                new ChatMessage("system", "You return strict JSON for glossary enrichment."),
+                new ChatMessage("user", prompt)
+        ));
+
+        ChatResponse response = webClient.post()
+                .uri("/v1/chat/completions")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatResponse.class)
+                .block();
+
+        if (response == null || response.choices == null || response.choices.isEmpty()) {
+            return fallback;
+        }
+
+        String content = extractJsonPayload(response.choices.get(0).message.content);
+        try {
+            DefinitionResult parsed = objectMapper.readValue(content, DefinitionResult.class);
+            if (parsed.getWord() == null || parsed.getWord().isBlank()) {
+                parsed.setWord(term);
+            }
+            if (parsed.getMeaning() == null || parsed.getMeaning().isBlank()) {
+                parsed.setMeaning(rawMeaning);
+            }
+            return parsed;
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
     private String extractJsonPayload(String content) {
         if (content == null) {
             return "";

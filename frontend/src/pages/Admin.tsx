@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { AdminUser, SectionKey, useAdminStore } from '../stores/adminStore';
+import { AdminUser, DIRECT_SOURCE_OPTION, SectionKey, useAdminStore } from '../stores/adminStore';
 
 const sections: { key: SectionKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
@@ -19,13 +19,18 @@ export default function Admin() {
   const users = useAdminStore((state) => state.users);
   const words = useAdminStore((state) => state.words);
   const uploads = useAdminStore((state) => state.uploads);
+  const sourceOptions = useAdminStore((state) => state.sourceOptions);
   const message = useAdminStore((state) => state.message);
   const loading = useAdminStore((state) => state.loading);
   const uploading = useAdminStore((state) => state.uploading);
+  const uploadSourceId = useAdminStore((state) => state.uploadSourceId);
+  const uploadSourceName = useAdminStore((state) => state.uploadSourceName);
   const userForm = useAdminStore((state) => state.userForm);
   const wordForm = useAdminStore((state) => state.wordForm);
   const setSection = useAdminStore((state) => state.setSection);
   const setSelectedFile = useAdminStore((state) => state.setSelectedFile);
+  const setUploadSourceId = useAdminStore((state) => state.setUploadSourceId);
+  const setUploadSourceName = useAdminStore((state) => state.setUploadSourceName);
   const updateUserForm = useAdminStore((state) => state.updateUserForm);
   const updateWordForm = useAdminStore((state) => state.updateWordForm);
   const editUser = useAdminStore((state) => state.editUser);
@@ -199,7 +204,19 @@ export default function Admin() {
                 <label><span>Meaning</span><textarea rows={5} value={wordForm.meaning} onChange={(e) => updateWordForm({ meaning: e.target.value })} /></label>
                 <label><span>English Word</span><input value={wordForm.englishWord} onChange={(e) => updateWordForm({ englishWord: e.target.value })} /></label>
                 <label><span>English Meaning</span><textarea rows={4} value={wordForm.englishMeaning} onChange={(e) => updateWordForm({ englishMeaning: e.target.value })} /></label>
-                <label><span>Source</span><input value={wordForm.source} onChange={(e) => updateWordForm({ source: e.target.value })} /></label>
+                <label>
+                  <span>Source</span>
+                  <select value={wordForm.sourceId} onChange={(e) => updateWordForm({ sourceId: e.target.value, sourceName: e.target.value === DIRECT_SOURCE_OPTION ? wordForm.sourceName : '' })}>
+                    <option value="">선택 안 함</option>
+                    {sourceOptions.map((source) => (
+                      <option key={source.id} value={String(source.id)}>{source.name}</option>
+                    ))}
+                    <option value={DIRECT_SOURCE_OPTION}>직접입력</option>
+                  </select>
+                </label>
+                {wordForm.sourceId === DIRECT_SOURCE_OPTION && (
+                  <label><span>New Source</span><input value={wordForm.sourceName} onChange={(e) => updateWordForm({ sourceName: e.target.value })} placeholder="예: 한국경제용어 700선" /></label>
+                )}
                 <div className="button-row">
                   <button type="submit" className="button button-primary">Save Word</button>
                   <button type="button" className="button button-secondary" onClick={() => resetWordForm()}>Clear</button>
@@ -210,13 +227,13 @@ export default function Admin() {
               <div className="panel-head compact"><div><p className="section-label">Records</p><h2>단어 목록</h2></div></div>
               <div className="table-wrap">
                 <table className="data-table">
-                  <thead><tr><th>Word</th><th>Meaning</th><th>Source</th><th>Action</th></tr></thead>
+                  <thead><tr><th>Word</th><th>English</th><th>Source</th><th>Action</th></tr></thead>
                   <tbody>
                     {words.map((word) => (
                       <tr key={word.id}>
                         <td>{word.word}</td>
-                        <td>{word.meaning}</td>
-                        <td>{word.source ?? '-'}</td>
+                        <td>{word.englishWord ?? '-'}</td>
+                        <td>{word.sourceName ?? '-'}</td>
                         <td>
                           <div className="table-actions">
                             <button type="button" className="link-button" onClick={() => editWord(word)}>Edit</button>
@@ -246,6 +263,22 @@ export default function Admin() {
                   <span>Supported File</span>
                   <input type="file" accept=".pdf,.txt,.xlsx,.csv,.json,.zip,application/pdf,text/plain,text/csv,application/json,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
                 </label>
+                <label>
+                  <span>Source (Optional)</span>
+                  <select value={uploadSourceId} onChange={(event) => setUploadSourceId(event.target.value)}>
+                    <option value="">선택 안 함</option>
+                    {sourceOptions.map((source) => (
+                      <option key={source.id} value={String(source.id)}>{source.name}</option>
+                    ))}
+                    <option value={DIRECT_SOURCE_OPTION}>직접입력</option>
+                  </select>
+                </label>
+                {uploadSourceId === DIRECT_SOURCE_OPTION && (
+                  <label>
+                    <span>New Source</span>
+                    <input value={uploadSourceName} onChange={(event) => setUploadSourceName(event.target.value)} placeholder="예: 한국경제용어 700선" />
+                  </label>
+                )}
                 <p className="muted">최대 업로드 용량은 20MB입니다. 지원 형식은 pdf, txt, xlsx, csv, json, zip 이며, zip은 내부 파일을 순차적으로 파싱합니다.</p>
                 <div className="button-row">
                   <button type="button" className="button button-primary" onClick={() => uploadSelectedFile()} disabled={uploading}>

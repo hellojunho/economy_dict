@@ -19,7 +19,19 @@ export type AdminWord = {
   meaning: string;
   englishWord?: string | null;
   englishMeaning?: string | null;
-  source?: string | null;
+  fileType?: string | null;
+  sourceId?: number | null;
+  sourceName?: string | null;
+};
+
+export type SourceOption = {
+  id: number;
+  name: string;
+};
+
+export type FileTypeOption = {
+  code: string;
+  displayName: string;
 };
 
 export type UploadTask = {
@@ -61,7 +73,9 @@ export type WordFormState = {
   meaning: string;
   englishWord: string;
   englishMeaning: string;
-  source: string;
+  fileType: string;
+  sourceId: string;
+  sourceName: string;
 };
 
 type AdminState = {
@@ -71,14 +85,20 @@ type AdminState = {
   users: AdminUser[];
   words: AdminWord[];
   uploads: UploadTask[];
+  sourceOptions: SourceOption[];
+  fileTypeOptions: FileTypeOption[];
   message: string;
   loading: boolean;
   uploading: boolean;
   selectedFile: File | null;
+  uploadSourceId: string;
+  uploadSourceName: string;
   userForm: UserFormState;
   wordForm: WordFormState;
   setSection: (section: SectionKey) => void;
   setSelectedFile: (file: File | null) => void;
+  setUploadSourceId: (sourceId: string) => void;
+  setUploadSourceName: (sourceName: string) => void;
   updateUserForm: (patch: Partial<UserFormState>) => void;
   updateWordForm: (patch: Partial<WordFormState>) => void;
   editUser: (user: AdminUser) => void;
@@ -111,8 +131,12 @@ const defaultWordForm: WordFormState = {
   meaning: '',
   englishWord: '',
   englishMeaning: '',
-  source: 'MANUAL'
+  fileType: 'MANUAL',
+  sourceId: '',
+  sourceName: ''
 };
+
+export const DIRECT_SOURCE_OPTION = '__direct__';
 
 async function fetchOverview() {
   const [summaryResponse, statsResponse] = await Promise.all([
@@ -141,6 +165,28 @@ async function fetchUploads() {
   return response.data;
 }
 
+async function fetchSources() {
+  const response = await client.get<SourceOption[]>('/admin/sources');
+  return response.data;
+}
+
+async function fetchFileTypes() {
+  const response = await client.get<FileTypeOption[]>('/admin/file-types');
+  return response.data;
+}
+
+function buildWordPayload(wordForm: WordFormState) {
+  return {
+    word: wordForm.word,
+    meaning: wordForm.meaning,
+    englishWord: wordForm.englishWord || null,
+    englishMeaning: wordForm.englishMeaning || null,
+    fileType: wordForm.fileType || 'MANUAL',
+    sourceId: wordForm.sourceId && wordForm.sourceId !== DIRECT_SOURCE_OPTION ? Number(wordForm.sourceId) : null,
+    sourceName: wordForm.sourceId === DIRECT_SOURCE_OPTION ? wordForm.sourceName : null
+  };
+}
+
 export const useAdminStore = create<AdminState>((set, get) => ({
   section: 'overview',
   summary: null,
@@ -148,14 +194,20 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   users: [],
   words: [],
   uploads: [],
+  sourceOptions: [],
+  fileTypeOptions: [],
   message: '',
   loading: false,
   uploading: false,
   selectedFile: null,
+  uploadSourceId: '',
+  uploadSourceName: '',
   userForm: defaultUserForm,
   wordForm: defaultWordForm,
   setSection: (section) => set({ section }),
   setSelectedFile: (file) => set({ selectedFile: file }),
+  setUploadSourceId: (sourceId) => set({ uploadSourceId: sourceId, uploadSourceName: sourceId === DIRECT_SOURCE_OPTION ? get().uploadSourceName : '' }),
+  setUploadSourceName: (sourceName) => set({ uploadSourceName: sourceName }),
   updateUserForm: (patch) => set((state) => ({ userForm: { ...state.userForm, ...patch } })),
   updateWordForm: (patch) => set((state) => ({ wordForm: { ...state.wordForm, ...patch } })),
   editUser: (user) => set({
@@ -176,7 +228,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       meaning: word.meaning,
       englishWord: word.englishWord ?? '',
       englishMeaning: word.englishMeaning ?? '',
-      source: word.source ?? 'MANUAL'
+      fileType: word.fileType ?? 'MANUAL',
+      sourceId: word.sourceId ? String(word.sourceId) : '',
+      sourceName: word.sourceId ? '' : (word.sourceName ?? '')
     }
   }),
   resetUserForm: () => set({ userForm: defaultUserForm }),
@@ -194,10 +248,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         set({ users: await fetchUsers() });
       }
       if (section === 'words') {
-        set({ words: await fetchWords() });
+        const [words, sourceOptions, fileTypeOptions] = await Promise.all([fetchWords(), fetchSources(), fetchFileTypes()]);
+        set({ words, sourceOptions, fileTypeOptions });
       }
       if (section === 'uploads') {
-        set({ uploads: await fetchUploads() });
+        const [uploads, sourceOptions] = await Promise.all([fetchUploads(), fetchSources()]);
+        set({ uploads, sourceOptions });
       }
     } catch (error) {
       set({ message: getApiErrorMessage(error, '관리자 데이터를 불러오지 못했습니다.') });
@@ -242,12 +298,14 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     const { wordForm } = get();
     set({ message: '' });
     try {
+      const payload = buildWordPayload(wordForm);
       if (wordForm.id) {
-        await client.put(`/admin/words/${wordForm.id}`, wordForm);
+        await client.put(`/admin/words/${wordForm.id}`, payload);
       } else {
-        await client.post('/admin/words', wordForm);
+        await client.post('/admin/words', payload);
       }
-      set({ wordForm: defaultWordForm, words: await fetchWords(), message: '단어 정보가 저장되었습니다.' });
+      const [words, sourceOptions] = await Promise.all([fetchWords(), fetchSources()]);
+      set({ wordForm: defaultWordForm, words, sourceOptions, message: '단어 정보가 저장되었습니다.' });
     } catch (error) {
       set({ message: getApiErrorMessage(error, '단어 정보를 저장하지 못했습니다.') });
     }
@@ -265,7 +323,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
   uploadSelectedFile: async () => {
-    const { selectedFile } = get();
+    const { selectedFile, uploadSourceId, uploadSourceName } = get();
     if (!selectedFile) {
       set({ message: '업로드할 파일을 선택하세요. 지원 형식: pdf, txt, xlsx, csv, json, zip. 최대 20MB까지 허용됩니다.' });
       return;
@@ -275,12 +333,22 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
+      if (uploadSourceId && uploadSourceId !== DIRECT_SOURCE_OPTION) {
+        formData.append('sourceId', uploadSourceId);
+      }
+      if (uploadSourceId === DIRECT_SOURCE_OPTION && uploadSourceName.trim()) {
+        formData.append('sourceName', uploadSourceName.trim());
+      }
       await client.post('/admin/words/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      const [uploads, sourceOptions] = await Promise.all([fetchUploads(), fetchSources()]);
       set({
         selectedFile: null,
-        uploads: await fetchUploads(),
+        uploadSourceId: '',
+        uploadSourceName: '',
+        uploads,
+        sourceOptions,
         message: '업로드 작업이 등록되었습니다.',
         section: 'uploads'
       });

@@ -1,5 +1,27 @@
 import { FormEvent, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useSearchStore } from '../stores/searchStore';
+
+function formatMeaningMarkdown(content: string) {
+  return content
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function previewMeaning(content: string) {
+  if (!content) {
+    return '';
+  }
+
+  const line = content
+    .split('\n')
+    .map((item) => item.trim())
+    .find((item) => item.length > 0 && !item.startsWith('**'));
+
+  return (line ?? content).replace(/^"+|"+$/g, '');
+}
 
 export default function Search() {
   const query = useSearchStore((state) => state.query);
@@ -65,9 +87,8 @@ export default function Search() {
               >
                 <div>
                   <strong>{item.word}</strong>
-                  <p>{item.meaning}</p>
+                  <p>{previewMeaning(item.meaning)}</p>
                 </div>
-                <span>{item.source ?? 'DB'}</span>
               </button>
             ))}
             {!listResponse?.content.length && <p className="muted">조건에 맞는 용어가 없습니다.</p>}
@@ -107,19 +128,15 @@ export default function Search() {
             {lookupResult ? (
               <div className="definition-block">
                 <h3>{lookupResult.word}</h3>
-                <p>{lookupResult.meaning}</p>
+                <div className="definition-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {formatMeaningMarkdown(lookupResult.meaning)}
+                  </ReactMarkdown>
+                </div>
                 <dl className="meta-list">
                   <div>
                     <dt>English</dt>
                     <dd>{lookupResult.englishWord || '-'}</dd>
-                  </div>
-                  <div>
-                    <dt>English Meaning</dt>
-                    <dd>{lookupResult.englishMeaning || '-'}</dd>
-                  </div>
-                  <div>
-                    <dt>Source</dt>
-                    <dd>{lookupResult.source || 'DB'}</dd>
                   </div>
                 </dl>
               </div>
@@ -138,19 +155,15 @@ export default function Search() {
             {selectedWord ? (
               <div className="definition-block">
                 <h3>{selectedWord.word}</h3>
-                <p>{selectedWord.meaning}</p>
+                <div className="definition-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {formatMeaningMarkdown(selectedWord.meaning)}
+                  </ReactMarkdown>
+                </div>
                 <dl className="meta-list">
                   <div>
                     <dt>English</dt>
                     <dd>{selectedWord.englishWord || '-'}</dd>
-                  </div>
-                  <div>
-                    <dt>English Meaning</dt>
-                    <dd>{selectedWord.englishMeaning || '-'}</dd>
-                  </div>
-                  <div>
-                    <dt>Source</dt>
-                    <dd>{selectedWord.source || 'DB'}</dd>
                   </div>
                 </dl>
               </div>

@@ -20,18 +20,21 @@ public class PdfImportJobService {
     private final Job pdfImportJob;
     private final ImportTaskService taskService;
     private final ImportContentExtractor importContentExtractor;
+    private final WordMetadataService wordMetadataService;
 
     public PdfImportJobService(JobLauncher jobLauncher,
                                Job pdfImportJob,
                                ImportTaskService taskService,
-                               ImportContentExtractor importContentExtractor) {
+                               ImportContentExtractor importContentExtractor,
+                               WordMetadataService wordMetadataService) {
         this.jobLauncher = jobLauncher;
         this.pdfImportJob = pdfImportJob;
         this.taskService = taskService;
         this.importContentExtractor = importContentExtractor;
+        this.wordMetadataService = wordMetadataService;
     }
 
-    public WordUploadStatusResponse submit(MultipartFile file) {
+    public WordUploadStatusResponse submit(MultipartFile file, Long sourceId, String sourceName) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Upload file is empty.");
         }
@@ -41,18 +44,25 @@ public class PdfImportJobService {
         }
         ImportTask task = taskService.createTask(originalFileName, file.getContentType());
         String filePath = storeTempFile(task.getTaskId(), originalFileName, file);
+        Long resolvedSourceId = null;
+        if (sourceId != null || (sourceName != null && !sourceName.isBlank())) {
+            resolvedSourceId = wordMetadataService.resolveSource(sourceId, sourceName).getId();
+        }
         taskService.updateTotalUnits(task.getTaskId(), countUnits(filePath));
-        runAsync(task.getTaskId(), filePath);
+        runAsync(task.getTaskId(), filePath, resolvedSourceId);
         return taskService.toWordUploadStatus(taskService.getTask(task.getTaskId()));
     }
 
     @Async
-    public void runAsync(String taskId, String filePath) {
-        JobParameters params = new JobParametersBuilder()
+    public void runAsync(String taskId, String filePath, Long sourceId) {
+        JobParametersBuilder paramsBuilder = new JobParametersBuilder()
                 .addString("taskId", taskId)
                 .addString("filePath", filePath)
-                .addLong("timestamp", System.currentTimeMillis())
-                .toJobParameters();
+                .addLong("timestamp", System.currentTimeMillis());
+        if (sourceId != null) {
+            paramsBuilder.addString("sourceId", sourceId.toString());
+        }
+        JobParameters params = paramsBuilder.toJobParameters();
         try {
             jobLauncher.run(pdfImportJob, params);
         } catch (Exception ex) {

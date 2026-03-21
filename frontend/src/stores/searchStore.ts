@@ -7,8 +7,6 @@ export type WordRecord = {
   word: string;
   meaning: string;
   englishWord?: string | null;
-  englishMeaning?: string | null;
-  source?: string | null;
 };
 
 export type WordPage = {

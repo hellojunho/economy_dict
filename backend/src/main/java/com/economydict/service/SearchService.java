@@ -14,6 +14,6 @@ public class SearchService {
 
     public SearchResponse search(String term) {
         WordResponse response = wordService.lookupWord(term);
-        return new SearchResponse(response.getWord(), response.getMeaning(), response.getEnglishWord(), response.getEnglishMeaning(), response.getSource());
+        return new SearchResponse(response.getWord(), response.getMeaning(), response.getEnglishWord());
     }
 }

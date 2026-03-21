@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -29,8 +31,13 @@ public class DictionaryEntry extends BaseEntity {
     @Column(name = "english_meaning", columnDefinition = "text")
     private String englishMeaning;
 
-    @Column(length = 200)
-    private String source;
+    @ManyToOne
+    @JoinColumn(name = "file_type_code", referencedColumnName = "code")
+    private FileType fileType;
+
+    @ManyToOne
+    @JoinColumn(name = "source_id")
+    private WordSource source;
 
     public Long getId() {
         return id;
@@ -68,11 +75,19 @@ public class DictionaryEntry extends BaseEntity {
         this.englishMeaning = englishMeaning;
     }
 
-    public String getSource() {
+    public FileType getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(FileType fileType) {
+        this.fileType = fileType;
+    }
+
+    public WordSource getSource() {
         return source;
     }
 
-    public void setSource(String source) {
+    public void setSource(WordSource source) {
         this.source = source;
     }
 }

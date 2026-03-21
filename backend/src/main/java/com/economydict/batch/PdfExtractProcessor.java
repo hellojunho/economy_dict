@@ -19,7 +19,10 @@ public class PdfExtractProcessor implements ItemProcessor<ImportChunk, List<Open
             return Collections.emptyList();
         }
         if (item.hasExtractedTerms()) {
-            return item.getExtractedTerms();
+            return item.getExtractedTerms().stream()
+                    .map(this::formatImportedTerm)
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
         }
         String text = item.getText();
         if (text == null || text.isBlank()) {
@@ -27,5 +30,42 @@ public class PdfExtractProcessor implements ItemProcessor<ImportChunk, List<Open
         }
         text = text.length() > MAX_CHARS ? text.substring(0, MAX_CHARS) : text;
         return openAiService.extractDictionaryTerms(text);
+    }
+
+    private OpenAiService.ExtractedTerm formatImportedTerm(OpenAiService.ExtractedTerm term) {
+        if (term == null) {
+            return null;
+        }
+        OpenAiService.ExtractedTerm formatted = new OpenAiService.ExtractedTerm();
+        formatted.setWord(term.getWord());
+        formatted.setSource(term.getSource());
+
+        if ("JSON_IMPORT".equals(term.getSource())) {
+            OpenAiService.DefinitionResult summary = openAiService.summarizeUploadedTerm(term.getWord(), term.getMeaning());
+            formatted.setMeaning(summary.getMeaning());
+            formatted.setEnglishWord(selectValue(summary.getEnglishWord(), term.getEnglishWord()));
+            formatted.setEnglishMeaning(selectValue(summary.getEnglishMeaning(), term.getEnglishMeaning()));
+            return formatted;
+        }
+
+        formatted.setMeaning(term.getMeaning());
+        if (isBlank(term.getEnglishWord()) || isBlank(term.getEnglishMeaning())) {
+            OpenAiService.DefinitionResult enriched = openAiService.enrichImportedTerm(term.getWord(), term.getMeaning());
+            formatted.setEnglishWord(selectValue(term.getEnglishWord(), enriched.getEnglishWord()));
+            formatted.setEnglishMeaning(selectValue(term.getEnglishMeaning(), enriched.getEnglishMeaning()));
+            return formatted;
+        }
+
+        formatted.setEnglishWord(term.getEnglishWord());
+        formatted.setEnglishMeaning(term.getEnglishMeaning());
+        return formatted;
+    }
+
+    private String selectValue(String primary, String secondary) {
+        return !isBlank(primary) ? primary : secondary;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

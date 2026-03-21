@@ -10,8 +10,10 @@ import com.economydict.dto.AdminUserDto;
 import com.economydict.dto.AdminUserRequest;
 import com.economydict.dto.DailyUserStatResponse;
 import com.economydict.dto.DictionaryEntryDto;
+import com.economydict.dto.FileTypeOptionDto;
 import com.economydict.dto.ImportTaskResponse;
 import com.economydict.dto.RoleUpdateRequest;
+import com.economydict.dto.SourceOptionDto;
 import com.economydict.dto.WordUploadStatusResponse;
 import com.economydict.entity.DictionaryEntry;
 import com.economydict.entity.Quiz;
@@ -27,6 +29,7 @@ import com.economydict.repository.UserRepository;
 import com.economydict.service.AnalyticsService;
 import com.economydict.service.ImportTaskService;
 import com.economydict.service.PdfImportJobService;
+import com.economydict.service.WordMetadataService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -59,6 +62,7 @@ public class AdminDataController {
     private final PdfImportJobService pdfImportJobService;
     private final ImportTaskService importTaskService;
     private final AnalyticsService analyticsService;
+    private final WordMetadataService wordMetadataService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -68,7 +72,8 @@ public class AdminDataController {
                                QuizOptionRepository quizOptionRepository,
                                PdfImportJobService pdfImportJobService,
                                ImportTaskService importTaskService,
-                               AnalyticsService analyticsService) {
+                               AnalyticsService analyticsService,
+                               WordMetadataService wordMetadataService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
@@ -78,6 +83,7 @@ public class AdminDataController {
         this.pdfImportJobService = pdfImportJobService;
         this.importTaskService = importTaskService;
         this.analyticsService = analyticsService;
+        this.wordMetadataService = wordMetadataService;
     }
 
     @GetMapping("/users")
@@ -162,6 +168,16 @@ public class AdminDataController {
         return ResponseEntity.ok(dictionaryEntryRepository.findAll().stream().map(this::toDictionaryDto).collect(Collectors.toList()));
     }
 
+    @GetMapping("/sources")
+    public ResponseEntity<List<SourceOptionDto>> listSources() {
+        return ResponseEntity.ok(wordMetadataService.listSources());
+    }
+
+    @GetMapping("/file-types")
+    public ResponseEntity<List<FileTypeOptionDto>> listFileTypes() {
+        return ResponseEntity.ok(wordMetadataService.listFileTypes());
+    }
+
     @PostMapping("/words")
     public ResponseEntity<DictionaryEntryDto> createDictionary(@Valid @RequestBody DictionaryEntryDto dto) {
         DictionaryEntry entry = new DictionaryEntry();
@@ -169,13 +185,17 @@ public class AdminDataController {
         entry.setMeaning(dto.getMeaning());
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
-        entry.setSource("MANUAL");
+        entry.setFileType(wordMetadataService.resolveFileType(dto.getFileType()));
+        entry.setSource(wordMetadataService.resolveSource(dto.getSourceId(), dto.getSourceName()));
         return ResponseEntity.ok(toDictionaryDto(dictionaryEntryRepository.save(entry)));
     }
 
     @PostMapping("/words/upload")
-    public ResponseEntity<WordUploadStatusResponse> importDictionaryPdf(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(pdfImportJobService.submit(file));
+    public ResponseEntity<WordUploadStatusResponse> importDictionaryPdf(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "sourceId", required = false) Long sourceId,
+            @RequestParam(value = "sourceName", required = false) String sourceName) {
+        return ResponseEntity.ok(pdfImportJobService.submit(file, sourceId, sourceName));
     }
 
     @GetMapping("/words/upload/{taskId}")
@@ -195,6 +215,8 @@ public class AdminDataController {
         entry.setMeaning(dto.getMeaning());
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
+        entry.setFileType(wordMetadataService.resolveFileType(dto.getFileType()));
+        entry.setSource(wordMetadataService.resolveSource(dto.getSourceId(), dto.getSourceName()));
         return ResponseEntity.ok(toDictionaryDto(dictionaryEntryRepository.save(entry)));
     }
 
@@ -225,8 +247,11 @@ public class AdminDataController {
     }
 
     @PostMapping("/dictionary/import-pdf")
-    public ResponseEntity<WordUploadStatusResponse> importDictionaryPdfLegacy(@RequestParam("file") MultipartFile file) {
-        return importDictionaryPdf(file);
+    public ResponseEntity<WordUploadStatusResponse> importDictionaryPdfLegacy(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "sourceId", required = false) Long sourceId,
+            @RequestParam(value = "sourceName", required = false) String sourceName) {
+        return importDictionaryPdf(file, sourceId, sourceName);
     }
 
     @GetMapping("/tasks/{taskId}")
@@ -342,7 +367,9 @@ public class AdminDataController {
         dto.setMeaning(entry.getMeaning());
         dto.setEnglishWord(entry.getEnglishWord());
         dto.setEnglishMeaning(entry.getEnglishMeaning());
-        dto.setSource(entry.getSource());
+        dto.setFileType(entry.getFileType() == null ? null : entry.getFileType().getCode());
+        dto.setSourceId(entry.getSource() == null ? null : entry.getSource().getId());
+        dto.setSourceName(entry.getSource() == null ? null : entry.getSource().getName());
         return dto;
     }
 
