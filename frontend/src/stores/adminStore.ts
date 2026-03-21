@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import client from '../api/client';
 import { getApiErrorMessage } from '../utils/apiError';
 
-export type SectionKey = 'overview' | 'users' | 'words' | 'uploads';
+export type SectionKey = 'overview' | 'users' | 'words' | 'uploads' | 'quizzes';
 
 export type AdminUser = {
   id: number;
@@ -51,6 +51,7 @@ export type FileTypeOption = {
 
 export type UploadTask = {
   fileId: string;
+  originalFileName?: string | null;
   status: string;
   message: string;
   estimatedTime?: string | null;
@@ -70,6 +71,37 @@ export type Summary = {
   activeUsers: number;
   totalWords: number;
   recentUploads: number;
+};
+
+export type AdminQuizOption = {
+  id: number;
+  questionId: number;
+  optionText: string;
+  optionOrder: number;
+  correct: boolean;
+  selectedCount: number;
+};
+
+export type AdminQuizQuestion = {
+  id: number;
+  quizId: number;
+  questionText: string;
+  attemptedUsers: number;
+  correctUsers: number;
+  correctRate: number;
+  participants: string[];
+  correctParticipants: string[];
+  options: AdminQuizOption[];
+};
+
+export type AdminQuiz = {
+  id: number;
+  quizId: string;
+  title: string;
+  questionCount: number;
+  participantCount: number;
+  createdAt?: string | null;
+  questions: AdminQuizQuestion[];
 };
 
 export type UserFormState = {
@@ -99,6 +131,8 @@ type AdminState = {
   stats: DailyStat[];
   users: AdminUser[];
   words: AdminWord[];
+  quizzes: AdminQuiz[];
+  selectedQuiz: AdminQuiz | null;
   wordListResponse: AdminWordPage | null;
   wordPage: number;
   uploads: UploadTask[];
@@ -108,6 +142,7 @@ type AdminState = {
   loading: boolean;
   uploading: boolean;
   translatingWords: boolean;
+  generatingQuiz: boolean;
   selectedFile: File | null;
   uploadSourceId: string;
   uploadSourceName: string;
@@ -133,6 +168,8 @@ type AdminState = {
   deleteWord: (id: number) => Promise<void>;
   translateWordsToEnglish: () => Promise<void>;
   uploadSelectedFile: () => Promise<void>;
+  selectQuiz: (id: number) => Promise<void>;
+  generateQuiz: () => Promise<void>;
 };
 
 const WORDS_PAGE_SIZE = 10;
@@ -192,6 +229,16 @@ async function fetchUploads() {
   return response.data;
 }
 
+async function fetchQuizzes() {
+  const response = await client.get<AdminQuiz[]>('/admin/quizzes');
+  return response.data;
+}
+
+async function fetchQuiz(id: number) {
+  const response = await client.get<AdminQuiz>(`/admin/quizzes/${id}`);
+  return response.data;
+}
+
 async function fetchSources() {
   const response = await client.get<SourceOption[]>('/admin/sources');
   return response.data;
@@ -230,6 +277,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   stats: [],
   users: [],
   words: [],
+  quizzes: [],
+  selectedQuiz: null,
   wordListResponse: null,
   wordPage: 0,
   uploads: [],
@@ -239,6 +288,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   loading: false,
   uploading: false,
   translatingWords: false,
+  generatingQuiz: false,
   selectedFile: null,
   uploadSourceId: '',
   uploadSourceName: '',
@@ -301,6 +351,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       if (section === 'uploads') {
         const [uploads, sourceOptions] = await Promise.all([fetchUploads(), fetchSources()]);
         set({ uploads, sourceOptions });
+      }
+      if (section === 'quizzes') {
+        const quizzes = await fetchQuizzes();
+        const selectedQuizId = get().selectedQuiz?.id ?? quizzes[0]?.id ?? null;
+        const selectedQuiz = selectedQuizId ? await fetchQuiz(selectedQuizId) : null;
+        set({ quizzes, selectedQuiz });
       }
     } catch (error) {
       set({ message: getApiErrorMessage(error, '관리자 데이터를 불러오지 못했습니다.') });
@@ -456,6 +512,33 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }
     } finally {
       set({ uploading: false });
+    }
+  },
+  selectQuiz: async (id) => {
+    set({ loading: true, message: '' });
+    try {
+      set({ selectedQuiz: await fetchQuiz(id) });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '퀴즈 상세 정보를 불러오지 못했습니다.') });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  generateQuiz: async () => {
+    set({ generatingQuiz: true, message: '' });
+    try {
+      const response = await client.post<AdminQuiz>('/admin/quizzes/generate');
+      const quizzes = await fetchQuizzes();
+      set({
+        quizzes,
+        selectedQuiz: response.data,
+        section: 'quizzes',
+        message: 'AI 퀴즈가 생성되었습니다.'
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, 'AI 퀴즈 생성에 실패했습니다.') });
+    } finally {
+      set({ generatingQuiz: false });
     }
   }
 }));

@@ -1,14 +1,38 @@
 import { FormEvent, useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { AdminUser, DIRECT_SOURCE_OPTION, SectionKey, useAdminStore } from '../stores/adminStore';
+import { AdminQuizQuestion, AdminUser, DIRECT_SOURCE_OPTION, SectionKey, useAdminStore } from '../stores/adminStore';
 
 const sections: { key: SectionKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
   { key: 'users', label: 'Users' },
   { key: 'words', label: 'Words' },
-  { key: 'uploads', label: 'Uploads' }
+  { key: 'uploads', label: 'Uploads' },
+  { key: 'quizzes', label: 'Quizzes' }
 ];
+
+function formatDateTime(value?: string | null) {
+  if (!value) {
+    return '-';
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function renderQuestionRate(question: AdminQuizQuestion) {
+  return `${Math.round(question.correctRate * 100)}%`;
+}
 
 export default function Admin() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -18,6 +42,8 @@ export default function Admin() {
   const stats = useAdminStore((state) => state.stats);
   const users = useAdminStore((state) => state.users);
   const words = useAdminStore((state) => state.words);
+  const quizzes = useAdminStore((state) => state.quizzes);
+  const selectedQuiz = useAdminStore((state) => state.selectedQuiz);
   const wordListResponse = useAdminStore((state) => state.wordListResponse);
   const wordPage = useAdminStore((state) => state.wordPage);
   const uploads = useAdminStore((state) => state.uploads);
@@ -26,6 +52,7 @@ export default function Admin() {
   const loading = useAdminStore((state) => state.loading);
   const uploading = useAdminStore((state) => state.uploading);
   const translatingWords = useAdminStore((state) => state.translatingWords);
+  const generatingQuiz = useAdminStore((state) => state.generatingQuiz);
   const uploadSourceId = useAdminStore((state) => state.uploadSourceId);
   const uploadSourceName = useAdminStore((state) => state.uploadSourceName);
   const userForm = useAdminStore((state) => state.userForm);
@@ -49,6 +76,8 @@ export default function Admin() {
   const deleteWord = useAdminStore((state) => state.deleteWord);
   const translateWordsToEnglish = useAdminStore((state) => state.translateWordsToEnglish);
   const uploadSelectedFile = useAdminStore((state) => state.uploadSelectedFile);
+  const selectQuiz = useAdminStore((state) => state.selectQuiz);
+  const generateQuiz = useAdminStore((state) => state.generateQuiz);
 
   if (!isAuthenticated || role !== 'ADMIN') {
     return <Navigate to="/signin" replace />;
@@ -332,6 +361,7 @@ export default function Admin() {
               <section className="panel">
                 <div className="panel-head compact"><div><p className="section-label">Current Task</p><h2>현재 작업 상태</h2></div></div>
                 <div className="progress-card task-progress-card">
+                  <p className="muted">File: {currentUpload.originalFileName || '-'}</p>
                   <span>{currentUpload.status}</span>
                   <strong>{Math.round(currentUpload.progressPercent ?? 0)}%</strong>
                   <div className="progress-track large">
@@ -348,11 +378,12 @@ export default function Admin() {
               <div className="panel-head compact"><div><p className="section-label">Task History</p><h2>업로드 작업 목록</h2></div></div>
               <div className="table-wrap">
                 <table className="data-table">
-                  <thead><tr><th>Task</th><th>Status</th><th>Progress</th><th>Message</th></tr></thead>
+                  <thead><tr><th>Task</th><th>File Name</th><th>Status</th><th>Progress</th><th>Message</th></tr></thead>
                   <tbody>
                     {uploads.map((upload) => (
                       <tr key={upload.fileId}>
                         <td>{upload.fileId}</td>
+                        <td>{upload.originalFileName || '-'}</td>
                         <td>{upload.status}</td>
                         <td>{Math.round(upload.progressPercent ?? 0)}%</td>
                         <td>{upload.message}</td>
@@ -361,6 +392,141 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
+            </section>
+          </div>
+        )}
+
+        {section === 'quizzes' && (
+          <div className="content-grid columns-1-2">
+            <section className="panel">
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">AI Quiz Builder</p>
+                  <h2>퀴즈 생성</h2>
+                  <p className="panel-copy">Words 테이블의 용어와 뜻을 바탕으로 AI가 객관식 경제 퀴즈를 생성합니다. 생성된 퀴즈는 문항별 정답률과 참여 사용자 기준으로 바로 확인할 수 있습니다.</p>
+                </div>
+                <div className="admin-actions">
+                  <button type="button" className="button button-primary" onClick={() => generateQuiz()} disabled={generatingQuiz}>
+                    {generatingQuiz ? 'Creating...' : 'Create Quiz'}
+                  </button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Questions</th>
+                      <th>Participants</th>
+                      <th>Created</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quizzes.length > 0 ? (
+                      quizzes.map((quiz) => (
+                        <tr key={quiz.id}>
+                          <td>{quiz.title}</td>
+                          <td>{quiz.questionCount}</td>
+                          <td>{quiz.participantCount}</td>
+                          <td>{formatDateTime(quiz.createdAt)}</td>
+                          <td>
+                            <button type="button" className="link-button" onClick={() => selectQuiz(quiz.id)}>
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="table-empty">생성된 퀴즈가 없습니다.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="panel">
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">Quiz Detail</p>
+                  <h2>{selectedQuiz ? selectedQuiz.title : '퀴즈를 선택하세요'}</h2>
+                  {selectedQuiz && (
+                    <p className="panel-copy">
+                      Quiz ID {selectedQuiz.quizId} · 문항 {selectedQuiz.questionCount}개 · 참여 사용자 {selectedQuiz.participantCount}명
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {selectedQuiz ? (
+                <div className="page-stack">
+                  {selectedQuiz.questions.map((question, index) => (
+                    <div key={question.id} className="panel">
+                      <div className="panel-head compact">
+                        <div>
+                          <p className="section-label">Question {index + 1}</p>
+                          <h3>{question.questionText}</h3>
+                        </div>
+                      </div>
+                      <div className="stat-grid admin-stats-grid">
+                        <article className="stat-card">
+                          <span>Attempted</span>
+                          <strong>{question.attemptedUsers}</strong>
+                          <p>문제를 푼 사용자 수</p>
+                        </article>
+                        <article className="stat-card">
+                          <span>Correct</span>
+                          <strong>{question.correctUsers}</strong>
+                          <p>정답을 맞힌 사용자 수</p>
+                        </article>
+                        <article className="stat-card">
+                          <span>Accuracy</span>
+                          <strong>{renderQuestionRate(question)}</strong>
+                          <p>정답률</p>
+                        </article>
+                      </div>
+                      <div className="table-wrap">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Order</th>
+                              <th>Option</th>
+                              <th>Answer</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {question.options.map((option) => (
+                              <tr key={option.id}>
+                                <td>{option.optionOrder}</td>
+                                <td>{option.optionText}</td>
+                                <td>{option.correct ? 'Correct' : '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="content-grid columns-1-2">
+                        <div>
+                          <p className="section-label">Participants</p>
+                          <p className="muted">
+                            {question.participants.length > 0 ? question.participants.join(', ') : '아직 응답한 사용자가 없습니다.'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="section-label">Correct Users</p>
+                          <p className="muted">
+                            {question.correctParticipants.length > 0 ? question.correctParticipants.join(', ') : '아직 정답자가 없습니다.'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">왼쪽 목록에서 퀴즈를 선택하면 문항별 보기, 참여 사용자, 정답률을 확인할 수 있습니다.</p>
+              )}
             </section>
           </div>
         )}

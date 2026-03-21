@@ -122,6 +122,7 @@ public class ImportTaskService {
         response.setFinishedAt(task.getFinishedAt());
         response.setFailedAt(task.getFailedAt());
         response.setErrorLog(task.getErrorLog());
+        response.setOriginalFileName(task.getOriginalFileName());
         response.setProcessedUnits(task.getProcessedUnits());
         response.setTotalUnits(task.getTotalUnits());
         if (task.getTotalUnits() != null && task.getTotalUnits() > 0 && task.getProcessedUnits() != null) {
@@ -136,6 +137,7 @@ public class ImportTaskService {
     public WordUploadStatusResponse toWordUploadStatus(ImportTask task) {
         WordUploadStatusResponse response = new WordUploadStatusResponse();
         response.setFileId(task.getTaskId());
+        response.setOriginalFileName(task.getOriginalFileName());
         response.setStatus(task.getState().name());
         response.setProgressPercent(task.getTotalUnits() != null && task.getTotalUnits() > 0 && task.getProcessedUnits() != null
                 ? Math.min(100.0, task.getProcessedUnits() * 100.0 / task.getTotalUnits())

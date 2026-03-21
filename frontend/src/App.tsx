@@ -6,9 +6,11 @@ import Signup from './pages/Signup';
 import Terms from './pages/Terms';
 import Search from './pages/Search';
 import Quiz from './pages/Quiz';
+import IncorrectNote from './pages/IncorrectNote';
 import MyPage from './pages/MyPage';
 import Admin from './pages/Admin';
 import Chat from './pages/Chat';
+import TopIncorrectWords from './pages/TopIncorrectWords';
 import client from './api/client';
 import { useAuthStore } from './stores/authStore';
 
@@ -101,6 +103,8 @@ export default function App() {
           <Route path="/search" element={<Navigate to="/words" replace />} />
           <Route path="/dictionary" element={<Navigate to="/words" replace />} />
           <Route path="/quiz" element={<Quiz />} />
+          <Route path="/incorrect-note" element={<IncorrectNote />} />
+          <Route path="/top-incorrect" element={<TopIncorrectWords />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<Admin />} />

@@ -10,5 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserQuestionStatusRepository extends JpaRepository<UserQuestionStatus, Long> {
     Optional<UserQuestionStatus> findByUserAndQuestion(User user, QuizQuestion question);
     List<UserQuestionStatus> findByUser(User user);
+    List<UserQuestionStatus> findByQuestion_Quiz_Id(Long quizId);
+    List<UserQuestionStatus> findByUserAndQuestion_Quiz_Id(User user, Long quizId);
+    List<UserQuestionStatus> findByUserAndQuestion_Quiz_IdAndCorrectTrue(User user, Long quizId);
     long countByUserAndQuestion_Quiz_IdAndCorrectTrue(User user, Long quizId);
 }

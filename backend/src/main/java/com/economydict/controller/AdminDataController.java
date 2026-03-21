@@ -32,6 +32,7 @@ import com.economydict.service.AnalyticsService;
 import com.economydict.service.ImportTaskService;
 import com.economydict.service.OpenAiService;
 import com.economydict.service.PdfImportJobService;
+import com.economydict.service.QuizService;
 import com.economydict.service.WordMetadataService;
 import jakarta.validation.Valid;
 import java.time.Instant;
@@ -71,6 +72,7 @@ public class AdminDataController {
     private final AnalyticsService analyticsService;
     private final WordMetadataService wordMetadataService;
     private final OpenAiService openAiService;
+    private final QuizService quizService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -82,7 +84,8 @@ public class AdminDataController {
                                ImportTaskService importTaskService,
                                AnalyticsService analyticsService,
                                WordMetadataService wordMetadataService,
-                               OpenAiService openAiService) {
+                               OpenAiService openAiService,
+                               QuizService quizService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
@@ -94,6 +97,7 @@ public class AdminDataController {
         this.analyticsService = analyticsService;
         this.wordMetadataService = wordMetadataService;
         this.openAiService = openAiService;
+        this.quizService = quizService;
     }
 
     @GetMapping("/users")
@@ -325,7 +329,17 @@ public class AdminDataController {
 
     @GetMapping("/quizzes")
     public ResponseEntity<List<AdminQuizDto>> listQuizzes() {
-        return ResponseEntity.ok(quizRepository.findAll().stream().map(this::toQuizDto).collect(Collectors.toList()));
+        return ResponseEntity.ok(quizService.getAdminQuizzes());
+    }
+
+    @GetMapping("/quizzes/{id}")
+    public ResponseEntity<AdminQuizDto> getQuiz(@PathVariable Long id) {
+        return ResponseEntity.ok(quizService.getAdminQuiz(id));
+    }
+
+    @PostMapping("/quizzes/generate")
+    public ResponseEntity<AdminQuizDto> generateQuiz() {
+        return ResponseEntity.ok(quizService.generateAdminQuiz());
     }
 
     @PostMapping("/quizzes")
@@ -442,6 +456,9 @@ public class AdminDataController {
         dto.setId(quiz.getId());
         dto.setQuizId(quiz.getQuizId());
         dto.setTitle(quiz.getTitle());
+        dto.setQuestionCount(quiz.getQuestions().size());
+        dto.setParticipantCount(0);
+        dto.setCreatedAt(quiz.getCreatedAt());
         return dto;
     }
 

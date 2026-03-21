@@ -1,7 +1,7 @@
 package com.economydict.controller;
 
 import com.economydict.dto.DailyQuizResponse;
-import com.economydict.dto.IncorrectWordResponse;
+import com.economydict.dto.IncorrectQuizQuestionResponse;
 import com.economydict.dto.QuizSubmitAnswersRequest;
 import com.economydict.dto.QuizSubmitResultResponse;
 import com.economydict.dto.TopIncorrectWordResponse;
@@ -31,12 +31,12 @@ public class LearningQuizController {
 
     @PostMapping("/submit")
     public ResponseEntity<QuizSubmitResultResponse> submit(@Valid @RequestBody QuizSubmitAnswersRequest request) {
-        return ResponseEntity.ok(learningQuizService.submit(request));
+        throw new IllegalArgumentException("퀴즈 제출은 /api/quizzes/{quizId}/submit 경로를 사용하세요.");
     }
 
     @GetMapping("/incorrect")
-    public ResponseEntity<List<IncorrectWordResponse>> incorrect() {
-        return ResponseEntity.ok(learningQuizService.getIncorrectWords());
+    public ResponseEntity<List<IncorrectQuizQuestionResponse>> incorrect() {
+        return ResponseEntity.ok(learningQuizService.getIncorrectQuestions());
     }
 
     @GetMapping("/top-100")

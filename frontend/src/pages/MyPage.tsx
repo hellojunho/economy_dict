@@ -151,7 +151,7 @@ export default function MyPage() {
             </button>
           </form>
           {message && <p className={`form-message ${message.includes('실패') || message.includes('못') ? 'error-text' : 'success-text'}`}>{message}</p>}
-          <p className="muted">데일리 퀴즈는 <Link to="/quiz">Quiz</Link> 화면에서 바로 이어서 풀 수 있습니다.</p>
+          <p className="muted">데일리 퀴즈는 <Link to="/quiz">Quiz</Link> 화면에서 이어서 풀 수 있고, <Link to="/incorrect-note">오답노트</Link>에서 틀린 문항만 다시 볼 수 있습니다.</p>
         </aside>
       </section>
     </div>

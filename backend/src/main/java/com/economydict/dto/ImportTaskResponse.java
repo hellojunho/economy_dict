@@ -11,6 +11,7 @@ public class ImportTaskResponse {
     private Instant finishedAt;
     private Instant failedAt;
     private String errorLog;
+    private String originalFileName;
     private Integer totalUnits;
     private Integer processedUnits;
     private Double progressPercent;
@@ -69,6 +70,14 @@ public class ImportTaskResponse {
 
     public void setErrorLog(String errorLog) {
         this.errorLog = errorLog;
+    }
+
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public void setOriginalFileName(String originalFileName) {
+        this.originalFileName = originalFileName;
     }
 
     public Integer getTotalUnits() {

@@ -1,129 +1,166 @@
 package com.economydict.service;
 
+import com.economydict.dto.DailyQuizOptionResponse;
 import com.economydict.dto.DailyQuizQuestionResponse;
 import com.economydict.dto.DailyQuizResponse;
-import com.economydict.dto.IncorrectWordResponse;
-import com.economydict.dto.QuizAnswerItemRequest;
-import com.economydict.dto.QuizSubmitAnswersRequest;
-import com.economydict.dto.QuizSubmitResultResponse;
+import com.economydict.dto.IncorrectQuizQuestionResponse;
 import com.economydict.dto.TopIncorrectWordResponse;
-import com.economydict.entity.DictionaryEntry;
-import com.economydict.entity.QuizHistory;
+import com.economydict.entity.Quiz;
+import com.economydict.entity.QuizOption;
+import com.economydict.entity.QuizQuestion;
 import com.economydict.entity.User;
-import com.economydict.entity.UserLogAction;
-import com.economydict.repository.DictionaryEntryRepository;
-import com.economydict.repository.QuizHistoryRepository;
-import java.security.SecureRandom;
+import com.economydict.entity.UserQuestionAttempt;
+import com.economydict.entity.UserQuestionStatus;
+import com.economydict.repository.QuizRepository;
+import com.economydict.repository.UserQuestionAttemptRepository;
+import com.economydict.repository.UserQuestionStatusRepository;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LearningQuizService {
-    private static final int DAILY_QUIZ_SIZE = 10;
-    private final DictionaryEntryRepository dictionaryEntryRepository;
-    private final QuizHistoryRepository quizHistoryRepository;
+    private final QuizRepository quizRepository;
+    private final UserQuestionStatusRepository userQuestionStatusRepository;
+    private final UserQuestionAttemptRepository userQuestionAttemptRepository;
     private final UserService userService;
-    private final UserLogService userLogService;
     private final AnalyticsService analyticsService;
     private final SecureRandom random = new SecureRandom();
 
-    public LearningQuizService(DictionaryEntryRepository dictionaryEntryRepository,
-                               QuizHistoryRepository quizHistoryRepository,
+    public LearningQuizService(QuizRepository quizRepository,
+                               UserQuestionStatusRepository userQuestionStatusRepository,
+                               UserQuestionAttemptRepository userQuestionAttemptRepository,
                                UserService userService,
-                               UserLogService userLogService,
                                AnalyticsService analyticsService) {
-        this.dictionaryEntryRepository = dictionaryEntryRepository;
-        this.quizHistoryRepository = quizHistoryRepository;
+        this.quizRepository = quizRepository;
+        this.userQuestionStatusRepository = userQuestionStatusRepository;
+        this.userQuestionAttemptRepository = userQuestionAttemptRepository;
         this.userService = userService;
-        this.userLogService = userLogService;
         this.analyticsService = analyticsService;
     }
 
     public DailyQuizResponse getDailyQuiz() {
-        List<DictionaryEntry> words = dictionaryEntryRepository.findAll();
-        Collections.shuffle(words, random);
-        List<DictionaryEntry> selected = words.stream().limit(Math.min(DAILY_QUIZ_SIZE, words.size())).collect(Collectors.toList());
-        List<DailyQuizQuestionResponse> questions = new ArrayList<>();
-        for (DictionaryEntry word : selected) {
-            DailyQuizQuestionResponse item = new DailyQuizQuestionResponse();
-            item.setWordId(word.getId());
-            item.setTerm(word.getWord());
-            item.setOptions(buildOptions(word, words));
-            questions.add(item);
-        }
+        User user = userService.getCurrentUser();
+        Quiz quiz = quizRepository.findFirstByOrderByCreatedAtDesc()
+                .orElseThrow(() -> new IllegalArgumentException("관리자에서 생성한 퀴즈가 없습니다. 먼저 Admin에서 Create Quiz를 실행하세요."));
+
+        List<DailyQuizQuestionResponse> questions = quiz.getQuestions().stream()
+                .sorted(Comparator.comparing(QuizQuestion::getId))
+                .map(this::toDailyQuestion)
+                .collect(Collectors.toList());
+
         DailyQuizResponse response = new DailyQuizResponse();
+        response.setQuizId(quiz.getQuizId());
+        response.setTitle(quiz.getTitle());
         response.setQuestions(questions);
+        List<UserQuestionStatus> statuses = userQuestionStatusRepository.findByUserAndQuestion_Quiz_Id(user, quiz.getId());
+        response.setSolvedQuestionIds(statuses.stream()
+                .filter(UserQuestionStatus::isCorrect)
+                .map(status -> status.getQuestion().getId())
+                .sorted()
+                .collect(Collectors.toList()));
+        QuizRecordSummary summary = summarizeStatuses(statuses);
+        response.setRecordedCorrectCount(summary.recordedCorrectCount());
+        response.setRecordedIncorrectCount(summary.recordedIncorrectCount());
         return response;
     }
 
-    @Transactional
-    public QuizSubmitResultResponse submit(QuizSubmitAnswersRequest request) {
+    public List<IncorrectQuizQuestionResponse> getIncorrectQuestions() {
         User user = userService.getCurrentUser();
-        int correctCount = 0;
-        for (QuizAnswerItemRequest answer : request.getAnswers()) {
-            DictionaryEntry word = dictionaryEntryRepository.findById(answer.getWordId())
-                    .orElseThrow(() -> new IllegalArgumentException("Word not found"));
-            boolean correct = word.getMeaning().equals(answer.getSelectedAnswer());
-            if (correct) {
-                correctCount++;
-            }
-            QuizHistory history = new QuizHistory();
-            history.setUser(user);
-            history.setWord(word);
-            history.setSelectedAnswer(answer.getSelectedAnswer());
-            history.setCorrectAnswer(word.getMeaning());
-            history.setCorrect(correct);
-            quizHistoryRepository.save(history);
-        }
-        userLogService.log(user, UserLogAction.QUIZ_SUBMIT, "Submitted daily quiz");
-        return new QuizSubmitResultResponse(request.getAnswers().size(), correctCount);
-    }
+        List<UserQuestionStatus> statuses = userQuestionStatusRepository.findByUser(user);
+        Map<Long, UserQuestionStatus> statusById = statuses.stream()
+                .collect(Collectors.toMap(UserQuestionStatus::getId, status -> status));
+        Map<Long, UserQuestionAttempt> firstAttempts = findFirstAttempts(statusById);
+        Map<Long, UserQuestionAttempt> attemptsByQuestionId = new LinkedHashMap<>();
 
-    public List<IncorrectWordResponse> getIncorrectWords() {
-        User user = userService.getCurrentUser();
-        Map<Long, IncorrectWordResponse> deduplicated = new LinkedHashMap<>();
-        for (QuizHistory history : quizHistoryRepository.findByUserAndCorrectFalseOrderByCreatedAtDesc(user)) {
-            deduplicated.computeIfAbsent(history.getWord().getId(), id -> {
-                IncorrectWordResponse response = new IncorrectWordResponse();
-                response.setWordId(history.getWord().getId());
-                response.setTerm(history.getWord().getWord());
-                response.setDefinition(history.getWord().getMeaning());
-                return response;
-            });
+        List<IncorrectQuizQuestionResponse> responses = new ArrayList<>();
+        for (UserQuestionAttempt attempt : firstAttempts.values()) {
+            if (attempt.isCorrect()) {
+                continue;
+            }
+            UserQuestionStatus status = statusById.get(attempt.getStatus().getId());
+            QuizQuestion question = status.getQuestion();
+            IncorrectQuizQuestionResponse response = new IncorrectQuizQuestionResponse();
+            response.setQuestionId(question.getId());
+            response.setQuizId(question.getQuiz().getQuizId());
+            response.setQuizTitle(question.getQuiz().getTitle());
+            response.setQuestionText(question.getQuestionText());
+            response.setOptions(toShuffledDailyOptions(question));
+            responses.add(response);
+            attemptsByQuestionId.put(question.getId(), attempt);
         }
-        return new ArrayList<>(deduplicated.values());
+        responses.sort(Comparator
+                .comparing((IncorrectQuizQuestionResponse item) -> attemptsByQuestionId.get(item.getQuestionId()).getAttemptedAt())
+                .reversed()
+                .thenComparing(IncorrectQuizQuestionResponse::getQuestionId));
+        return responses;
     }
 
     public List<TopIncorrectWordResponse> getTop100() {
         return analyticsService.getTopIncorrectWords();
     }
 
-    private List<String> buildOptions(DictionaryEntry correctWord, List<DictionaryEntry> allWords) {
-        List<String> options = new ArrayList<>();
-        options.add(correctWord.getMeaning());
-        List<DictionaryEntry> pool = new ArrayList<>(allWords);
-        Collections.shuffle(pool, random);
-        for (DictionaryEntry candidate : pool) {
-            if (options.size() >= 4) {
-                break;
-            }
-            if (candidate.getId().equals(correctWord.getId())) {
-                continue;
-            }
-            if (candidate.getMeaning() == null || candidate.getMeaning().isBlank()) {
-                continue;
-            }
-            if (!options.contains(candidate.getMeaning())) {
-                options.add(candidate.getMeaning());
-            }
+    private DailyQuizQuestionResponse toDailyQuestion(QuizQuestion question) {
+        DailyQuizQuestionResponse response = new DailyQuizQuestionResponse();
+        response.setQuestionId(question.getId());
+        response.setQuestionText(question.getQuestionText());
+        response.setOptions(toShuffledDailyOptions(question));
+        return response;
+    }
+
+    private DailyQuizOptionResponse toDailyOption(QuizOption option) {
+        DailyQuizOptionResponse response = new DailyQuizOptionResponse();
+        response.setOptionId(option.getId());
+        response.setOptionText(option.getOptionText());
+        return response;
+    }
+
+    private List<DailyQuizOptionResponse> toShuffledDailyOptions(QuizQuestion question) {
+        List<DailyQuizOptionResponse> options = question.getOptions().stream()
+                .sorted(Comparator.comparingInt(QuizOption::getOptionOrder))
+                .map(this::toDailyOption)
+                .collect(Collectors.toCollection(ArrayList::new));
+        for (int index = options.size() - 1; index > 0; index -= 1) {
+            Collections.swap(options, index, random.nextInt(index + 1));
         }
-        Collections.shuffle(options, random);
         return options;
+    }
+
+    private QuizRecordSummary summarizeStatuses(List<UserQuestionStatus> statuses) {
+        Map<Long, UserQuestionStatus> statusById = statuses.stream()
+                .collect(Collectors.toMap(UserQuestionStatus::getId, status -> status));
+        Map<Long, UserQuestionAttempt> firstAttempts = findFirstAttempts(statusById);
+        long recordedCorrectCount = firstAttempts.values().stream()
+                .filter(UserQuestionAttempt::isCorrect)
+                .count();
+        long recordedIncorrectCount = firstAttempts.values().stream()
+                .filter(attempt -> !attempt.isCorrect())
+                .count();
+        return new QuizRecordSummary(recordedCorrectCount, recordedIncorrectCount);
+    }
+
+    private Map<Long, UserQuestionAttempt> findFirstAttempts(Map<Long, UserQuestionStatus> statusById) {
+        if (statusById.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, UserQuestionAttempt> firstAttempts = new LinkedHashMap<>();
+        List<Long> statusIds = new ArrayList<>(statusById.keySet());
+        for (UserQuestionAttempt attempt : userQuestionAttemptRepository.findByStatus_IdInOrderByAttemptedAtAsc(statusIds)) {
+            Long statusId = attempt.getStatus().getId();
+            if (firstAttempts.containsKey(statusId)) {
+                continue;
+            }
+            firstAttempts.put(statusId, attempt);
+        }
+        return firstAttempts;
+    }
+
+    private record QuizRecordSummary(long recordedCorrectCount, long recordedIncorrectCount) {
     }
 }
