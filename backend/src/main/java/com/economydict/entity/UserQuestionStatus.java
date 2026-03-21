@@ -36,6 +36,8 @@ public class UserQuestionStatus extends BaseEntity {
 
     private Instant lastAttemptAt;
 
+    private Boolean latestRetryCorrect;
+
     public Long getId() {
         return id;
     }
@@ -78,5 +80,13 @@ public class UserQuestionStatus extends BaseEntity {
 
     public void setLastAttemptAt(Instant lastAttemptAt) {
         this.lastAttemptAt = lastAttemptAt;
+    }
+
+    public Boolean getLatestRetryCorrect() {
+        return latestRetryCorrect;
+    }
+
+    public void setLatestRetryCorrect(Boolean latestRetryCorrect) {
+        this.latestRetryCorrect = latestRetryCorrect;
     }
 }

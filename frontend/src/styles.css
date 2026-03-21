@@ -509,11 +509,32 @@ textarea {
   padding: clamp(16px, 2vw, 18px);
 }
 
+.quiz-single-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.quiz-single-card.quiz-correct {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.12);
+  background: #f0fdf4;
+}
+
+.quiz-single-card.quiz-incorrect {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12);
+  background: #fef2f2;
+}
+
 .question-head {
   display: flex;
   gap: clamp(10px, 1.2vw, 12px);
   align-items: center;
   margin-bottom: 12px;
+}
+
+.quiz-question-copy {
+  display: grid;
+  gap: 4px;
 }
 
 .question-head span,
@@ -556,6 +577,49 @@ textarea {
   font-weight: 600;
 }
 
+.quiz-summary-block {
+  display: grid;
+  gap: 16px;
+}
+
+.quiz-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.quiz-summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.quiz-summary-card span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.quiz-summary-card strong {
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.1;
+}
+
+.quiz-summary-card p,
+.quiz-note-copy p {
+  margin: 0;
+}
+
+.quiz-summary-card.summary-incorrect {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
 .rank-item,
 .list-row-block {
   display: grid;
@@ -567,6 +631,33 @@ textarea {
   grid-template-columns: auto 1fr auto;
   gap: clamp(12px, 1.8vw, 16px);
   align-items: start;
+}
+
+.quiz-note-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.quiz-note-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.quiz-note-copy strong {
+  line-height: 1.45;
+}
+
+.quiz-note-copy .muted {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .quiz-summary-grid,
+  .option-grid,
+  .quiz-note-item {
+    grid-template-columns: 1fr;
+  }
 }
 
 .auth-layout {
@@ -676,6 +767,11 @@ textarea {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.table-empty {
+  color: #6b7280;
+  text-align: center;
 }
 
 .link-button,

@@ -2,10 +2,13 @@ package com.economydict.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
@@ -276,6 +279,153 @@ public class OpenAiService {
         }
     }
 
+    public DefinitionResult translateTermToEnglish(String term, String rawMeaning) {
+        DefinitionResult fallback = new DefinitionResult();
+        fallback.setWord(term);
+        fallback.setMeaning(rawMeaning);
+
+        if (term == null || term.isBlank()) {
+            return fallback;
+        }
+
+        String prompt = """
+                You are translating Korean economics glossary entries for database storage.
+                Return ONLY a valid JSON object with EXACT keys:
+                word, meaning, englishWord, englishMeaning
+
+                Rules:
+                - word must equal the supplied Korean term.
+                - meaning must stay unchanged from the supplied Korean meaning.
+                - englishWord must be the most common English economics term.
+                - englishMeaning must be a concise English explanation suitable for storage.
+                - If uncertain, use null for englishWord or englishMeaning.
+                - Do not use markdown, code fences, or extra prose.
+
+                Term: %s
+                Korean meaning: %s
+                """.formatted(term, rawMeaning == null ? "" : rawMeaning);
+
+        ChatRequest request = new ChatRequest(model, List.of(
+                new ChatMessage("system", "You return strict JSON for glossary translation."),
+                new ChatMessage("user", prompt)
+        ));
+
+        ChatResponse response = webClient.post()
+                .uri("/v1/chat/completions")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatResponse.class)
+                .block();
+
+        if (response == null || response.choices == null || response.choices.isEmpty()) {
+            return fallback;
+        }
+
+        String content = extractJsonPayload(response.choices.get(0).message.content);
+        try {
+            DefinitionResult parsed = objectMapper.readValue(content, DefinitionResult.class);
+            if (parsed.getWord() == null || parsed.getWord().isBlank()) {
+                parsed.setWord(term);
+            }
+            if (parsed.getMeaning() == null || parsed.getMeaning().isBlank()) {
+                parsed.setMeaning(rawMeaning);
+            }
+            return parsed;
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    public List<GeneratedQuizItem> generateQuizItems(List<QuizGenerationSeed> seeds) {
+        if (seeds == null || seeds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<GeneratedQuizItem> items = new ArrayList<>();
+        for (QuizGenerationSeed seed : seeds) {
+            items.add(generateQuizItem(seed));
+        }
+        return items;
+    }
+
+    private GeneratedQuizItem generateQuizItem(QuizGenerationSeed seed) {
+        try {
+            String seedPayload = objectMapper.writeValueAsString(seed);
+            String prompt = """
+                    You are generating one Korean multiple-choice economics quiz item for database insertion.
+                    Return ONLY a valid JSON object.
+
+                    Output schema:
+                    {
+                      "word": "정답 용어",
+                      "questionText": "정답 용어를 직접 쓰지 않는 한국어 질문문",
+                      "options": ["보기1", "보기2", "보기3", "보기4"]
+                    }
+
+                    Rules:
+                    - word must exactly match the input word.
+                    - questionText must be in Korean, concise, and must not contain the answer word itself.
+                    - options must contain exactly 4 unique strings.
+                    - options must include the correct word exactly once.
+                    - The remaining 3 options must be selected only from distractorCandidates.word.
+                    - Do not invent new terms outside the allowed option pool.
+                    - Keep all options as economics terms, not explanations.
+                    - No markdown, no prose, no code fences.
+                    - Before responding, internally verify that the object has 4 unique options and the correct word appears exactly once.
+
+                    Compact example:
+                    {"word":"유동성 함정","questionText":"금리가 매우 낮아도 통화정책 효과가 약해지는 상황을 가리키는 용어는 무엇인가?","options":["유동성 함정","구축 효과","기저 효과","승수 효과"]}
+
+                    Input:
+                    """ + seedPayload;
+
+            ChatRequest request = new ChatRequest(model, List.of(
+                    new ChatMessage("system", "You return strict JSON for economics quiz generation."),
+                    new ChatMessage("user", prompt)
+            ));
+
+            ChatResponse response = webClient.post()
+                    .uri("/v1/chat/completions")
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(ChatResponse.class)
+                    .block();
+
+            if (response == null || response.choices == null || response.choices.isEmpty()) {
+                throw new IllegalStateException("OpenAI가 퀴즈 문항 응답을 비워서 반환했습니다: " + seed.getWord());
+            }
+
+            String content = extractJsonPayload(response.choices.get(0).message.content);
+            if (content.trim().startsWith("[")) {
+                List<GeneratedQuizItem> parsed = objectMapper.readValue(content, new TypeReference<List<GeneratedQuizItem>>() {});
+                if (parsed.isEmpty()) {
+                    throw new IllegalStateException("OpenAI가 퀴즈 문항 배열을 비워서 반환했습니다: " + seed.getWord());
+                }
+                return parsed.get(0);
+            }
+            return objectMapper.readValue(content, GeneratedQuizItem.class);
+        } catch (WebClientResponseException e) {
+            throw new IllegalStateException("OpenAI 요청이 실패했습니다. status=" + e.getStatusCode().value() + " body=" + summarizeErrorBody(e.getResponseBodyAsString()), e);
+        } catch (WebClientRequestException e) {
+            throw new IllegalStateException("OpenAI 서버에 연결하지 못했습니다: " + e.getMessage(), e);
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("OpenAI 퀴즈 응답을 해석하지 못했습니다: " + seed.getWord(), e);
+        }
+    }
+
+    private String summarizeErrorBody(String body) {
+        if (body == null) {
+            return "";
+        }
+        String normalized = body.replaceAll("\\s+", " ").trim();
+        if (normalized.length() <= 240) {
+            return normalized;
+        }
+        return normalized.substring(0, 240);
+    }
+
     private String extractJsonPayload(String content) {
         if (content == null) {
             return "";
@@ -386,6 +536,87 @@ public class OpenAiService {
 
         public void setEnglishMeaning(String englishMeaning) {
             this.englishMeaning = englishMeaning;
+        }
+    }
+
+    public static class QuizGenerationSeed {
+        private String word;
+        private String meaning;
+        private List<QuizCandidate> distractorCandidates = Collections.emptyList();
+
+        public String getWord() {
+            return word;
+        }
+
+        public void setWord(String word) {
+            this.word = word;
+        }
+
+        public String getMeaning() {
+            return meaning;
+        }
+
+        public void setMeaning(String meaning) {
+            this.meaning = meaning;
+        }
+
+        public List<QuizCandidate> getDistractorCandidates() {
+            return distractorCandidates;
+        }
+
+        public void setDistractorCandidates(List<QuizCandidate> distractorCandidates) {
+            this.distractorCandidates = distractorCandidates;
+        }
+    }
+
+    public static class QuizCandidate {
+        private String word;
+        private String meaning;
+
+        public String getWord() {
+            return word;
+        }
+
+        public void setWord(String word) {
+            this.word = word;
+        }
+
+        public String getMeaning() {
+            return meaning;
+        }
+
+        public void setMeaning(String meaning) {
+            this.meaning = meaning;
+        }
+    }
+
+    public static class GeneratedQuizItem {
+        private String word;
+        private String questionText;
+        private List<String> options = Collections.emptyList();
+
+        public String getWord() {
+            return word;
+        }
+
+        public void setWord(String word) {
+            this.word = word;
+        }
+
+        public String getQuestionText() {
+            return questionText;
+        }
+
+        public void setQuestionText(String questionText) {
+            this.questionText = questionText;
+        }
+
+        public List<String> getOptions() {
+            return options;
+        }
+
+        public void setOptions(List<String> options) {
+            this.options = options;
         }
     }
 

@@ -33,6 +33,7 @@ export default function Home() {
           <div className="hero-actions">
             <Link to="/words" className="button button-primary">용어 검색</Link>
             <Link to="/quiz" className="button button-secondary">데일리 퀴즈</Link>
+            <Link to="/top-incorrect" className="button button-secondary">오답 상위 단어</Link>
           </div>
         </div>
         <div className="stat-grid">
@@ -94,6 +95,9 @@ export default function Home() {
                 <em>{item.incorrectCount}회</em>
               </div>
             ))}
+          </div>
+          <div className="button-row">
+            <Link to="/top-incorrect" className="button button-secondary">전체 순위 보기</Link>
           </div>
         </aside>
       </section>

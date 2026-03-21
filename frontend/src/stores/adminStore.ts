@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import client from '../api/client';
 import { getApiErrorMessage } from '../utils/apiError';
 
-export type SectionKey = 'overview' | 'users' | 'words' | 'uploads';
+export type SectionKey = 'overview' | 'users' | 'words' | 'uploads' | 'quizzes';
 
 export type AdminUser = {
   id: number;
@@ -24,6 +24,21 @@ export type AdminWord = {
   sourceName?: string | null;
 };
 
+export type AdminWordPage = {
+  content: AdminWord[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type AdminEnglishTranslationSummary = {
+  processedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  failedCount: number;
+};
+
 export type SourceOption = {
   id: number;
   name: string;
@@ -36,6 +51,7 @@ export type FileTypeOption = {
 
 export type UploadTask = {
   fileId: string;
+  originalFileName?: string | null;
   status: string;
   message: string;
   estimatedTime?: string | null;
@@ -55,6 +71,37 @@ export type Summary = {
   activeUsers: number;
   totalWords: number;
   recentUploads: number;
+};
+
+export type AdminQuizOption = {
+  id: number;
+  questionId: number;
+  optionText: string;
+  optionOrder: number;
+  correct: boolean;
+  selectedCount: number;
+};
+
+export type AdminQuizQuestion = {
+  id: number;
+  quizId: number;
+  questionText: string;
+  attemptedUsers: number;
+  correctUsers: number;
+  correctRate: number;
+  participants: string[];
+  correctParticipants: string[];
+  options: AdminQuizOption[];
+};
+
+export type AdminQuiz = {
+  id: number;
+  quizId: string;
+  title: string;
+  questionCount: number;
+  participantCount: number;
+  createdAt?: string | null;
+  questions: AdminQuizQuestion[];
 };
 
 export type UserFormState = {
@@ -84,12 +131,18 @@ type AdminState = {
   stats: DailyStat[];
   users: AdminUser[];
   words: AdminWord[];
+  quizzes: AdminQuiz[];
+  selectedQuiz: AdminQuiz | null;
+  wordListResponse: AdminWordPage | null;
+  wordPage: number;
   uploads: UploadTask[];
   sourceOptions: SourceOption[];
   fileTypeOptions: FileTypeOption[];
   message: string;
   loading: boolean;
   uploading: boolean;
+  translatingWords: boolean;
+  generatingQuiz: boolean;
   selectedFile: File | null;
   uploadSourceId: string;
   uploadSourceName: string;
@@ -107,13 +160,19 @@ type AdminState = {
   resetWordForm: () => void;
   clearMessage: () => void;
   refreshCurrentSection: () => Promise<void>;
+  changeWordPage: (page: number) => Promise<void>;
   loadUploads: () => Promise<void>;
   saveUser: () => Promise<void>;
   deleteUser: (id: number) => Promise<void>;
   saveWord: () => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
+  translateWordsToEnglish: () => Promise<void>;
   uploadSelectedFile: () => Promise<void>;
+  selectQuiz: (id: number) => Promise<void>;
+  generateQuiz: () => Promise<void>;
 };
+
+const WORDS_PAGE_SIZE = 10;
 
 const defaultUserForm: UserFormState = {
   id: 0,
@@ -155,13 +214,28 @@ async function fetchUsers() {
   return response.data;
 }
 
-async function fetchWords() {
-  const response = await client.get<AdminWord[]>('/admin/words');
+async function fetchWords(page: number) {
+  const response = await client.get<AdminWordPage>('/admin/words', {
+    params: {
+      page,
+      size: WORDS_PAGE_SIZE
+    }
+  });
   return response.data;
 }
 
 async function fetchUploads() {
   const response = await client.get<UploadTask[]>('/admin/words/uploads');
+  return response.data;
+}
+
+async function fetchQuizzes() {
+  const response = await client.get<AdminQuiz[]>('/admin/quizzes');
+  return response.data;
+}
+
+async function fetchQuiz(id: number) {
+  const response = await client.get<AdminQuiz>(`/admin/quizzes/${id}`);
   return response.data;
 }
 
@@ -187,18 +261,34 @@ function buildWordPayload(wordForm: WordFormState) {
   };
 }
 
+async function fetchWordSection(page: number) {
+  const [wordListResponse, sourceOptions, fileTypeOptions] = await Promise.all([
+    fetchWords(page),
+    fetchSources(),
+    fetchFileTypes()
+  ]);
+
+  return { wordListResponse, sourceOptions, fileTypeOptions };
+}
+
 export const useAdminStore = create<AdminState>((set, get) => ({
   section: 'overview',
   summary: null,
   stats: [],
   users: [],
   words: [],
+  quizzes: [],
+  selectedQuiz: null,
+  wordListResponse: null,
+  wordPage: 0,
   uploads: [],
   sourceOptions: [],
   fileTypeOptions: [],
   message: '',
   loading: false,
   uploading: false,
+  translatingWords: false,
+  generatingQuiz: false,
   selectedFile: null,
   uploadSourceId: '',
   uploadSourceName: '',
@@ -248,15 +338,43 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         set({ users: await fetchUsers() });
       }
       if (section === 'words') {
-        const [words, sourceOptions, fileTypeOptions] = await Promise.all([fetchWords(), fetchSources(), fetchFileTypes()]);
-        set({ words, sourceOptions, fileTypeOptions });
+        const { wordPage } = get();
+        const { wordListResponse, sourceOptions, fileTypeOptions } = await fetchWordSection(wordPage);
+        set({
+          words: wordListResponse.content,
+          wordListResponse,
+          wordPage: wordListResponse.page,
+          sourceOptions,
+          fileTypeOptions
+        });
       }
       if (section === 'uploads') {
         const [uploads, sourceOptions] = await Promise.all([fetchUploads(), fetchSources()]);
         set({ uploads, sourceOptions });
       }
+      if (section === 'quizzes') {
+        const quizzes = await fetchQuizzes();
+        const selectedQuizId = get().selectedQuiz?.id ?? quizzes[0]?.id ?? null;
+        const selectedQuiz = selectedQuizId ? await fetchQuiz(selectedQuizId) : null;
+        set({ quizzes, selectedQuiz });
+      }
     } catch (error) {
       set({ message: getApiErrorMessage(error, '관리자 데이터를 불러오지 못했습니다.') });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  changeWordPage: async (page) => {
+    set({ loading: true, message: '' });
+    try {
+      const wordListResponse = await fetchWords(page);
+      set({
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '단어 페이지를 불러오지 못했습니다.') });
     } finally {
       set({ loading: false });
     }
@@ -298,14 +416,23 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     const { wordForm } = get();
     set({ message: '' });
     try {
+      const targetPage = wordForm.id ? get().wordPage : 0;
       const payload = buildWordPayload(wordForm);
       if (wordForm.id) {
         await client.put(`/admin/words/${wordForm.id}`, payload);
       } else {
         await client.post('/admin/words', payload);
       }
-      const [words, sourceOptions] = await Promise.all([fetchWords(), fetchSources()]);
-      set({ wordForm: defaultWordForm, words, sourceOptions, message: '단어 정보가 저장되었습니다.' });
+      const { wordListResponse, sourceOptions, fileTypeOptions } = await fetchWordSection(targetPage);
+      set({
+        wordForm: defaultWordForm,
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page,
+        sourceOptions,
+        fileTypeOptions,
+        message: '단어 정보가 저장되었습니다.'
+      });
     } catch (error) {
       set({ message: getApiErrorMessage(error, '단어 정보를 저장하지 못했습니다.') });
     }
@@ -313,13 +440,38 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   deleteWord: async (id) => {
     try {
       await client.delete(`/admin/words/${id}`);
-      const words = await fetchWords();
+      const currentPage = get().wordPage;
+      let wordListResponse = await fetchWords(currentPage);
+      if (!wordListResponse.content.length && currentPage > 0) {
+        wordListResponse = await fetchWords(currentPage - 1);
+      }
       set((state) => ({
-        words,
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page,
         wordForm: state.wordForm.id === id ? defaultWordForm : state.wordForm
       }));
     } catch (error) {
       set({ message: getApiErrorMessage(error, '단어 삭제에 실패했습니다.') });
+    }
+  },
+  translateWordsToEnglish: async () => {
+    set({ translatingWords: true, message: '' });
+    try {
+      const response = await client.post<AdminEnglishTranslationSummary>('/admin/words/to-english');
+      const { wordPage } = get();
+      const wordListResponse = await fetchWords(wordPage);
+      const { processedCount, updatedCount, skippedCount, failedCount } = response.data;
+      set({
+        words: wordListResponse.content,
+        wordListResponse,
+        wordPage: wordListResponse.page,
+        message: `영문화 작업 완료: 전체 ${processedCount}건, 업데이트 ${updatedCount}건, 건너뜀 ${skippedCount}건, 실패 ${failedCount}건`
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '영문화 작업에 실패했습니다.') });
+    } finally {
+      set({ translatingWords: false });
     }
   },
   uploadSelectedFile: async () => {
@@ -360,6 +512,33 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }
     } finally {
       set({ uploading: false });
+    }
+  },
+  selectQuiz: async (id) => {
+    set({ loading: true, message: '' });
+    try {
+      set({ selectedQuiz: await fetchQuiz(id) });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '퀴즈 상세 정보를 불러오지 못했습니다.') });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  generateQuiz: async () => {
+    set({ generatingQuiz: true, message: '' });
+    try {
+      const response = await client.post<AdminQuiz>('/admin/quizzes/generate');
+      const quizzes = await fetchQuizzes();
+      set({
+        quizzes,
+        selectedQuiz: response.data,
+        section: 'quizzes',
+        message: 'AI 퀴즈가 생성되었습니다.'
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, 'AI 퀴즈 생성에 실패했습니다.') });
+    } finally {
+      set({ generatingQuiz: false });
     }
   }
 }));

@@ -2,6 +2,7 @@ package com.economydict.dto;
 
 public class WordUploadStatusResponse {
     private String fileId;
+    private String originalFileName;
     private String status;
     private String message;
     private String estimatedTime;
@@ -14,6 +15,14 @@ public class WordUploadStatusResponse {
 
     public void setFileId(String fileId) {
         this.fileId = fileId;
+    }
+
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public void setOriginalFileName(String originalFileName) {
+        this.originalFileName = originalFileName;
     }
 
     public String getStatus() {

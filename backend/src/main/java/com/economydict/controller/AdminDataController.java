@@ -1,5 +1,6 @@
 package com.economydict.controller;
 
+import com.economydict.dto.AdminEnglishTranslationResponse;
 import com.economydict.dto.AdminOptionDto;
 import com.economydict.dto.AdminOptionRequest;
 import com.economydict.dto.AdminQuestionDto;
@@ -12,6 +13,7 @@ import com.economydict.dto.DailyUserStatResponse;
 import com.economydict.dto.DictionaryEntryDto;
 import com.economydict.dto.FileTypeOptionDto;
 import com.economydict.dto.ImportTaskResponse;
+import com.economydict.dto.PagedResponse;
 import com.economydict.dto.RoleUpdateRequest;
 import com.economydict.dto.SourceOptionDto;
 import com.economydict.dto.WordUploadStatusResponse;
@@ -28,12 +30,18 @@ import com.economydict.repository.QuizRepository;
 import com.economydict.repository.UserRepository;
 import com.economydict.service.AnalyticsService;
 import com.economydict.service.ImportTaskService;
+import com.economydict.service.OpenAiService;
 import com.economydict.service.PdfImportJobService;
+import com.economydict.service.QuizService;
 import com.economydict.service.WordMetadataService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,6 +71,8 @@ public class AdminDataController {
     private final ImportTaskService importTaskService;
     private final AnalyticsService analyticsService;
     private final WordMetadataService wordMetadataService;
+    private final OpenAiService openAiService;
+    private final QuizService quizService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -73,7 +83,9 @@ public class AdminDataController {
                                PdfImportJobService pdfImportJobService,
                                ImportTaskService importTaskService,
                                AnalyticsService analyticsService,
-                               WordMetadataService wordMetadataService) {
+                               WordMetadataService wordMetadataService,
+                               OpenAiService openAiService,
+                               QuizService quizService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
@@ -84,6 +96,8 @@ public class AdminDataController {
         this.importTaskService = importTaskService;
         this.analyticsService = analyticsService;
         this.wordMetadataService = wordMetadataService;
+        this.openAiService = openAiService;
+        this.quizService = quizService;
     }
 
     @GetMapping("/users")
@@ -164,8 +178,22 @@ public class AdminDataController {
     }
 
     @GetMapping("/words")
-    public ResponseEntity<List<DictionaryEntryDto>> listDictionary() {
-        return ResponseEntity.ok(dictionaryEntryRepository.findAll().stream().map(this::toDictionaryDto).collect(Collectors.toList()));
+    public ResponseEntity<PagedResponse<DictionaryEntryDto>> listDictionary(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(1, Math.min(size, 100));
+        Page<DictionaryEntry> result = dictionaryEntryRepository.findAll(
+                PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
+        );
+
+        PagedResponse<DictionaryEntryDto> response = new PagedResponse<>();
+        response.setContent(result.getContent().stream().map(this::toDictionaryDto).collect(Collectors.toList()));
+        response.setPage(result.getNumber());
+        response.setSize(result.getSize());
+        response.setTotalElements(result.getTotalElements());
+        response.setTotalPages(result.getTotalPages());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/sources")
@@ -226,9 +254,49 @@ public class AdminDataController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/words/to-english")
+    public ResponseEntity<AdminEnglishTranslationResponse> translateWordsToEnglish() {
+        List<DictionaryEntry> entries = dictionaryEntryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        AdminEnglishTranslationResponse response = new AdminEnglishTranslationResponse();
+
+        for (DictionaryEntry entry : entries) {
+            response.setProcessedCount(response.getProcessedCount() + 1);
+            if (entry.getWord() == null || entry.getWord().isBlank()) {
+                response.setSkippedCount(response.getSkippedCount() + 1);
+                continue;
+            }
+            try {
+                OpenAiService.DefinitionResult result = openAiService.translateTermToEnglish(entry.getWord(), entry.getMeaning());
+                boolean changed = false;
+                String englishWord = normalize(result.getEnglishWord());
+                String englishMeaning = normalize(result.getEnglishMeaning());
+
+                if (!Objects.equals(normalize(entry.getEnglishWord()), englishWord) && englishWord != null) {
+                    entry.setEnglishWord(englishWord);
+                    changed = true;
+                }
+                if (!Objects.equals(normalize(entry.getEnglishMeaning()), englishMeaning) && englishMeaning != null) {
+                    entry.setEnglishMeaning(englishMeaning);
+                    changed = true;
+                }
+
+                if (changed) {
+                    dictionaryEntryRepository.save(entry);
+                    response.setUpdatedCount(response.getUpdatedCount() + 1);
+                } else {
+                    response.setSkippedCount(response.getSkippedCount() + 1);
+                }
+            } catch (Exception ex) {
+                response.setFailedCount(response.getFailedCount() + 1);
+            }
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/dictionary")
     public ResponseEntity<List<DictionaryEntryDto>> listDictionaryLegacy() {
-        return listDictionary();
+        return ResponseEntity.ok(dictionaryEntryRepository.findAll().stream().map(this::toDictionaryDto).collect(Collectors.toList()));
     }
 
     @PostMapping("/dictionary")
@@ -261,7 +329,17 @@ public class AdminDataController {
 
     @GetMapping("/quizzes")
     public ResponseEntity<List<AdminQuizDto>> listQuizzes() {
-        return ResponseEntity.ok(quizRepository.findAll().stream().map(this::toQuizDto).collect(Collectors.toList()));
+        return ResponseEntity.ok(quizService.getAdminQuizzes());
+    }
+
+    @GetMapping("/quizzes/{id}")
+    public ResponseEntity<AdminQuizDto> getQuiz(@PathVariable Long id) {
+        return ResponseEntity.ok(quizService.getAdminQuiz(id));
+    }
+
+    @PostMapping("/quizzes/generate")
+    public ResponseEntity<AdminQuizDto> generateQuiz() {
+        return ResponseEntity.ok(quizService.generateAdminQuiz());
     }
 
     @PostMapping("/quizzes")
@@ -378,6 +456,9 @@ public class AdminDataController {
         dto.setId(quiz.getId());
         dto.setQuizId(quiz.getQuizId());
         dto.setTitle(quiz.getTitle());
+        dto.setQuestionCount(quiz.getQuestions().size());
+        dto.setParticipantCount(0);
+        dto.setCreatedAt(quiz.getCreatedAt());
         return dto;
     }
 
@@ -397,5 +478,13 @@ public class AdminDataController {
         dto.setOptionOrder(option.getOptionOrder());
         dto.setCorrect(option.isCorrect());
         return dto;
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

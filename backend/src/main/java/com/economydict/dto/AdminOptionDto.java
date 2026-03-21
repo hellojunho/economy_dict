@@ -6,6 +6,7 @@ public class AdminOptionDto {
     private String optionText;
     private int optionOrder;
     private boolean correct;
+    private long selectedCount;
 
     public Long getId() {
         return id;
@@ -45,5 +46,13 @@ public class AdminOptionDto {
 
     public void setCorrect(boolean correct) {
         this.correct = correct;
+    }
+
+    public long getSelectedCount() {
+        return selectedCount;
+    }
+
+    public void setSelectedCount(long selectedCount) {
+        this.selectedCount = selectedCount;
     }
 }
