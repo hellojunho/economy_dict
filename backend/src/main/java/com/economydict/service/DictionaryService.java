@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class DictionaryService {
     private final DictionaryEntryRepository repository;
+    private final WordMetadataService wordMetadataService;
 
-    public DictionaryService(DictionaryEntryRepository repository) {
+    public DictionaryService(DictionaryEntryRepository repository, WordMetadataService wordMetadataService) {
         this.repository = repository;
+        this.wordMetadataService = wordMetadataService;
     }
 
     public List<DictionaryEntryDto> search(String keyword) {
@@ -28,6 +30,8 @@ public class DictionaryService {
         entry.setMeaning(dto.getMeaning());
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
+        entry.setFileType(wordMetadataService.resolveFileType(dto.getFileType()));
+        entry.setSource(wordMetadataService.resolveSource(dto.getSourceId(), dto.getSourceName()));
         DictionaryEntry saved = repository.save(entry);
         return toDto(saved);
     }
@@ -39,6 +43,9 @@ public class DictionaryService {
         dto.setMeaning(entry.getMeaning());
         dto.setEnglishWord(entry.getEnglishWord());
         dto.setEnglishMeaning(entry.getEnglishMeaning());
+        dto.setFileType(entry.getFileType() == null ? null : entry.getFileType().getCode());
+        dto.setSourceId(entry.getSource() == null ? null : entry.getSource().getId());
+        dto.setSourceName(entry.getSource() == null ? null : entry.getSource().getName());
         return dto;
     }
 }

@@ -28,19 +28,19 @@ public class PublicAuthController {
         this.userService = userService;
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<UserProfileDto> signup(@Valid @RequestBody AuthSignupRequest request) {
         User user = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toProfileDto(user));
     }
 
-    @PostMapping("/token")
-    public ResponseEntity<AuthResponse> token(@Valid @RequestBody AuthLoginRequest request) {
-        String token = authService.login(request);
-        return ResponseEntity.ok(new AuthResponse(token));
+    @PostMapping("/auth/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthLoginRequest request) {
+        User user = authService.login(request);
+        return ResponseEntity.ok(new AuthResponse(authService.createAccessToken(user), user.getRole()));
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/auth/logout")
     public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
         String token = null;
         if (authorization != null && authorization.startsWith("Bearer ")) {
@@ -55,6 +55,21 @@ public class PublicAuthController {
         String userId = userService.getCurrentUser().getUserId();
         authService.deactivate(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<UserProfileDto> signupLegacy(@Valid @RequestBody AuthSignupRequest request) {
+        return signup(request);
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<AuthResponse> tokenLegacy(@Valid @RequestBody AuthLoginRequest request) {
+        return login(request);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logoutLegacy(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        return logout(authorization);
     }
 
     private UserProfileDto toProfileDto(User user) {

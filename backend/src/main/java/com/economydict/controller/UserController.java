@@ -1,11 +1,15 @@
 package com.economydict.controller;
 
+import com.economydict.dto.UserProfileUpdateRequest;
+import com.economydict.service.AuthService;
 import com.economydict.dto.UserProfileDto;
-import com.economydict.service.QuizService;
 import com.economydict.service.UserService;
-import java.util.List;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
-    private final QuizService quizService;
+    private final AuthService authService;
 
-    public UserController(UserService userService, QuizService quizService) {
+    public UserController(UserService userService, AuthService authService) {
         this.userService = userService;
-        this.quizService = quizService;
+        this.authService = authService;
     }
 
     @GetMapping("/me")
@@ -25,8 +29,14 @@ public class UserController {
         return ResponseEntity.ok(userService.getProfile());
     }
 
-    @GetMapping("/me/quizzes")
-    public ResponseEntity<List<String>> myQuizzes() {
-        return ResponseEntity.ok(quizService.getMyQuizzes());
+    @PutMapping("/me")
+    public ResponseEntity<UserProfileDto> updateMe(@Valid @RequestBody UserProfileUpdateRequest request) {
+        return ResponseEntity.ok(userService.updateProfile(request));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe() {
+        authService.deactivate(userService.getCurrentUser().getUserId());
+        return ResponseEntity.noContent().build();
     }
 }

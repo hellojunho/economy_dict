@@ -13,6 +13,9 @@ public class DictionaryEntryDto {
 
     private String englishWord;
     private String englishMeaning;
+    private String fileType;
+    private Long sourceId;
+    private String sourceName;
 
     public Long getId() {
         return id;
@@ -52,5 +55,29 @@ public class DictionaryEntryDto {
 
     public void setEnglishMeaning(String englishMeaning) {
         this.englishMeaning = englishMeaning;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public void setSourceName(String sourceName) {
+        this.sourceName = sourceName;
     }
 }

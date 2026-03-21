@@ -1,8 +1,11 @@
 package com.economydict.batch;
 
+import com.economydict.service.ImportContentExtractor;
 import com.economydict.service.ImportTaskService;
 import com.economydict.service.OpenAiService;
 import com.economydict.repository.DictionaryEntryRepository;
+import com.economydict.repository.FileTypeRepository;
+import com.economydict.repository.WordSourceRepository;
 import java.io.File;
 import java.util.stream.Collectors;
 import org.springframework.batch.core.Job;
@@ -42,35 +45,42 @@ public class PdfImportJobConfig {
     @Bean
     public Step pdfImportStep(JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
-                              ItemReader<String> pdfChunkReader,
-                              ItemProcessor<String, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor,
+                              ItemReader<ImportChunk> pdfChunkReader,
+                              ItemProcessor<ImportChunk, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor,
                               ItemWriter<java.util.List<OpenAiService.ExtractedTerm>> termWriter,
                               StepExecutionListener stepListener,
                               PdfProgressListener pdfProgressListener) {
         return new StepBuilder("pdfImportStep", jobRepository)
-                .<String, java.util.List<OpenAiService.ExtractedTerm>>chunk(1, transactionManager)
+                .<ImportChunk, java.util.List<OpenAiService.ExtractedTerm>>chunk(1, transactionManager)
                 .reader(pdfChunkReader)
                 .processor(pdfExtractProcessor)
                 .writer(termWriter)
                 .listener(stepListener)
-                .listener(pdfProgressListener)
+                .listener((org.springframework.batch.core.ItemReadListener<ImportChunk>) pdfProgressListener)
                 .build();
     }
 
     @Bean
     @StepScope
-    public ItemReader<String> pdfChunkReader(@Value("#{jobParameters['filePath']}") String filePath) {
-        return new PdfChunkReader(filePath);
+    public PdfChunkReader pdfChunkReader(@Value("#{jobParameters['filePath']}") String filePath,
+                                         ImportContentExtractor importContentExtractor) {
+        return new PdfChunkReader(filePath, importContentExtractor);
     }
 
     @Bean
-    public ItemProcessor<String, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor(OpenAiService openAiService) {
+    public ItemProcessor<ImportChunk, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor(OpenAiService openAiService) {
         return new PdfExtractProcessor(openAiService);
     }
 
     @Bean
-    public ItemWriter<java.util.List<OpenAiService.ExtractedTerm>> termWriter(DictionaryEntryRepository dictionaryEntryRepository) {
-        return new TermWriter(dictionaryEntryRepository);
+    @StepScope
+    public ItemWriter<java.util.List<OpenAiService.ExtractedTerm>> termWriter(
+            DictionaryEntryRepository dictionaryEntryRepository,
+            FileTypeRepository fileTypeRepository,
+            WordSourceRepository wordSourceRepository,
+            @Value("#{jobParameters['sourceId']}") String sourceIdValue) {
+        Long sourceId = sourceIdValue == null || sourceIdValue.isBlank() ? null : Long.valueOf(sourceIdValue);
+        return new TermWriter(dictionaryEntryRepository, fileTypeRepository, wordSourceRepository, sourceId);
     }
 
     @Bean

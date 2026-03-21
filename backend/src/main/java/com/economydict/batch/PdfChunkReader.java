@@ -1,54 +1,44 @@
 package com.economydict.batch;
 
-import java.io.File;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
+import com.economydict.service.ImportContentExtractor;
+import java.nio.file.Path;
+import java.util.List;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemStreamSupport;
 
-public class PdfChunkReader extends ItemStreamSupport implements ItemStreamReader<String> {
+public class PdfChunkReader extends ItemStreamSupport implements ItemStreamReader<ImportChunk> {
     private final String filePath;
-    private PDDocument document;
-    private int currentPage;
-    private int totalPages;
+    private final ImportContentExtractor importContentExtractor;
+    private List<ImportChunk> chunks;
+    private int currentIndex;
 
-    public PdfChunkReader(String filePath) {
+    public PdfChunkReader(String filePath, ImportContentExtractor importContentExtractor) {
         this.filePath = filePath;
+        this.importContentExtractor = importContentExtractor;
     }
 
     @Override
-    public String read() throws Exception {
-        if (document == null || currentPage > totalPages) {
+    public ImportChunk read() {
+        if (chunks == null || currentIndex >= chunks.size()) {
             return null;
         }
-        PDFTextStripper stripper = new PDFTextStripper();
-        stripper.setStartPage(currentPage);
-        stripper.setEndPage(currentPage);
-        String text = stripper.getText(document);
-        currentPage++;
-        return text;
+        return chunks.get(currentIndex++);
     }
 
     @Override
     public void open(ExecutionContext executionContext) {
-        try {
-            document = PDDocument.load(new File(filePath));
-            totalPages = document.getNumberOfPages();
-            currentPage = 1;
-            executionContext.putInt("totalPages", totalPages);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to open PDF", e);
-        }
+        chunks = importContentExtractor.extractChunks(Path.of(filePath));
+        currentIndex = 0;
+        int totalUnits = chunks.stream()
+                .mapToInt(chunk -> Math.max(1, chunk.getUnitCount()))
+                .sum();
+        executionContext.putInt("totalUnits", totalUnits);
     }
 
     @Override
     public void close() {
-        if (document != null) {
-            try {
-                document.close();
-            } catch (Exception ignored) {
-            }
-        }
+        chunks = null;
+        currentIndex = 0;
     }
 }
