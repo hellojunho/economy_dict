@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import client from '../api/client';
 import { getApiErrorMessage } from '../utils/apiError';
 
-export type SectionKey = 'overview' | 'users' | 'words' | 'uploads' | 'quizzes';
+export type SectionKey = 'overview' | 'chart' | 'users' | 'words' | 'uploads' | 'quizzes';
 
 export type AdminUser = {
   id: number;
@@ -323,7 +323,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     const section = sectionOverride ?? get().section;
     set({ loading: true, message: '' });
     try {
-      if (section === 'overview') {
+      if (section === 'overview' || section === 'chart') {
         const { summary, stats } = await fetchOverview();
         set({ summary, stats });
       }
