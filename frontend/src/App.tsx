@@ -12,13 +12,15 @@ import Admin from './pages/Admin';
 import Chat from './pages/Chat';
 import TopIncorrectWords from './pages/TopIncorrectWords';
 import Stock from './pages/Stock';
+import KrStock from './pages/KrStock';
 import client from './api/client';
 import { useAuthStore } from './stores/authStore';
 
 const publicNav = [
   { to: '/', label: 'Overview' },
   { to: '/words', label: 'Words' },
-  { to: '/stocks', label: 'Stocks' },
+  { to: '/stocks', label: 'Stock' },
+  { to: '/kr-stocks', label: 'KR Stock' },
   { to: '/quiz', label: 'Daily Quiz' },
   { to: '/chat', label: 'AI Chat' }
 ];
@@ -103,6 +105,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/words" element={<Search />} />
           <Route path="/stocks" element={<Stock />} />
+          <Route path="/kr-stocks" element={<KrStock />} />
           <Route path="/search" element={<Navigate to="/words" replace />} />
           <Route path="/dictionary" element={<Navigate to="/words" replace />} />
           <Route path="/quiz" element={<Quiz />} />
