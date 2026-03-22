@@ -1,10 +1,12 @@
-import { FormEvent, useEffect, useMemo } from 'react';
+import { FormEvent, useEffect, useMemo, useRef } from 'react';
+import type { Chart as ChartInstance, ChartConfiguration } from 'chart.js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { AdminQuizQuestion, AdminUser, DIRECT_SOURCE_OPTION, SectionKey, useAdminStore } from '../stores/adminStore';
+import { AdminQuizQuestion, AdminUser, DIRECT_SOURCE_OPTION, SectionKey, Summary, useAdminStore } from '../stores/adminStore';
 
 const sections: { key: SectionKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
+  { key: 'chart', label: 'Chart' },
   { key: 'users', label: 'Users' },
   { key: 'words', label: 'Words' },
   { key: 'uploads', label: 'Uploads' },
@@ -13,6 +15,7 @@ const sections: { key: SectionKey; label: string }[] = [
 
 const sectionPathMap: Record<SectionKey, string> = {
   overview: '/admin/overview',
+  chart: '/admin/chart',
   users: '/admin/users',
   words: '/admin/words',
   uploads: '/admin/uploads',
@@ -45,6 +48,264 @@ function formatDateTime(value?: string | null) {
 
 function renderQuestionRate(question: AdminQuizQuestion) {
   return `${Math.round(question.correctRate * 100)}%`;
+}
+
+function formatMetricNumber(value?: number | null) {
+  if (value == null) {
+    return '-';
+  }
+
+  return new Intl.NumberFormat('ko-KR').format(value);
+}
+
+const metricPalette = ['#111827', '#374151', '#6b7280', '#d1d5db'];
+const metricFill = 'rgba(17, 24, 39, 0.88)';
+const secondaryFill = 'rgba(75, 85, 99, 0.88)';
+const tertiaryFill = 'rgba(156, 163, 175, 0.88)';
+
+function buildSummaryChartConfig(summary: Summary | null): ChartConfiguration<'bar'> {
+  return {
+    type: 'bar',
+    data: {
+      labels: ['Total Users', 'Active Users', 'Total Words', 'Recent Uploads'],
+      datasets: [
+        {
+          data: [
+            summary?.totalUsers ?? 0,
+            summary?.activeUsers ?? 0,
+            summary?.totalWords ?? 0,
+            summary?.recentUploads ?? 0
+          ],
+          backgroundColor: metricPalette,
+          borderRadius: 10,
+          borderSkipped: false,
+          maxBarThickness: 42
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: '#111827',
+          padding: 12,
+          displayColors: false
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#6b7280'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: '#e5e7eb'
+          },
+          ticks: {
+            color: '#6b7280',
+            precision: 0
+          }
+        }
+      }
+    }
+  };
+}
+
+function buildTrendChartConfig(stats: ReturnType<typeof useAdminStore.getState>['stats']): ChartConfiguration<'bar'> {
+  const recentStats = stats.slice(-7);
+  const labels = recentStats.map((item) => item.targetDate);
+
+  return {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'New Users',
+          data: recentStats.map((item) => item.newUsersCount),
+          backgroundColor: metricFill,
+          borderRadius: 8,
+          borderSkipped: false,
+          maxBarThickness: 28
+        },
+        {
+          label: 'Logins',
+          data: recentStats.map((item) => item.loginCount),
+          backgroundColor: secondaryFill,
+          borderRadius: 8,
+          borderSkipped: false,
+          maxBarThickness: 28
+        },
+        {
+          label: 'Active Users',
+          data: recentStats.map((item) => item.activeUsersCount),
+          backgroundColor: tertiaryFill,
+          borderRadius: 8,
+          borderSkipped: false,
+          maxBarThickness: 28
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#374151',
+            usePointStyle: true,
+            boxWidth: 10,
+            boxHeight: 10
+          }
+        },
+        tooltip: {
+          backgroundColor: '#111827',
+          padding: 12
+        }
+      },
+      scales: {
+        x: {
+          stacked: false,
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#6b7280'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: '#e5e7eb'
+          },
+          ticks: {
+            color: '#6b7280',
+            precision: 0
+          }
+        }
+      }
+    }
+  };
+}
+
+function buildLatestMixChartConfig(stats: ReturnType<typeof useAdminStore.getState>['stats']): ChartConfiguration<'bar'> {
+  const latest = stats[stats.length - 1];
+
+  return {
+    type: 'bar',
+    data: {
+      labels: ['New Users', 'Logins', 'Active Users'],
+      datasets: [
+        {
+          data: latest ? [latest.newUsersCount, latest.loginCount, latest.activeUsersCount] : [0, 0, 0],
+          backgroundColor: [metricFill, secondaryFill, tertiaryFill],
+          borderRadius: 10,
+          borderSkipped: false,
+          maxBarThickness: 42
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: '#111827',
+          padding: 12
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#6b7280'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: '#e5e7eb'
+          },
+          ticks: {
+            color: '#6b7280',
+            precision: 0
+          }
+        }
+      }
+    }
+  };
+}
+
+type AdminChartCanvasProps = {
+  title: string;
+  description: string;
+  config: ChartConfiguration<'bar'>;
+  emptyMessage: string;
+  highlight?: string;
+};
+
+function AdminChartCanvas({ title, description, config, emptyMessage, highlight }: AdminChartCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    let chart: ChartInstance | null = null;
+    let cancelled = false;
+
+    const renderChart = async () => {
+      if (!canvasRef.current) {
+        return;
+      }
+
+      const { default: ChartJS } = await import('chart.js/auto');
+      if (cancelled || !canvasRef.current) {
+        return;
+      }
+
+      chart = new ChartJS(canvasRef.current, config);
+    };
+
+    void renderChart();
+
+    return () => {
+      cancelled = true;
+      chart?.destroy();
+    };
+  }, [config]);
+
+  const hasData = config.data.datasets.some((dataset) =>
+    dataset.data.some((value) => typeof value === 'number' ? value > 0 : Boolean(value))
+  );
+
+  return (
+    <section className="panel chart-panel">
+      <div className="panel-head compact">
+        <div>
+          <p className="section-label">Visualization</p>
+          <h2>{title}</h2>
+          <p className="panel-copy">{description}</p>
+        </div>
+        {highlight && <p className="chart-highlight">{highlight}</p>}
+      </div>
+      <div className="chart-canvas-wrap">
+        {hasData ? <canvas ref={canvasRef} /> : <p className="chart-empty">{emptyMessage}</p>}
+      </div>
+    </section>
+  );
 }
 
 export default function Admin() {
@@ -93,6 +354,10 @@ export default function Admin() {
   const selectQuiz = useAdminStore((state) => state.selectQuiz);
   const generateQuiz = useAdminStore((state) => state.generateQuiz);
   const currentSection = useMemo(() => resolveSection(location.pathname), [location.pathname]);
+  const summaryChartConfig = useMemo(() => buildSummaryChartConfig(summary), [summary]);
+  const trendChartConfig = useMemo(() => buildTrendChartConfig(stats), [stats]);
+  const latestMixChartConfig = useMemo(() => buildLatestMixChartConfig(stats), [stats]);
+  const latestStat = useMemo(() => stats[stats.length - 1] ?? null, [stats]);
 
   if (!isAuthenticated || role !== 'ADMIN') {
     return <Navigate to="/signin" replace />;
@@ -194,6 +459,78 @@ export default function Admin() {
                         <td>{item.activeUsersCount}</td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {currentSection === 'chart' && (
+          <div className="page-stack">
+            <section className="stat-grid admin-stats-grid">
+              <article className="stat-card"><span>Total Users</span><strong>{formatMetricNumber(summary?.totalUsers)}</strong><p>전체 등록 사용자</p></article>
+              <article className="stat-card"><span>Active Users</span><strong>{formatMetricNumber(summary?.activeUsers)}</strong><p>활성 사용자 수</p></article>
+              <article className="stat-card"><span>Total Words</span><strong>{formatMetricNumber(summary?.totalWords)}</strong><p>등록 경제 용어 수</p></article>
+              <article className="stat-card"><span>Recent Uploads</span><strong>{formatMetricNumber(summary?.recentUploads)}</strong><p>최근 업로드 작업 수</p></article>
+            </section>
+
+            <section className="chart-card-grid">
+              <AdminChartCanvas
+                title="Overview Snapshot"
+                description="Overview 카드 수치를 막대그래프로 비교합니다."
+                config={summaryChartConfig}
+                emptyMessage="표시할 요약 데이터가 없습니다."
+              />
+              <AdminChartCanvas
+                title="Latest Daily Mix"
+                description="가장 최근 날짜 기준 신규 사용자, 로그인, 활성 사용자 수치입니다."
+                config={latestMixChartConfig}
+                emptyMessage="일간 지표가 아직 없습니다."
+                highlight={latestStat ? latestStat.targetDate : 'No Data'}
+              />
+              <AdminChartCanvas
+                title="Daily Activity Trend"
+                description="최근 7일 일간 지표를 동일한 크기의 그룹 막대그래프로 시각화합니다."
+                config={trendChartConfig}
+                emptyMessage="표시할 일간 지표가 없습니다."
+                highlight={stats.length > 0 ? `${Math.min(stats.length, 7)} Days` : 'No Data'}
+              />
+            </section>
+
+            <section className="panel">
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">Source Data</p>
+                  <h2>차트 원본 데이터</h2>
+                  <p className="panel-copy">차트 아래에서 Overview와 동일한 일간 지표 값을 함께 확인할 수 있습니다.</p>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>New Users</th>
+                      <th>Logins</th>
+                      <th>Active Users</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.length > 0 ? (
+                      stats.map((item) => (
+                        <tr key={item.targetDate}>
+                          <td>{item.targetDate}</td>
+                          <td>{formatMetricNumber(item.newUsersCount)}</td>
+                          <td>{formatMetricNumber(item.loginCount)}</td>
+                          <td>{formatMetricNumber(item.activeUsersCount)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="table-empty">일간 지표 데이터가 없습니다.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

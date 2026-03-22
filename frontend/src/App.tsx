@@ -109,6 +109,7 @@ export default function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin/overview" element={<Admin />} />
+          <Route path="/admin/chart" element={<Admin />} />
           <Route path="/admin/users" element={<Admin />} />
           <Route path="/admin/words" element={<Admin />} />
           <Route path="/admin/uploads" element={<Admin />} />

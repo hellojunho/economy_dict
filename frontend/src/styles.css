@@ -746,6 +746,67 @@ textarea {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.chart-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
+  gap: var(--section-gap);
+  align-items: stretch;
+}
+
+.chart-panel {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 360px;
+  height: 100%;
+  padding: clamp(18px, 2.4vw, 22px);
+}
+
+.chart-panel .panel-head {
+  min-height: 108px;
+  margin-bottom: 12px;
+  padding-right: 112px;
+}
+
+.chart-canvas-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+}
+
+.chart-canvas-wrap canvas {
+  width: 100% !important;
+  height: 190px !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.chart-empty {
+  margin: 0;
+  min-height: inherit;
+  display: grid;
+  place-items: center;
+  color: #6b7280;
+  text-align: center;
+}
+
+.chart-highlight {
+  margin: 0;
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -971,6 +1032,10 @@ textarea {
   .admin-stats-grid,
   .compact-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chart-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
   .chat-sidebar {
