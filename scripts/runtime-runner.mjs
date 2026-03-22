@@ -87,7 +87,7 @@ function createLocalEnv(runtimeEnv) {
     ...runtimeEnv,
     JAVA_HOME: javaHome,
     BACKEND_PORT: runtimeEnv.BACKEND_PORT ?? '8081',
-    FRONTEND_PORT: runtimeEnv.FRONTEND_PORT ?? '4321',
+    FRONTEND_PORT: runtimeEnv.FRONTEND_PORT ?? '5555',
     DB_PORT: runtimeEnv.DB_PORT ?? '9001',
     Path: mergedPath,
     PATH: mergedPath,
@@ -234,7 +234,7 @@ async function main() {
     case 'frontend': {
       await spawnCommand(
         'node',
-        [path.join(frontendDir, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', localEnv.FRONTEND_PORT ?? '4321', '--host'],
+        [path.join(frontendDir, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', localEnv.FRONTEND_PORT ?? '5555', '--host'],
         { cwd: frontendDir, env: localEnv }
       );
       return;

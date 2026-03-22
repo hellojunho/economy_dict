@@ -1,12 +1,20 @@
-COMPOSE := docker compose
+ENV_FILE := runtime.env
+COMPOSE := docker compose --env-file $(ENV_FILE)
+COMPOSE_PROD := docker compose --env-file $(ENV_FILE) -f docker-compose.prod.yml
 
-.PHONY: start stop restart build rebuild logs ps clean create-admin
+.PHONY: start stop start-prod stop-prod restart build rebuild logs ps clean create-admin
 
 start:
 	$(COMPOSE) up --build
 
 stop:
 	$(COMPOSE) down
+
+start-prod:
+	$(COMPOSE_PROD) up --build
+
+stop-prod:
+	$(COMPOSE_PROD) down
 
 restart:
 	$(MAKE) stop

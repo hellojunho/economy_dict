@@ -7,6 +7,8 @@ set TARGET=%~1
 
 if /I "%TARGET%"=="start" goto start
 if /I "%TARGET%"=="stop" goto stop
+if /I "%TARGET%"=="start-prod" goto start_prod
+if /I "%TARGET%"=="stop-prod" goto stop_prod
 if /I "%TARGET%"=="restart" goto restart
 if /I "%TARGET%"=="build" goto build
 if /I "%TARGET%"=="rebuild" goto rebuild
@@ -28,6 +30,14 @@ goto end
 
 :stop
 call npm.cmd run stop
+goto end
+
+:start_prod
+docker compose --env-file runtime.env -f docker-compose.prod.yml up --build
+goto end
+
+:stop_prod
+docker compose --env-file runtime.env -f docker-compose.prod.yml down
 goto end
 
 :restart
@@ -78,7 +88,7 @@ goto end
 
 :usage
 echo Usage: make ^<target^>
-echo Supported targets: start stop restart build rebuild logs ps clean create-admin backend frontend backend-test frontend-build
+echo Supported targets: start stop start-prod stop-prod restart build rebuild logs ps clean create-admin backend frontend backend-test frontend-build
 exit /b 1
 
 :end
