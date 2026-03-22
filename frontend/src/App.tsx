@@ -114,6 +114,7 @@ export default function App() {
           <Route path="/admin/overview" element={<Admin />} />
           <Route path="/admin/chart" element={<Admin />} />
           <Route path="/admin/users" element={<Admin />} />
+          <Route path="/admin/users/:userEntry" element={<Admin />} />
           <Route path="/admin/words" element={<Admin />} />
           <Route path="/admin/uploads" element={<Admin />} />
           <Route path="/admin/quizzes" element={<Admin />} />

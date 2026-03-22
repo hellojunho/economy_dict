@@ -344,6 +344,11 @@ textarea {
   gap: clamp(10px, 1.2vw, 12px);
 }
 
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .word-row,
 .chat-thread-item,
 .option-card,
@@ -726,6 +731,7 @@ textarea {
 
 .formal-admin-main {
   padding: clamp(18px, 3vw, 28px);
+  min-width: 0;
 }
 
 .admin-nav-list {
@@ -744,6 +750,33 @@ textarea {
 
 .admin-nav-item.active {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-detail-panel {
+  max-width: 760px;
+}
+
+.admin-user-form {
+  max-width: 520px;
+}
+
+.admin-user-table {
+  min-width: 920px;
+}
+
+.user-id-cell {
+  max-width: 0;
+  word-break: break-word;
+}
+
+.action-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.admin-table-actions {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
 }
 
 .chart-card-grid {
