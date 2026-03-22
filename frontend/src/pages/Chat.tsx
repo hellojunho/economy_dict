@@ -140,6 +140,7 @@ export default function Chat() {
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleComposerKeyDown}
               placeholder="경제 용어 또는 경제 이슈를 입력하세요."
+              style={{ height: '45px' }}
             />
             <div className="button-row chat-composer-actions">
               <p className="chat-composer-hint">`Enter` 전송, `Cmd+Enter` 또는 `Ctrl+Enter` 줄바꿈</p>

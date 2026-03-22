@@ -155,7 +155,7 @@ type AdminState = {
   refreshCurrentSection: (sectionOverride?: SectionKey) => Promise<void>;
   changeWordPage: (page: number) => Promise<void>;
   loadUploads: () => Promise<void>;
-  saveUser: () => Promise<void>;
+  saveUser: () => Promise<boolean>;
   deleteUser: (id: number) => Promise<void>;
   saveWord: () => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
@@ -389,8 +389,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         await client.post('/admin/users', userForm);
       }
       set({ userForm: defaultUserForm, users: await fetchUsers(), message: '사용자 정보가 저장되었습니다.' });
+      return true;
     } catch (error) {
       set({ message: getApiErrorMessage(error, '사용자 정보를 저장하지 못했습니다.') });
+      return false;
     }
   },
   deleteUser: async (id) => {

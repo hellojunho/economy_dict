@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef } from 'react';
 import type { Chart as ChartInstance, ChartConfiguration } from 'chart.js';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { AdminQuizQuestion, AdminUser, DIRECT_SOURCE_OPTION, SectionKey, Summary, useAdminStore } from '../stores/adminStore';
 
@@ -23,6 +23,9 @@ const sectionPathMap: Record<SectionKey, string> = {
 };
 
 function resolveSection(pathname: string): SectionKey {
+  if (pathname.startsWith('/admin/users')) {
+    return 'users';
+  }
   const matched = sections.find((item) => pathname === sectionPathMap[item.key]);
   return matched?.key ?? 'overview';
 }
@@ -311,6 +314,7 @@ function AdminChartCanvas({ title, description, config, emptyMessage, highlight 
 export default function Admin() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userEntry } = useParams();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const role = useAuthStore((state) => state.role);
   const summary = useAdminStore((state) => state.summary);
@@ -358,6 +362,12 @@ export default function Admin() {
   const trendChartConfig = useMemo(() => buildTrendChartConfig(stats), [stats]);
   const latestMixChartConfig = useMemo(() => buildLatestMixChartConfig(stats), [stats]);
   const latestStat = useMemo(() => stats[stats.length - 1] ?? null, [stats]);
+  const editingUser = useMemo(
+    () => users.find((user) => String(user.id) === userEntry) ?? null,
+    [userEntry, users]
+  );
+  const isNewUserPage = userEntry === 'new';
+  const isUserEditPage = currentSection === 'users' && Boolean(userEntry);
 
   if (!isAuthenticated || role !== 'ADMIN') {
     return <Navigate to="/signin" replace />;
@@ -378,9 +388,29 @@ export default function Admin() {
     return () => window.clearInterval(timer);
   }, [currentSection, loadUploads]);
 
+  useEffect(() => {
+    if (currentSection !== 'users') {
+      return;
+    }
+
+    if (isNewUserPage) {
+      resetUserForm();
+      return;
+    }
+
+    if (!userEntry || !editingUser) {
+      return;
+    }
+
+    editUser(editingUser);
+  }, [currentSection, editUser, editingUser, isNewUserPage, resetUserForm, userEntry]);
+
   const handleSaveUser = async (event: FormEvent) => {
     event.preventDefault();
-    await saveUser();
+    const saved = await saveUser();
+    if (saved) {
+      navigate('/admin/users');
+    }
   };
 
   const handleSaveWord = async (event: FormEvent) => {
@@ -413,15 +443,17 @@ export default function Admin() {
       </aside>
 
       <main className="admin-main formal-admin-main">
-        <header className="admin-topbar">
-          <div>
-            <p className="section-label">{currentSection}</p>
-            <h2>{sections.find((item) => item.key === currentSection)?.label}</h2>
-          </div>
-          <button type="button" className="button button-secondary" onClick={() => refreshCurrentSection(currentSection)} disabled={loading}>
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </button>
-        </header>
+        {currentSection !== 'users' && (
+          <header className="admin-topbar">
+            <div>
+              <p className="section-label">{currentSection}</p>
+              <h2>{sections.find((item) => item.key === currentSection)?.label}</h2>
+            </div>
+            <button type="button" className="button button-secondary" onClick={() => refreshCurrentSection(currentSection)} disabled={loading}>
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </header>
+        )}
 
         {message && <p className={`form-message ${message.includes('못') || message.includes('실패') || message.includes('최대') ? 'error-text' : 'success-text'}`}>{message}</p>}
 
@@ -538,46 +570,93 @@ export default function Admin() {
           </div>
         )}
 
-        {currentSection === 'users' && (
-          <div className="content-grid columns-1-2">
+        {currentSection === 'users' && !isUserEditPage && (
+          <div className="page-stack">
             <section className="panel">
-              <div className="panel-head compact"><div><p className="section-label">CRUD</p><h2>사용자 편집</h2></div></div>
-              <form className="form-stack" onSubmit={handleSaveUser}>
-                <label><span>User ID</span><input value={userForm.userId} onChange={(e) => updateUserForm({ userId: e.target.value })} /></label>
-                <label><span>Username</span><input value={userForm.username} onChange={(e) => updateUserForm({ username: e.target.value })} /></label>
-                <label><span>Password</span><input type="password" value={userForm.password} onChange={(e) => updateUserForm({ password: e.target.value })} /></label>
-                <label><span>Email</span><input value={userForm.email} onChange={(e) => updateUserForm({ email: e.target.value })} /></label>
-                <label><span>Role</span><select value={userForm.role} onChange={(e) => updateUserForm({ role: e.target.value as AdminUser['role'] })}><option value="GENERAL">GENERAL</option><option value="ADMIN">ADMIN</option></select></label>
-                <label><span>Status</span><select value={userForm.status} onChange={(e) => updateUserForm({ status: e.target.value as AdminUser['status'] })}><option value="ACTIVE">ACTIVE</option><option value="DEACTIVATED">DEACTIVATED</option></select></label>
-                <div className="button-row">
-                  <button type="submit" className="button button-primary">Save User</button>
-                  <button type="button" className="button button-secondary" onClick={() => resetUserForm()}>Clear</button>
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">Records</p>
+                  <h2>사용자 목록</h2>
+                  <p className="panel-copy">첫 화면에서는 사용자 목록만 표시합니다. 수정은 Edit 화면에서 진행합니다.</p>
                 </div>
-              </form>
-            </section>
-            <section className="panel">
-              <div className="panel-head compact"><div><p className="section-label">Records</p><h2>사용자 목록</h2></div></div>
+                <div className="admin-actions">
+                  <button type="button" className="button button-secondary" onClick={() => refreshCurrentSection(currentSection)} disabled={loading}>
+                    {loading ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                  <button type="button" className="button button-secondary" onClick={() => navigate('/admin/users/new')}>
+                    New User
+                  </button>
+                </div>
+              </div>
               <div className="table-wrap">
-                <table className="data-table">
+                <table className="data-table admin-user-table">
                   <thead><tr><th>User ID</th><th>Name</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
                   <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.userId}</td>
-                        <td>{user.username}</td>
-                        <td>{user.role}</td>
-                        <td>{user.status}</td>
-                        <td>
-                          <div className="table-actions">
-                            <button type="button" className="link-button" onClick={() => editUser(user)}>Edit</button>
-                            <button type="button" className="link-button danger-text" onClick={() => deleteUser(user.id)}>Delete</button>
-                          </div>
-                        </td>
+                    {users.length > 0 ? (
+                      users.map((user) => (
+                        <tr key={user.id}>
+                          <td className="user-id-cell">{user.userId}</td>
+                          <td>{user.username}</td>
+                          <td>{user.role}</td>
+                          <td>{user.status}</td>
+                          <td className="action-cell">
+                            <div className="table-actions admin-table-actions">
+                              <button type="button" className="link-button" onClick={() => navigate(`/admin/users/${user.id}`)}>Edit</button>
+                              <button type="button" className="link-button danger-text" onClick={() => deleteUser(user.id)}>Delete</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="table-empty">등록된 사용자가 없습니다.</td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
+            </section>
+          </div>
+        )}
+
+        {currentSection === 'users' && isUserEditPage && (
+          <div className="page-stack">
+            <section className="panel admin-detail-panel">
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">CRUD</p>
+                  <h2>{isNewUserPage ? '사용자 생성' : '사용자 편집'}</h2>
+                  <p className="panel-copy">
+                    {isNewUserPage
+                      ? '새 사용자 정보를 입력한 뒤 저장합니다.'
+                      : editingUser
+                        ? `${editingUser.userId} 계정 정보를 수정합니다.`
+                        : '사용자 정보를 불러오는 중입니다.'}
+                  </p>
+                </div>
+                <div className="admin-actions">
+                  <button type="button" className="button button-secondary" onClick={() => navigate('/admin/users')}>
+                    Back To List
+                  </button>
+                </div>
+              </div>
+
+              {(isNewUserPage || editingUser) ? (
+                <form className="form-stack admin-user-form" onSubmit={handleSaveUser}>
+                  <label><span>User ID</span><input value={userForm.userId} onChange={(e) => updateUserForm({ userId: e.target.value })} /></label>
+                  <label><span>Username</span><input value={userForm.username} onChange={(e) => updateUserForm({ username: e.target.value })} /></label>
+                  <label><span>Password</span><input type="password" value={userForm.password} onChange={(e) => updateUserForm({ password: e.target.value })} placeholder={isNewUserPage ? '' : '변경 시에만 입력'} /></label>
+                  <label><span>Email</span><input value={userForm.email} onChange={(e) => updateUserForm({ email: e.target.value })} /></label>
+                  <label><span>Role</span><select value={userForm.role} onChange={(e) => updateUserForm({ role: e.target.value as AdminUser['role'] })}><option value="GENERAL">GENERAL</option><option value="ADMIN">ADMIN</option></select></label>
+                  <label><span>Status</span><select value={userForm.status} onChange={(e) => updateUserForm({ status: e.target.value as AdminUser['status'] })}><option value="ACTIVE">ACTIVE</option><option value="DEACTIVATED">DEACTIVATED</option></select></label>
+                  <div className="button-row">
+                    <button type="submit" className="button button-primary">Save User</button>
+                    <button type="button" className="button button-secondary" onClick={() => resetUserForm()}>Clear</button>
+                  </div>
+                </form>
+              ) : (
+                <p className="muted">해당 사용자를 찾지 못했습니다.</p>
+              )}
             </section>
           </div>
         )}
