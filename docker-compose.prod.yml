@@ -38,13 +38,10 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/nginx/Dockerfile
     ports:
-      - "${FRONTEND_PORT:-5555}:${FRONTEND_PORT:-5555}"
-    environment:
-      FRONTEND_PORT: ${FRONTEND_PORT:-5555}
-      VITE_API_TARGET: http://backend:8081
+      - "${FRONTEND_PORT:-5555}:80"
     depends_on:
       - backend
 

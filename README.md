@@ -34,6 +34,12 @@ APP_RUNTIME=macos
 npm run start
 ```
 
+production Docker 실행:
+
+```bash
+make start-prod
+```
+
 Windows에서는 아래처럼 기존 방식도 사용할 수 있습니다.
 
 ```powershell
@@ -44,6 +50,12 @@ make start
 
 ```bash
 npm run stop
+```
+
+production 중지:
+
+```bash
+make stop-prod
 ```
 
 로그:
@@ -88,7 +100,7 @@ npm run backend:test
 
 ## 기본 포트
 
-- Frontend: `4321`
+- Frontend: `5555`
 - Backend: `8081`
 - PostgreSQL: `9001`
 
