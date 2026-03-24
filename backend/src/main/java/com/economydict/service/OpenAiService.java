@@ -1,32 +1,40 @@
 package com.economydict.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 public class OpenAiService {
     private final WebClient webClient;
     private final String apiKey;
     private final String model;
+    private final String webSearchModel;
     private final ObjectMapper objectMapper;
 
     public OpenAiService(@Value("${openai.api.base-url}") String baseUrl,
                          @Value("${openai.api.key}") String apiKey,
-                         @Value("${openai.api.model}") String model) {
+                         @Value("${openai.api.model}") String model,
+                         @Value("${openai.api.web-search-model:${openai.api.model}}") String webSearchModel) {
         this.apiKey = apiKey;
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + apiKey)
                 .build();
         this.model = model;
+        this.webSearchModel = webSearchModel;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -56,6 +64,18 @@ public class OpenAiService {
             return "";
         }
         return response.choices.get(0).message.content;
+    }
+
+    public WebSearchResult respondWithWebSearch(String systemPrompt, String userPrompt) {
+        JsonNode response = executeWebSearchRequest(buildWebSearchRequest(systemPrompt, userPrompt));
+        String content = extractResponseMessageText(response);
+        List<UrlCitation> citations = extractUrlCitations(response);
+        List<WebSource> sources = extractSources(response);
+
+        WebSearchResult result = new WebSearchResult();
+        result.setContent(applyInlineCitations(content, citations));
+        result.setSources(sources);
+        return result;
     }
 
     public List<ExtractedTerm> extractDictionaryTerms(String documentText) {
@@ -415,6 +435,223 @@ public class OpenAiService {
         }
     }
 
+    private JsonNode executeWebSearchRequest(Map<String, Object> request) {
+        if (apiKey == null || apiKey.isBlank() || "REPLACE_ME".equals(apiKey)) {
+            throw new IllegalStateException(
+                    "OpenAI API key is not configured. Set OPENAI_API_KEY or provide openai.api.key in secrets.json.");
+        }
+        try {
+            return webClient.post()
+                    .uri("/v1/responses")
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(JsonNode.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw new IllegalStateException(
+                    "OpenAI web search request failed. status=" + e.getStatusCode().value()
+                            + " body=" + summarizeErrorBody(e.getResponseBodyAsString()),
+                    e);
+        } catch (WebClientRequestException e) {
+            throw new IllegalStateException("OpenAI web search connection failed. " + e.getMessage(), e);
+        }
+    }
+
+    private Map<String, Object> buildWebSearchRequest(String systemPrompt, String userPrompt) {
+        List<Map<String, Object>> input = List.of(
+                buildInputMessage("system", systemPrompt),
+                buildInputMessage("user", userPrompt)
+        );
+
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("model", webSearchModel == null || webSearchModel.isBlank() ? model : webSearchModel);
+        request.put("reasoning", Map.of("effort", "medium"));
+        request.put("tools", List.of(Map.of("type", "web_search")));
+        request.put("tool_choice", "auto");
+        request.put("include", List.of("web_search_call.action.sources"));
+        request.put("input", input);
+        return request;
+    }
+
+    private Map<String, Object> buildInputMessage(String role, String text) {
+        return Map.of(
+                "role", role,
+                "content", List.of(Map.of(
+                        "type", "input_text",
+                        "text", text
+                ))
+        );
+    }
+
+    private String extractResponseMessageText(JsonNode response) {
+        if (response == null) {
+            return "";
+        }
+
+        JsonNode output = response.path("output");
+        if (!output.isArray()) {
+            return response.path("output_text").asText("");
+        }
+
+        for (JsonNode item : output) {
+            if (!"message".equals(item.path("type").asText())) {
+                continue;
+            }
+            JsonNode content = item.path("content");
+            if (!content.isArray()) {
+                continue;
+            }
+            for (JsonNode contentItem : content) {
+                if ("output_text".equals(contentItem.path("type").asText())) {
+                    return contentItem.path("text").asText("");
+                }
+            }
+        }
+
+        return response.path("output_text").asText("");
+    }
+
+    private List<UrlCitation> extractUrlCitations(JsonNode response) {
+        if (response == null) {
+            return List.of();
+        }
+
+        List<UrlCitation> citations = new ArrayList<>();
+        JsonNode output = response.path("output");
+        if (!output.isArray()) {
+            return citations;
+        }
+
+        for (JsonNode item : output) {
+            if (!"message".equals(item.path("type").asText())) {
+                continue;
+            }
+
+            JsonNode content = item.path("content");
+            if (!content.isArray()) {
+                continue;
+            }
+
+            for (JsonNode contentItem : content) {
+                JsonNode annotations = contentItem.path("annotations");
+                if (!annotations.isArray()) {
+                    continue;
+                }
+                for (JsonNode annotation : annotations) {
+                    JsonNode citationNode = resolveCitationNode(annotation);
+                    String url = citationNode.path("url").asText("");
+                    if (url.isBlank()) {
+                        continue;
+                    }
+
+                    UrlCitation citation = new UrlCitation();
+                    citation.setUrl(url);
+                    citation.setTitle(citationNode.path("title").asText(""));
+                    citation.setStartIndex(citationNode.path("start_index").asInt(-1));
+                    citation.setEndIndex(citationNode.path("end_index").asInt(-1));
+                    citations.add(citation);
+                }
+            }
+        }
+
+        return citations;
+    }
+
+    private JsonNode resolveCitationNode(JsonNode annotation) {
+        if (annotation == null) {
+            return objectMapper.createObjectNode();
+        }
+        if ("url_citation".equals(annotation.path("type").asText()) && annotation.hasNonNull("url_citation")) {
+            return annotation.path("url_citation");
+        }
+        return annotation;
+    }
+
+    private List<WebSource> extractSources(JsonNode response) {
+        if (response == null) {
+            return List.of();
+        }
+
+        Map<String, WebSource> deduped = new LinkedHashMap<>();
+        JsonNode output = response.path("output");
+        if (!output.isArray()) {
+            return List.of();
+        }
+
+        for (JsonNode item : output) {
+            if (!"web_search_call".equals(item.path("type").asText())) {
+                continue;
+            }
+
+            JsonNode sources = item.path("action").path("sources");
+            if (!sources.isArray()) {
+                continue;
+            }
+
+            for (JsonNode sourceNode : sources) {
+                String url = sourceNode.path("url").asText("");
+                if (url.isBlank() || deduped.containsKey(url)) {
+                    continue;
+                }
+
+                WebSource source = new WebSource();
+                source.setUrl(url);
+                source.setTitle(sourceNode.path("title").asText(deriveDomain(url)));
+                source.setDomain(deriveDomain(url));
+                deduped.put(url, source);
+            }
+        }
+
+        return new ArrayList<>(deduped.values());
+    }
+
+    private String applyInlineCitations(String content, List<UrlCitation> citations) {
+        if (content == null || content.isBlank() || citations == null || citations.isEmpty()) {
+            return content == null ? "" : content;
+        }
+
+        List<UrlCitation> validCitations = citations.stream()
+                .filter(citation -> citation.getUrl() != null && !citation.getUrl().isBlank())
+                .filter(citation -> citation.getEndIndex() >= 0)
+                .sorted(Comparator.comparingInt(UrlCitation::getEndIndex).reversed())
+                .toList();
+
+        if (validCitations.isEmpty()) {
+            return content;
+        }
+
+        Map<String, Integer> sourceNumbers = new LinkedHashMap<>();
+        for (UrlCitation citation : citations) {
+            if (citation.getUrl() == null || citation.getUrl().isBlank()) {
+                continue;
+            }
+            sourceNumbers.computeIfAbsent(citation.getUrl(), ignored -> sourceNumbers.size() + 1);
+        }
+
+        StringBuilder builder = new StringBuilder(content);
+        for (UrlCitation citation : validCitations) {
+            int endIndex = Math.max(0, Math.min(citation.getEndIndex(), builder.length()));
+            Integer sourceNumber = sourceNumbers.get(citation.getUrl());
+            if (sourceNumber == null) {
+                continue;
+            }
+            builder.insert(endIndex, " [" + sourceNumber + "](" + citation.getUrl() + ")");
+        }
+        return builder.toString();
+    }
+
+    private String deriveDomain(String url) {
+        if (url == null || url.isBlank()) {
+            return "";
+        }
+        try {
+            URI uri = URI.create(url);
+            return uri.getHost() == null ? url : uri.getHost();
+        } catch (IllegalArgumentException e) {
+            return url;
+        }
+    }
+
     private String extractJsonPayload(String content) {
         if (content == null) {
             return "";
@@ -606,6 +843,96 @@ public class OpenAiService {
 
         public void setOptions(List<String> options) {
             this.options = options;
+        }
+    }
+
+    public static class WebSearchResult {
+        private String content;
+        private List<WebSource> sources = Collections.emptyList();
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
+
+        public List<WebSource> getSources() {
+            return sources;
+        }
+
+        public void setSources(List<WebSource> sources) {
+            this.sources = sources == null ? Collections.emptyList() : sources;
+        }
+    }
+
+    public static class WebSource {
+        private String title;
+        private String url;
+        private String domain;
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
+        }
+    }
+
+    private static class UrlCitation {
+        private String title;
+        private String url;
+        private int startIndex;
+        private int endIndex;
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public int getStartIndex() {
+            return startIndex;
+        }
+
+        public void setStartIndex(int startIndex) {
+            this.startIndex = startIndex;
+        }
+
+        public int getEndIndex() {
+            return endIndex;
+        }
+
+        public void setEndIndex(int endIndex) {
+            this.endIndex = endIndex;
         }
     }
 
