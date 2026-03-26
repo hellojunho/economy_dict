@@ -118,6 +118,9 @@ async function fetchTopWords() {
 
 async function fetchDailyQuiz() {
   const response = await client.get<DailyQuizResponse>('/quizzes/daily');
+  if (response.status === 204 || !response.data) {
+    return null;
+  }
   return response.data;
 }
 
@@ -171,6 +174,20 @@ export const useQuizStore = create<QuizState>((set, get) => ({
 
     try {
       const [dailyQuiz, incorrectQuestions] = await Promise.all([fetchDailyQuiz(), fetchIncorrectQuestions()]);
+      if (!dailyQuiz) {
+        set({
+          dailyQuiz: null,
+          incorrectQuestions,
+          answers: {},
+          solvedQuestionIds: [],
+          result: null,
+          recordedCorrectCount: 0,
+          recordedIncorrectCount: 0,
+          ...buildSessionState('official', []),
+          message: '아직 생성된 데일리 퀴즈가 없습니다. Admin에서 Create Quiz를 실행하세요.'
+        });
+        return;
+      }
       set({
         dailyQuiz,
         incorrectQuestions,
