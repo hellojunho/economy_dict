@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import client from '../api/client';
 import KrStockCandleChart from '../components/KrStockCandleChart';
 import StockMarketWarning from '../components/StockMarketWarning';
+import { useThemeStore } from '../stores/themeStore';
 
 type KrStockMetric = {
   label: string;
@@ -183,6 +184,7 @@ function mergeRealtimeCandle(candles: KrStockCandle[], quote: KrStockQuote) {
 }
 
 export default function KrStock() {
+  const theme = useThemeStore((s) => s.theme);
   const [symbolInput, setSymbolInput] = useState('005930');
   const [activeSymbol, setActiveSymbol] = useState('005930');
   const [snapshot, setSnapshot] = useState<KrStockSnapshot | null>(null);
@@ -339,7 +341,7 @@ export default function KrStock() {
           </div>
 
           {chartData.length > 0 ? (
-            <KrStockCandleChart candles={chartData} mode={mode} />
+            <KrStockCandleChart candles={chartData} mode={mode} theme={theme} />
           ) : (
             <div className="stock-chart-empty">
               <p className="muted">표시할 캔들 데이터가 없습니다.</p>

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 type TradingViewAdvancedChartProps = {
   symbol: string;
   allowSymbolChange?: boolean;
+  theme?: 'light' | 'dark';
 };
 
 declare global {
@@ -13,7 +14,8 @@ declare global {
 
 export default function TradingViewAdvancedChart({
   symbol,
-  allowSymbolChange = true
+  allowSymbolChange = true,
+  theme = 'dark'
 }: TradingViewAdvancedChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tradingViewSymbol = useMemo(() => symbol.trim().toUpperCase(), [symbol]);
@@ -57,7 +59,7 @@ export default function TradingViewAdvancedChart({
       symbol: tradingViewSymbol,
       interval: 'D',
       timezone: 'Asia/Seoul',
-      theme: 'light',
+      theme,
       style: '1',
       locale: 'kr',
       allow_symbol_change: allowSymbolChange,
@@ -75,7 +77,7 @@ export default function TradingViewAdvancedChart({
     return () => {
       container.innerHTML = '';
     };
-  }, [allowSymbolChange, tradingViewSymbol, widgetId]);
+  }, [allowSymbolChange, theme, tradingViewSymbol, widgetId]);
 
   return <div ref={containerRef} className="tradingview-widget-container stock-tv-widget" />;
 }

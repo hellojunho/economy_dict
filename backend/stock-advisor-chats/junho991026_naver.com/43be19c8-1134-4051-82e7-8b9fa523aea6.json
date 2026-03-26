@@ -1,0 +1,312 @@
+{
+  "threadId" : "43be19c8-1134-4051-82e7-8b9fa523aea6",
+  "title" : "NASDAQ:TSLA · 스윙 전략",
+  "symbol" : "NASDAQ:TSLA",
+  "riskProfile" : "균형형",
+  "tradeStyle" : "스윙",
+  "notes" : "살까 말까",
+  "createdAt" : "2026-03-25T08:41:01.462368180Z",
+  "updatedAt" : "2026-03-25T08:42:52.506539843Z",
+  "messages" : [ {
+    "role" : "assistant",
+    "content" : "## 한줄 결론\n- 현재(스윙, 균형형) 관점에서 TSLA는 단기 변동성(규제 리스크 + 테라팹 성장 스토리)으로 방향성이 불확실하며, 리스크·보상 비율이 명확해질 때까지 '부분 진입·관망'이 현실적입니다.  \n- 기준 매수는 주요 지지 확인(약 $370–365) 후 분할 매수로 접근, 손절은 분할 진입당 약 4–6% 수준 권고(포지션 전체 기준 더 보수적 설정 가능).\n\n## 가격 브리핑\n- 현재가(기준 시점): $383.03 (종가 기준, 2026-03-25 마감; 구글 파이낸스). ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)  \n- 최근 1년(52주) 최저 / 최고: $214.25 / $498.82. (확인: Google Finance). ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)  \n- 최근 2~3주(대략 2026-03-04 ~ 2026-03-24) 범위: 저가 약 $364.46 (2026-03-20), 고가 약 $416.38 (2026-03-11), 중심값 약 $390.4. (일별 데이터 출처: TwelveData). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)  \n- 최근 1개월(대략 2026-02-24 ~ 2026-03-24) 범위: 저가 약 $364.46 (2026-03-20), 고가 약 $420.34 (2026-02-25), 중심값 약 $392.4. (TwelveData). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)  \n- 확인되지 않거나 정밀하지 않은 항목: 호가에서의 실시간 체결 분포, 레벨2/오더플로우, 볼륨 프로파일의 세부(특정 호가대 체결량)는 공개 소스만으로는 정밀 확인 불가 — 이후 거래 플랫폼 차트로 확인 권장.\n\n(사실 표시: 위 가격/범위는 각 출처의 공개 시세·히스토리 기준임. 날짜·시차에 따라 소폭 달라질 수 있습니다.) ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)\n\n## 종합 판단\n- 현재 포지션: 중립 ~ 약세 전환 신호 혼재. 근거: (1) 최근 1개월간 고점(약 $420)에서 10% 안팎 하락 후 360~400 구간에서 등락, (2) 규제(자율주행 조사)·판매 모멘텀 우려와 새로운 'Terafab' 성장 스토리 동시 존재 → 불확실성 확대. (뉴스 근거: NHTSA 조사(2026-03-18/19) 및 Terafab 발표(2026-03-21~23)). ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)\n\n-- 사실과 해석 분리: 위 가격·범위는 사실(시세/히스토리). “중립~약세” 표기는 공개정보(실적·규제·뉴스·차트) 해석임.\n\n## 매수세와 매도세\n- 매수세: 최근 테라팹(반도체 자체 생산) 발표로 기술/AI 성장 스토리 기대감이 유입되며 매수 재료로 작용(단기 모멘텀). ([axios.com](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)) [4](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)  \n- 매도세: (1) NHTSA의 자율주행 조사 확대(메모 2026-03-18)로 규제·리콜 가능성, (2) 차량 인도(Deliveries)·수요 우려로 일부 애널리스트가 하향 조정하는 흐름이 지속. 두 요소가 단기 매도압력으로 작용. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- 체감: 평균거래대금(약 59M주/일)로 유동성은 충분하나 뉴스에 따른 변동성이 큼. ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)\n\n## 가격대 구조\n- 정밀 차트 데이터 부족: 레벨2/볼륨프로파일 세부는 확인 불가(거래소 기반 데이터 필요). 아래 수치는 일별 고·저가 기반의 근사 가격대임. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n- 중요 저항대:\n  - $416–420 (최근 2~4주 내 다수의 고점·2/25~3/11 고가). (확인: 2026-02-25 고가 $420.34, 2026-03-11 고가 $416.38). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n  - $450–500 구간(52주 고점 근처, 장기 매물대/심리적 저항). ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)\n- 중요 지지대:\n  - 단기: $370–365 (3/24~3/20의 일중 저가/종가 근접). (확인: 2026-03-20 저가 $364.46). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n  - 추가 하단(더 보수적): $330–300 (과거 주요 반등대 및 심리적 지지 가능 구간—공개 히스토리에서 완전 확정은 아님). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n- 돌파/이탈 가격대:\n  - 단기 강세 시: 종가 기준 $420 상향 돌파(확정 시 추가 상승 여지). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n  - 단기 약세 시: 종가 기준 $365 이탈 시 약세 심화(추가 하락 구간 진입 가능). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n- 매물대·공급 부담: 400~450 구간에 과거 거래·옵션 포지션과 기관 활동으로 공급 부담 존재 가능(공개 레벨2 미확인). 정밀한 매물대는 거래 플랫폼의 볼륨 프로파일 필요 — 여기서는 근사 레인지 제시. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n\n## 투자심리\n- 시장 분위기: 종목 특성상 큰 뉴스(CEO 주도 프로젝트, 규제 이슈)에 민감. 최근 분위기는 '기대(테라팹)와 불안(규제·판매지표)' 혼재. 증권사·헤지펀드의 전망도 엇갈려 변동성 확대. ([axios.com](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)) [4](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)\n- 섹터 심리: 전통 자동차·AI·반도체 관련 뉴스가 동시 작용 — 반도체 내재화는 장기 플러스, 단기 비용·리스크(대규모 자본지출) 인식. ([axios.com](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)) [4](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)\n\n## 최근 공시 및 뉴스 이슈\n- [2026-03-21 ~ 2026-03-23] Terafab(테라팹) 프로젝트 발표/관련 보도 — Elon Musk/Tesla·SpaceX·xAI의 대규모 반도체 투자 계획(다수 매체 보도). (사실) → (해석) 장기적 칩 내재화 기대감. ([axios.com](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)) [4](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)  \n- [2026-03-18 / 2026-03-19] NHTSA 메모·조사 확대 보도(자율주행 관련 사고 조사 확대). (사실) → (해석) 규제·리콜 리스크가 단기 악재. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- [2026-03-11] 외부 애널리스트·리서치에서 차량 인도·판매 전망 하향 보도(시장에 하향 리스크 반영 중). (사실) → (해석) 수익성·현금흐름에 대한 우려로 단기 주가 압박 요인. ([kwsn.com](https://kwsn.com/2026/03/11/tesla-delivery-slide-may-stretch-to-third-year-some-fear-as-cash-burn-looms/?utm_source=openai)) [5](https://kwsn.com/2026/03/11/tesla-delivery-slide-may-stretch-to-third-year-some-fear-as-cash-burn-looms/?utm_source=openai)  \n- [재무] 2025 회계연도(분기보고): Q4(12/31/2025) 실적·대차 관련 요약(공개 재무표). (사실) — 재무 지표·현금성 확인 필요 시 원문 공시 또는 10-Q/10-K 확인 권장. ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)\n\n(위 공시/뉴스는 사실과 그에 대한 시장 해석을 구분하여 기재함.)\n\n## 향후 전망\n- 낙관 시나리오: Terafab 및 AI/로보틱스(Optimus/Dojo) 관련 구체 진전(생산 계획·파트너십)과 실적 개선이 확인되면 420 돌파 후 450~500 구간으로 회복. (중요 조건: 프로젝트 실행 로드맵·자금 조달·반도체 생산 가능성의 실체화). ([axios.com](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)) [4](https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan?utm_source=openai)  \n- 기본 시나리오: 단기 횡보(약세 편향) — 365~420 박스권에서 뉴스·실적에 따라 진동. 투자 심리는 뉴스·실적 발표에 민감. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)  \n- 보수 시나리오: 규제(리콜/강력 조사)와 판매 둔화가 동시 악화시 330~300 구간 재시험 가능(심리적·기술적 약세 심화). ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)\n\n(모든 시나리오는 뉴스·실적·거시 여건에 따라 빠르게 변함.)\n\n## 맞춤 전략 제안 (리스크: 균형형 / 스타일: 스윙 / 메모: 살까 말까)\n기본 권장 행동: 부분 매수(분할진입) 또는 관망(대기) — '전량 매수'는 권장하지 않음.\n\n- 권장 액션: partial buy (분할매수) 또는 wait (지지 확인 후 진입). 이유: 불확실성·변동성 존재, 균형형은 리스크·기회 둘 다 고려.\n- Entry idea:\n  - 첫 매수(분할1): $378–372 구간에서 소액 진입(예: 전체 목표 포지션의 30%). (근거: 최근 일중 저가대 및 1차 지지). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n  - 추가 매수(분할2): $365–360(지지 확인 시)에서 추가로 분할(다음 30%). (근거: 2026-03-20 저가 $364.46). ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n  - 공격적 진입(옵션): 빠른 리스크 허용 시 $390 내외에서 소량 매수 가능(반등 모멘텀 노림).\n- 추가 매수 조건(확인): 거래량 동반한 종가 기준 $420 상향 돌파(확정)이면 추세상단 확인으로 추가 매수 고려. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n- Invalidation(매수 무효) 조건(손절/전략 취소):\n  - 종가 기준 $360 이하(혹은 본인 설정 손절 비율)로 하향 이탈시 현재 매수 아이디어 무효화 — 재평가 필요. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n- 이익실현(부분 매도) 아이디어:\n  - 단기 목표: 첫 목표 구간 $420 근처(단기 저항)에서 부분익절. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n  - 중기 목표: $450–500 구간에서 단계적 익절(장기 저항 및 52주 고점 근처) — 리스크/세금 고려해 분할 익절. ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)\n- 모니터링 포인트: NHTSA/규제 진행 상황(특히 리콜·강력 권고문), Tesla의 분기별 차량 인도 수치·가이던스, Terafab 실행 관련 구체 발표(예산·스케줄), 일간 평균거래량 변화. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)\n- 단타/스윙/장기 비교(간략):\n  - 단타: 뉴스·프레스 릴리즈에 따라 스냅백 노리되 레버리지·옵션 신중 권장(변동성 큼).  \n  - 스윙(현재 스타일): 위의 분할매수+손절 규칙 준수 권장.  \n  - 장기: Terafab 실행과 자율주행 상용화 여부 확인 후 추가 매입 고려(장기 투자자라면 재무·사업 모멘텀 실체화가 필요).\n\n## 리스크 관리\n- 포지션 사이징: 균형형이라면 단일 포지션(전체 자금의) 2–4% 권장(전체 포트폴리오 위험 관리 기준). (자산별·개인 위험허용에 따라 조정)  \n- 손절 규율: 각 분할 진입마다 명확한 손절(예: 분할 진입마다 4–6% 또는 전체 평균 기준 8–12%). Invalidation 조건(종가 $360 미만)에서 리밸런스. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)  \n- 이벤트 리스크: NHTSA 조사·리콜·분기 실적·Terafab 관련 투자 발표는 즉각적 변동 유발 — 해당 발표 전후엔 진입 규모 축소 권장. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- 무효화 시나리오: 규제·판매 둔화·대규모 자본소진이 동시에 나타나면 전략 전면 재검토(추가 하락 구간 대비).\n\n## 최종 요약\n- 핵심 판단: TSLA는 '테라팹' 성장 스토리와 '자율주행 규제·판매 우려'가 충돌하는 구간으로, 단기적으로는 박스권(약 $365–420) 내 변동성이 예상되어 분할 진입·관망이 합리적. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)  \n- 주목 가격대: 지지 $370–365 / 약한 이탈 시 $360(무효화), 주요 저항 $416–420 및 장기 저항 $450–500. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)  \n- 지금 행동 원칙: 균형형·스윙 전략이면 소액 분할진입(첫 진입 $378–372) 또는 관망 — 규제·실적·Terafab 관련 구체 모멘텀이 확인될 때 추가 배분. ([twelvedata.com](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)) [2](https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data)\n\n(면책) 본 자료는 정보 제공 목적의 시장·기술·뉴스 기반 분석입니다. 개인별 맞춤 투자 자문이 아니며, 최종 매매 결정 전 본인 계좌·리스크·세금 사안과 브로커/재무고문과 상의하시기 바랍니다.",
+    "createdAt" : "2026-03-25T08:42:52.506539843Z",
+    "sources" : [ {
+      "title" : "apnews.com",
+      "url" : "https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007",
+      "domain" : "apnews.com"
+    }, {
+      "title" : "apnews.com",
+      "url" : "https://apnews.com/article/7c192a42541d0965e94043821c136515",
+      "domain" : "apnews.com"
+    }, {
+      "title" : "www.axios.com",
+      "url" : "https://www.axios.com/2025/03/06/musk-doge-cuts-tesla-stock",
+      "domain" : "www.axios.com"
+    }, {
+      "title" : "www.ainvest.com",
+      "url" : "https://www.ainvest.com/news/tesla-stock-tumbles-15-recession-fears-delivery-downgrades-2503/",
+      "domain" : "www.ainvest.com"
+    }, {
+      "title" : "www.forbes.com",
+      "url" : "https://www.forbes.com/sites/dereksaul/2025/03/18/tesla-stock-slides-another-6-as-more-firms-warn-of-musk-led-companys-sales-woes/",
+      "domain" : "www.forbes.com"
+    }, {
+      "title" : "energynow.com",
+      "url" : "https://energynow.com/2025/03/tesla-stock-price-tumbles-on-sales-estimates-pullback/",
+      "domain" : "energynow.com"
+    }, {
+      "title" : "instawebeustorage01.blob.core.windows.net",
+      "url" : "https://instawebeustorage01.blob.core.windows.net/websites-co-in-users-files/files/2213999/media/817300/tesla-car-delivery_17447747683fQ6Dy.pdf",
+      "domain" : "instawebeustorage01.blob.core.windows.net"
+    }, {
+      "title" : "finance.yahoo.com",
+      "url" : "https://finance.yahoo.com/quote/TSLA/",
+      "domain" : "finance.yahoo.com"
+    }, {
+      "title" : "www.tipranks.com",
+      "url" : "https://www.tipranks.com/news/tesla-stock-tsla-pops-despite-warning-of-hit-to-ev-deliveries-in-2026",
+      "domain" : "www.tipranks.com"
+    }, {
+      "title" : "www.schwab.wallst.com",
+      "url" : "https://www.schwab.wallst.com/schwab/Prospect/research/etfs/reports/reportRetrieve.asp?reportType=etfrc&symbol=TSLR",
+      "domain" : "www.schwab.wallst.com"
+    }, {
+      "title" : "tradersunion.com",
+      "url" : "https://tradersunion.com/news/financial-news/show/1677988-tesla-slides-3-02percent-to-usd395-44/",
+      "domain" : "tradersunion.com"
+    }, {
+      "title" : "kwsn.com",
+      "url" : "https://kwsn.com/2026/03/11/tesla-delivery-slide-may-stretch-to-third-year-some-fear-as-cash-burn-looms/",
+      "domain" : "kwsn.com"
+    }, {
+      "title" : "www.fool.com",
+      "url" : "https://www.fool.com/investing/2026/01/06/tesla-just-delivered-very-bad-news-for-investors//",
+      "domain" : "www.fool.com"
+    }, {
+      "title" : "www.financecharts.com",
+      "url" : "https://www.financecharts.com/stocks/TSLA/summary/price",
+      "domain" : "www.financecharts.com"
+    }, {
+      "title" : "midforex.com",
+      "url" : "https://midforex.com/stocks/tsla-forecast",
+      "domain" : "midforex.com"
+    }, {
+      "title" : "bitscreener.com",
+      "url" : "https://bitscreener.com/coins/teslacoin-top/price-prediction",
+      "domain" : "bitscreener.com"
+    }, {
+      "title" : "hexn.io",
+      "url" : "https://hexn.io/price-prediction-stocks/TSLA",
+      "domain" : "hexn.io"
+    }, {
+      "title" : "app.stockreportsplus.com",
+      "url" : "https://app.stockreportsplus.com/StockReportsYS/StockReportsPlus_TSLA-O.pdf?enc=182b01291k220g0a080c2i26233h3g0e2h2k0n3k3l353i103m0b1a2j063c2g2d25210h3n132e0j0m1h32240i173j34313016282c040f0537001m111e092n1b0k391g1c072m3b271f1d2l331j1l2a031519383e20120d0l3f1n3a362f023d141i3a0n280j2j1h2e333k0n26182l3g1f062e0h2g0m3j330e29223b372n3m3l183h3k181f3j17330f2n0f002l040f2l0f1e3k040f3b05182n0f3b05182n0f0b",
+      "domain" : "app.stockreportsplus.com"
+    }, {
+      "title" : "www.statmuse.com",
+      "url" : "https://www.statmuse.com/money/ask/tesla-stock-price-march-2025-chart",
+      "domain" : "www.statmuse.com"
+    }, {
+      "title" : "stoculator.com",
+      "url" : "https://stoculator.com/stock/TSLA/historical",
+      "domain" : "stoculator.com"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/quote/TSLA260320C00315000/history/",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/quote/TSLA260225C00362500/",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "henryfund.tippie.uiowa.edu",
+      "url" : "https://henryfund.tippie.uiowa.edu/sites/henryfund.tippie.uiowa.edu/files/2025-11/f25_GOOGL.pdf",
+      "domain" : "henryfund.tippie.uiowa.edu"
+    }, {
+      "title" : "www.google.com",
+      "url" : "https://www.google.com/finance/quote/TSLA%3ANasdaq",
+      "domain" : "www.google.com"
+    }, {
+      "title" : "stockevents.app",
+      "url" : "https://stockevents.app/en/event/prices/TSLA/2025-03-26",
+      "domain" : "stockevents.app"
+    }, {
+      "title" : "247wallst.com",
+      "url" : "https://247wallst.com/investing/2025/09/30/wall-street-price-prediction-teslas-share-price-forecast-for-2025/",
+      "domain" : "247wallst.com"
+    }, {
+      "title" : "polymarket.com",
+      "url" : "https://polymarket.com/event/tsla-close-above-on-march-5-2026/tsla-close-above-370-on-march-5-2026",
+      "domain" : "polymarket.com"
+    }, {
+      "title" : "www.statmuse.com",
+      "url" : "https://www.statmuse.com/money/ask/tsla-vs-googl-since-2015",
+      "domain" : "www.statmuse.com"
+    }, {
+      "title" : "www.bloomberg.com",
+      "url" : "https://www.bloomberg.com/quote/TEST%3AUS",
+      "domain" : "www.bloomberg.com"
+    }, {
+      "title" : "henryfund.tippie.uiowa.edu",
+      "url" : "https://henryfund.tippie.uiowa.edu/sites/henryfund.tippie.uiowa.edu/files/2025-09/s25_TSLA.pdf",
+      "domain" : "henryfund.tippie.uiowa.edu"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1jj8ku5/tsla_daily_thread_march_25_2025/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1s20y2m/tsla_daily_thread_march_24_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/getagraph/comments/1rmmmic/buy_signal_tesla_inc_6_mar_2026_1351_usd39916/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1rjdvlw/tsla_daily_thread_march_03_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "sorabin.com",
+      "url" : "https://sorabin.com/wp-content/uploads/2025/03/Tesla-Stock-Analysis.pdf",
+      "domain" : "sorabin.com"
+    }, {
+      "title" : "www.opencode.finance",
+      "url" : "https://www.opencode.finance/reports/TSLA-2026-02-14.pdf",
+      "domain" : "www.opencode.finance"
+    }, {
+      "title" : "www.otcmarkets.com",
+      "url" : "https://www.otcmarkets.com/filing/conv_pdf?guid=GNt-keWSJ-xzB3h&id=19045343",
+      "domain" : "www.otcmarkets.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1ryjlbi/tsla_daily_thread_march_20_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/thewallstreet/comments/1jjsqj6",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "twelvedata.com",
+      "url" : "https://twelvedata.com/markets/192184/stock/nasdaq/tsla/historical-data",
+      "domain" : "twelvedata.com"
+    }, {
+      "title" : "www.advfn.com",
+      "url" : "https://www.advfn.com/stock-market/NASDAQ/TSLA/historical/more-historical-data",
+      "domain" : "www.advfn.com"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/snse/TSLA/history/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "twelvedata.com",
+      "url" : "https://twelvedata.com/markets/577991/stock/bmv/tsla/historical-data",
+      "domain" : "twelvedata.com"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/bmv/TSLA/history/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "twelvedata.com",
+      "url" : "https://twelvedata.com/markets/747071/stock/neo/tsla/historical-data",
+      "domain" : "twelvedata.com"
+    }, {
+      "title" : "markets.financialcontent.com",
+      "url" : "https://markets.financialcontent.com/stocks/quote/historical?Symbol=NQ%3ATSLA",
+      "domain" : "markets.financialcontent.com"
+    }, {
+      "title" : "markets.financialcontent.com",
+      "url" : "https://markets.financialcontent.com/stocks/quote/historical?Symbol=TSLA",
+      "domain" : "markets.financialcontent.com"
+    }, {
+      "title" : "business.observernewsonline.com",
+      "url" : "https://business.observernewsonline.com/observernewsonline/quote/historical?Symbol=537%3A11448018",
+      "domain" : "business.observernewsonline.com"
+    }, {
+      "title" : "www.stockmonitor.com",
+      "url" : "https://www.stockmonitor.com/quote/tsla/",
+      "domain" : "www.stockmonitor.com"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/bcba/TSLA/history/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "www.borsaitaliana.it",
+      "url" : "https://www.borsaitaliana.it/secder-listing/2024-00611-OFFICIAL_LISTING_DOCUMENTATION-MjAyNC0wMDYxMU9GRklDSUFMX0xJU1RJTkdfRE9DVU1FTlRBVElPTm51bGwxNzA4Njk0NTY1ODg5.PDF",
+      "domain" : "www.borsaitaliana.it"
+    }, {
+      "title" : "assets-global.website-files.com",
+      "url" : "https://assets-global.website-files.com/675504c14ef6061320b38bcf/681dc6f7c67dd9ece7a921f8_43252570944.pdf",
+      "domain" : "assets-global.website-files.com"
+    }, {
+      "title" : "www.tomshardware.com",
+      "url" : "https://www.tomshardware.com/tech-industry/elon-musk-formally-launches-20-billion-terafab-chip-project",
+      "domain" : "www.tomshardware.com"
+    }, {
+      "title" : "www.axios.com",
+      "url" : "https://www.axios.com/2026/03/22/musk-unveils-record-chip-building-plan",
+      "domain" : "www.axios.com"
+    }, {
+      "title" : "www.tomshardware.com",
+      "url" : "https://www.tomshardware.com/tech-industry/semiconductors/tesla-hiring-semiconductor-fabs-construction-manager-elon-musks-ambitious-terafab-project-begins",
+      "domain" : "www.tomshardware.com"
+    }, {
+      "title" : "www.tomshardware.com",
+      "url" : "https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday",
+      "domain" : "www.tomshardware.com"
+    }, {
+      "title" : "www.technetbooks.com",
+      "url" : "https://www.technetbooks.com/2026/03/tesla-terafab-semiconductor-initiative.html",
+      "domain" : "www.technetbooks.com"
+    }, {
+      "title" : "www.benzinga.com",
+      "url" : "https://www.benzinga.com/markets/tech/26/03/51258926/elon-musk-says-teslas-terafab-ai-chip-project-launches-in-7-days",
+      "domain" : "www.benzinga.com"
+    }, {
+      "title" : "en.wikipedia.org",
+      "url" : "https://en.wikipedia.org/wiki/Terafab",
+      "domain" : "en.wikipedia.org"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/news/musk-says-teslas-gigantic-chip-140051836.html",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "www.investing.com",
+      "url" : "https://www.investing.com/news/stock-market-news/musk-says-teslas-gigantic-chip-fab-project-to-launch-in-seven-days-4561485",
+      "domain" : "www.investing.com"
+    }, {
+      "title" : "finance.yahoo.com",
+      "url" : "https://finance.yahoo.com/news/musk-says-teslas-gigantic-chip-140051836.html",
+      "domain" : "finance.yahoo.com"
+    }, {
+      "title" : "elpais.com",
+      "url" : "https://elpais.com/economia/2026-03-23/nueva-sacudida-tecnologica-de-musk-lanza-el-proyecto-terafab-para-que-tesla-y-spacex-fabriquen-sus-propios-chips.html",
+      "domain" : "elpais.com"
+    }, {
+      "title" : "gulfbusiness.com",
+      "url" : "https://gulfbusiness.com/en/2026/tech/elon-musk-says-teslas-mega-ai-chip-terafab-project-to-launch-in-7-days",
+      "domain" : "gulfbusiness.com"
+    }, {
+      "title" : "www.mk.co.kr",
+      "url" : "https://www.mk.co.kr/en/business/11988309",
+      "domain" : "www.mk.co.kr"
+    }, {
+      "title" : "thetechportal.com",
+      "url" : "https://thetechportal.com/2026/03/14/teslas-terafab-ai-chip-factory-set-to-launch-within-the-next-7-days-elon-musk-confirms/",
+      "domain" : "thetechportal.com"
+    }, {
+      "title" : "dailytimes.com.pk",
+      "url" : "https://dailytimes.com.pk/1464410/musk-announces-tesla-ai-chip-fab-in-7-days/",
+      "domain" : "dailytimes.com.pk"
+    }, {
+      "title" : "teslanorth.com",
+      "url" : "https://teslanorth.com/2026/03/14/tesla-terafab-alert-elon-musk-confirms-ai-chip-plant-starts-in-7-days/",
+      "domain" : "teslanorth.com"
+    }, {
+      "title" : "economictimes.indiatimes.com",
+      "url" : "https://economictimes.indiatimes.com/tech/technology/musk-says-teslas-gigantic-chip-fab-project-to-launch-in-seven-days/articleshow/129576218.cms?UTM_Campaign=RSS_Feed&UTM_Medium=Referral&UTM_Source=Google_Newsstand&from=mdr",
+      "domain" : "economictimes.indiatimes.com"
+    }, {
+      "title" : "en.wikipedia.org",
+      "url" : "https://en.wikipedia.org/wiki/SpaceX",
+      "domain" : "en.wikipedia.org"
+    }, {
+      "title" : "en.wikipedia.org",
+      "url" : "https://en.wikipedia.org/wiki/Tesla%2C_Inc.",
+      "domain" : "en.wikipedia.org"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/iOCharts/comments/1s0mc1p/elon_musk_officially_announced_terafab_today_in/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.akatsuki-sc.com",
+      "url" : "https://www.akatsuki-sc.com/wp/wp-content/uploads/2026/01/20260129-TSLA.pdf",
+      "domain" : "www.akatsuki-sc.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/amd_fundamentals/comments/1s126y2/elon_musk_unveils_20_billion_terafab_chip_project/",
+      "domain" : "www.reddit.com"
+    } ]
+  } ]
+}

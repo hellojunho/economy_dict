@@ -67,7 +67,11 @@ public class OpenAiService {
     }
 
     public WebSearchResult respondWithWebSearch(String systemPrompt, String userPrompt) {
-        JsonNode response = executeWebSearchRequest(buildWebSearchRequest(systemPrompt, userPrompt));
+        return respondWithWebSearch(systemPrompt, List.of(new ChatTurn("user", userPrompt)));
+    }
+
+    public WebSearchResult respondWithWebSearch(String systemPrompt, List<ChatTurn> conversation) {
+        JsonNode response = executeWebSearchRequest(buildWebSearchRequest(systemPrompt, conversation));
         String content = extractResponseMessageText(response);
         List<UrlCitation> citations = extractUrlCitations(response);
         List<WebSource> sources = extractSources(response);
@@ -457,11 +461,18 @@ public class OpenAiService {
         }
     }
 
-    private Map<String, Object> buildWebSearchRequest(String systemPrompt, String userPrompt) {
-        List<Map<String, Object>> input = List.of(
-                buildInputMessage("system", systemPrompt),
-                buildInputMessage("user", userPrompt)
-        );
+    private Map<String, Object> buildWebSearchRequest(String systemPrompt, List<ChatTurn> conversation) {
+        List<Map<String, Object>> input = new ArrayList<>();
+        input.add(buildInputMessage("system", systemPrompt));
+
+        if (conversation != null) {
+            for (ChatTurn turn : conversation) {
+                if (turn == null || turn.getContent() == null || turn.getContent().isBlank()) {
+                    continue;
+                }
+                input.add(buildInputMessage(turn.getRole(), turn.getContent()));
+            }
+        }
 
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("model", webSearchModel == null || webSearchModel.isBlank() ? model : webSearchModel);
@@ -474,10 +485,12 @@ public class OpenAiService {
     }
 
     private Map<String, Object> buildInputMessage(String role, String text) {
+        String resolvedRole = role == null || role.isBlank() ? "user" : role;
+        String contentType = "assistant".equals(resolvedRole) ? "output_text" : "input_text";
         return Map.of(
-                "role", role,
+                "role", resolvedRole,
                 "content", List.of(Map.of(
-                        "type", "input_text",
+                        "type", contentType,
                         "text", text
                 ))
         );

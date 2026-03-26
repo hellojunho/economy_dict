@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
@@ -15,6 +15,7 @@ function formatAssistantMarkdown(content: string) {
 }
 
 export default function Chat() {
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const threads = useChatStore((state) => state.threads);
   const activeThread = useChatStore((state) => state.activeThread);
@@ -37,6 +38,16 @@ export default function Chat() {
     }
     loadThreads();
   }, [isAuthenticated, loadThreads, reset]);
+
+  useEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) {
+      return;
+    }
+
+    composer.style.height = '0px';
+    composer.style.height = `${Math.max(composer.scrollHeight, 52)}px`;
+  }, [draft]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -112,43 +123,49 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="chat-message-list">
-            {(activeThread?.messages ?? []).length === 0 && (
-              <div className="chat-empty-state">
-                <p>경제 용어, 정책, 투자 개념을 질문하면 경제 전문가처럼 답변합니다.</p>
-                <p className="muted">대화는 `backend/chats` 아래 JSON 파일로 저장됩니다.</p>
+          <div className="chat-conversation-shell">
+            <section className="chat-transcript-panel">
+              <div className="chat-message-list">
+                {(activeThread?.messages ?? []).length === 0 && (
+                  <div className="chat-empty-state">
+                    <p>경제 용어, 정책, 투자 개념을 질문하면 경제 전문가처럼 답변합니다.</p>
+                    <p className="muted">대화는 `backend/chats` 아래 JSON 파일로 저장됩니다.</p>
+                  </div>
+                )}
+                {(activeThread?.messages ?? []).map((item, index) => (
+                  <article key={`${item.createdAt}-${index}`} className={`chat-bubble ${item.role}`}>
+                    <span>{item.role === 'assistant' ? 'AI' : 'You'}</span>
+                    <div className="chat-bubble-content">
+                      {item.role === 'assistant' ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{formatAssistantMarkdown(item.content)}</ReactMarkdown>
+                      ) : (
+                        <p>{item.content}</p>
+                      )}
+                    </div>
+                  </article>
+                ))}
               </div>
-            )}
-            {(activeThread?.messages ?? []).map((item, index) => (
-              <article key={`${item.createdAt}-${index}`} className={`chat-bubble ${item.role}`}>
-                <span>{item.role === 'assistant' ? 'AI' : 'You'}</span>
-                <div className="chat-bubble-content">
-                  {item.role === 'assistant' ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{formatAssistantMarkdown(item.content)}</ReactMarkdown>
-                  ) : (
-                    <p>{item.content}</p>
-                  )}
-                </div>
-              </article>
-            ))}
+            </section>
+
+            <form className="chat-composer" onSubmit={handleSubmit}>
+              <textarea
+                ref={composerRef}
+                rows={1}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleComposerKeyDown}
+                placeholder="경제 용어 또는 경제 이슈를 입력하세요."
+                className="chat-composer-textarea"
+              />
+              <div className="button-row chat-composer-actions">
+                <p className="chat-composer-hint">`Enter` 전송, `Cmd+Enter` 또는 `Ctrl+Enter` 줄바꿈</p>
+                <button type="submit" className="button button-primary" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send'}
+                </button>
+              </div>
+            </form>
           </div>
 
-          <form className="chat-composer" onSubmit={handleSubmit}>
-            <textarea
-              rows={4}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={handleComposerKeyDown}
-              placeholder="경제 용어 또는 경제 이슈를 입력하세요."
-              style={{ height: '45px' }}
-            />
-            <div className="button-row chat-composer-actions">
-              <p className="chat-composer-hint">`Enter` 전송, `Cmd+Enter` 또는 `Ctrl+Enter` 줄바꿈</p>
-              <button type="submit" className="button button-primary" disabled={loading}>
-                {loading ? 'Sending...' : 'Send'}
-              </button>
-            </div>
-          </form>
           {error && <p className="form-message error-text">{error}</p>}
         </div>
       </section>
