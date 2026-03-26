@@ -28,18 +28,14 @@ export default function StockAdvisorConversation({
       return;
     }
 
-    viewport.scrollTo({
-      top: viewport.scrollHeight,
-      behavior: 'smooth'
-    });
+    viewport.scrollTop = viewport.scrollHeight;
   }, [loading, messages.length]);
 
   return (
     <div ref={viewportRef} className="stock-advisor-thread">
-      {messages.map((message) => (
-        <article key={message.id} className={`stock-advisor-bubble ${message.role}`}>
+      {messages.map((message, index) => (
+        <article key={message.id ?? `${message.role}-${message.createdAt}-${index}`} className={`stock-advisor-bubble ${message.role}`}>
           <div className="stock-advisor-bubble-meta">
-            <strong>{message.role === 'assistant' ? 'Advisor' : 'You'}</strong>
             <span>
               {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
                 hour: '2-digit',
@@ -80,7 +76,6 @@ export default function StockAdvisorConversation({
       {loading && (
         <article className="stock-advisor-bubble assistant pending">
           <div className="stock-advisor-bubble-meta">
-            <strong>Advisor</strong>
             <span>분석 중</span>
           </div>
           <p className="stock-advisor-user-copy">

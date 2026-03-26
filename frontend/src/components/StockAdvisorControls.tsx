@@ -7,28 +7,34 @@ type StockAdvisorControlsProps = {
   selectedSymbol: TradingViewSymbolOption | null;
   riskProfile: string;
   tradeStyle: string;
+  notes: string;
   loading: boolean;
   onRiskProfileChange: (value: string) => void;
   onTradeStyleChange: (value: string) => void;
+  onNotesChange: (value: string) => void;
   onSymbolSelect: (option: TradingViewSymbolOption) => void;
   onSymbolInputChange: (value: string) => void;
   onSubmit: (event: FormEvent) => void;
+  submitLabel?: string;
 };
 
 const riskProfiles = ['공격적', '균형형', '안정적'];
-const tradeStyles = ['단타', '스윙', '장기'];
+const tradeStyles = ['초단타', '단타', '스윙', '장투'];
 
 export default function StockAdvisorControls({
   symbol,
   selectedSymbol,
   riskProfile,
   tradeStyle,
+  notes,
   loading,
   onRiskProfileChange,
   onTradeStyleChange,
+  onNotesChange,
   onSymbolSelect,
   onSymbolInputChange,
-  onSubmit
+  onSubmit,
+  submitLabel = '전략 보내기'
 }: StockAdvisorControlsProps) {
   const rootRef = useRef<HTMLFormElement | null>(null);
   const [symbolOptions, setSymbolOptions] = useState<TradingViewSymbolOption[]>([]);
@@ -149,8 +155,18 @@ export default function StockAdvisorControls({
         </label>
       </div>
 
+      <label className="stock-advisor-field">
+        <span>투자 메모</span>
+        <textarea
+          rows={3}
+          value={notes}
+          onChange={(event) => onNotesChange(event.target.value)}
+          placeholder="보유 여부, 관심 가격대, 걱정되는 리스크, 목표 기간 등을 적어주세요."
+        />
+      </label>
+
       <button type="submit" className="button button-primary" disabled={loading}>
-        {loading ? '답변 생성 중...' : '전략 보내기'}
+        {loading ? '답변 생성 중...' : submitLabel}
       </button>
     </form>
   );

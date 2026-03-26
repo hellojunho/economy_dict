@@ -10,11 +10,15 @@ import IncorrectNote from './pages/IncorrectNote';
 import MyPage from './pages/MyPage';
 import Admin from './pages/Admin';
 import Chat from './pages/Chat';
+import AIRecommend from './pages/AIRecommend';
+import AIInvest from './pages/AIInvest';
 import TopIncorrectWords from './pages/TopIncorrectWords';
 import Stock from './pages/Stock';
 import KrStock from './pages/KrStock';
 import client from './api/client';
 import { useAuthStore } from './stores/authStore';
+import { useThemeStore } from './stores/themeStore';
+import ThemeToggle from './components/ThemeToggle';
 
 const publicNav = [
   { to: '/', label: 'Overview' },
@@ -22,7 +26,9 @@ const publicNav = [
   { to: '/stocks', label: 'Stock' },
   { to: '/kr-stocks', label: 'KR Stock' },
   { to: '/quiz', label: 'Daily Quiz' },
-  { to: '/chat', label: 'AI Chat' }
+  { to: '/chat', label: 'AI Chat' },
+  { to: '/ai-recommend', label: 'AI Recommend' },
+  { to: '/ai-invest', label: 'AI Invest' }
 ];
 
 export default function App() {
@@ -35,6 +41,8 @@ export default function App() {
   const hydrateAuth = useAuthStore((state) => state.hydrateAuth);
   const clearSession = useAuthStore((state) => state.clearSession);
   const isAdmin = role === 'ADMIN';
+  const isDark = useThemeStore((state) => state.theme === 'dark');
+  const toggleTheme = useThemeStore((state) => state.toggle);
 
   useEffect(() => {
     hydrateAuth();
@@ -80,6 +88,7 @@ export default function App() {
             </nav>
 
             <div className="site-actions">
+              <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
               {!isAuthenticated && (
                 <>
                   <Link to="/signin" className="button button-secondary">
@@ -112,6 +121,8 @@ export default function App() {
           <Route path="/incorrect-note" element={<IncorrectNote />} />
           <Route path="/top-incorrect" element={<TopIncorrectWords />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/ai-recommend" element={<AIRecommend />} />
+          <Route path="/ai-invest" element={<AIInvest />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin/overview" element={<Admin />} />

@@ -19,9 +19,10 @@ type KrStockCandleChartProps = {
     close: number;
   }>;
   mode: 'intraday' | 'daily';
+  theme?: 'dark' | 'light';
 };
 
-export default function KrStockCandleChart({ candles, mode }: KrStockCandleChartProps) {
+export default function KrStockCandleChart({ candles, mode, theme = 'dark' }: KrStockCandleChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -31,37 +32,45 @@ export default function KrStockCandleChart({ candles, mode }: KrStockCandleChart
       return undefined;
     }
 
+    const isDark = theme === 'dark';
+    const bg = isDark ? '#0d1424' : '#ffffff';
+    const textColor = isDark ? 'rgba(255,255,255,0.5)' : '#6b7280';
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
+    const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#e5e7eb';
+    const upColor = isDark ? '#22c55e' : '#111827';
+    const downColor = isDark ? '#ef4444' : '#b91c1c';
+
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
       height: 440,
       layout: {
-        background: { type: ColorType.Solid, color: '#ffffff' },
-        textColor: '#6b7280',
+        background: { type: ColorType.Solid, color: bg },
+        textColor,
         fontFamily: '"Inter", "Pretendard", sans-serif'
       },
       grid: {
-        vertLines: { color: '#f3f4f6', style: LineStyle.Solid },
-        horzLines: { color: '#f3f4f6', style: LineStyle.Solid }
+        vertLines: { color: gridColor, style: LineStyle.Solid },
+        horzLines: { color: gridColor, style: LineStyle.Solid }
       },
       crosshair: {
         mode: CrosshairMode.Normal
       },
       rightPriceScale: {
-        borderColor: '#e5e7eb'
+        borderColor
       },
       timeScale: {
-        borderColor: '#e5e7eb',
+        borderColor,
         timeVisible: mode === 'intraday',
         secondsVisible: false
       }
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#111827',
-      downColor: '#b91c1c',
+      upColor,
+      downColor,
       borderVisible: false,
-      wickUpColor: '#111827',
-      wickDownColor: '#b91c1c'
+      wickUpColor: upColor,
+      wickDownColor: downColor
     });
 
     chartRef.current = chart;
@@ -84,7 +93,7 @@ export default function KrStockCandleChart({ candles, mode }: KrStockCandleChart
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, [mode]);
+  }, [mode, theme]);
 
   useEffect(() => {
     if (!seriesRef.current || !chartRef.current) {

@@ -24,10 +24,33 @@ export type TradingViewSymbolOption = {
 };
 
 export type AdvisorMessage = {
-  id: string;
+  id?: string;
   role: 'assistant' | 'user';
   content: string;
   createdAt: string;
   symbol?: string;
   sources?: StockAdvisorSource[];
+};
+
+export type StockAdvisorThreadSummary = {
+  threadId: string;
+  title: string;
+  symbol: string;
+  riskProfile: string;
+  tradeStyle: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+};
+
+export type StockAdvisorThread = {
+  threadId: string;
+  title: string;
+  symbol: string;
+  riskProfile: string;
+  tradeStyle: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: AdvisorMessage[];
 };

@@ -1,0 +1,676 @@
+{
+  "threadId" : "0aea1a57-0ebe-420e-8ac9-23a918a797e5",
+  "title" : "NASDAQ:TSLA · 스윙 전략",
+  "symbol" : "NASDAQ:TSLA",
+  "riskProfile" : "균형형",
+  "tradeStyle" : "스윙",
+  "notes" : "100주 보유 중인데, 추가 매수를 하는건 어떻게 생각해",
+  "createdAt" : "2026-03-25T07:53:43.970006047Z",
+  "updatedAt" : "2026-03-25T07:55:40.339745546Z",
+  "messages" : [ {
+    "role" : "assistant",
+    "content" : "## 한줄 결론\n- 현재 스윙 관점에서는 보수적 부분추가(부분적 분할매수)를 권장합니다.  \n- 단, 규제(NHTSA) 리스크와 단기 매물대(약 $400~420) 저항을 감안해 분할·손절 기준을 명확히 두고 접근하세요.\n\n## 가격 브리핑\n- 현재가(기준 시점): $383.03 (마감가·미국 시간 기준: 2026-03-25 / Google Finance 캡처). ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)  \n- 최근 1년: 최저 $214.25 / 최고 $498.82~$498.83 (52주 범위). ([google.com](https://www.google.com/finance/quote/TSLA%3ANASDAQ)) [1](https://www.google.com/finance/quote/TSLA%3ANASDAQ)  \n- 최근 2–3주(대략 2026-03-04 ~ 2026-03-24) 검증 가능한 범위: 최저 저점 $364.46 (2026-03-20) / 최고(해당 기간 내) 일중 고가 $416.38 (2026-03-11). 중간값(근사) ≈ $390.4. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 최근 1개월(2026-02-25 ~ 2026-03-25) 검증 가능한 범위: 최저 $364.46 / 최고(기간) $420.34 (2026-02-25). 중간값(근사) ≈ $392.4. 평균 거래대금(30일) 약 60M 주대. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- (확인 불가 사항) 특정 플랫폼·브로커의 실시간 호가·체결내역(즉시체결 주문흐름·볼륨 프로파일의 POC 등)은 공개 데이터로는 정밀 확인 불가합니다 — 따라서 아래의 가격대는 공개 일별 데이터·기술적 관점에서 추정한 구간임을 명시합니다. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)\n\n## 종합 판단\n- 현황: 중립 → 약간 약세(스윙 관점). 근거: 주가가 최근 1개월 평균(≈$392)보다 낮고, 3월 중순~말까지 변동성이 확대되어 단기 저항(약 $400~420)에서 매물/공급 반발이 관찰됨. 규제(자율주행 관련) 업데이트는 하방 촉매가 될 수 있음. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)\n\n(사실 vs 해석 분리)  \n- 사실: 2026-03-19 NHTSA가 FSD 관련 조사 단계를 'engineering analysis'로 격상(여러 충돌 건 포함) — 규제 리스크 현실화. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- 해석: 규제 불확실성은 모멘텀을 억누르고, 자율주행/로보택시 기대감이 실적·안전성 문제로 흔들릴 경우 일시적/중기적 하방압력으로 작용 가능.\n\n## 매수세와 매도세\n- 매수세: 옵션·콜 수요와 소매(리테일) 매수·'로또'식 장기 베팅이 간헐적으로 유입(예: 2026-03-09~11 대형 콜 오더 관찰). 이는 반등 시 레버리지 매수로 이어질 수 있어 상방 급등 촉발 요인이 될 수 있음. ([marketchameleon.com](https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism?utm_source=openai)) [4](https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism?utm_source=openai)  \n- 매도세: 규제/자율주행 불확실성과 매출/마진 둔화 우려가 매도 촉매. 최근 일부 거래일에 거래대금 급증과 함께 하방 테스트(예: 3/20 저점 $364.46) 관찰. 평균 거래량이 높은 편이어서 단기 변동성에 취약. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)\n\n## 가격대 구조\n(정밀 차트 데이터 부족 — 세부 VP/POC는 추정)\n- 즉각적 지지대(근거: 최근 저점): $364 – $372 (2026-03-20 저점 $364.46, 3/23~24 일중 저가 372~376 영역). ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 1차 저항(근거: 최근 다수의 일중/종가 고점): $400 – $420 (여러 날짜에 걸친 일간 고가/종가 집중 구간; 2월말~3월초 고점 포함). 돌파 시 단기 모멘텀 전환 가능. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 중장기 주요 공급(매물/공급 부담) 구간: $420 – $498 (52주 고점까지 넓은 매물대). 이 구간에서 대형 수익 실현 물량·애널리스트 레인지가 존재할 수 있음. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 정밀 데이터 부족으로 체결별 호가벽·볼륨 프로파일(VP)을 명확히 제시할 수 없음 — 위 수치는 공개 일별 고/저가 기반 근사치입니다. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)\n\n## 투자심리\n- 섹터·대중 심리: AI·자율주행(로보택시) 스토리가 긍정적 기대를 유지하지만 규제·실행 리스크(특히 NHTSA 관련)가 투자심리를 민감하게 함. 최근 'Terafab' 발표(엘론 머스크 관련 반응)는 기술·전략적 파급 기대를 불러일으켰으나 실제 실현 가능성·시행 리스크를 시장이 할인 중. ([tomshardware.com](https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday?utm_source=openai)) [5](https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday?utm_source=openai)  \n- 리스크 선호: 대형 변동성·옵션 주도 포지셔닝으로 '상하 양방향 베팅'이 활발 — 스윙 트레이더는 뉴스·볼륨 확인을 중요시해야 함. ([marketchameleon.com](https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism?utm_source=openai)) [4](https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism?utm_source=openai)\n\n## 최근 공시 및 뉴스 이슈\n- [2026-01-28] Tesla Q4 2025 실적 발표 및 웹캐스트 (회사 IR). (사실) — (해석) Q4 실적은 발표되었으나 매출·마진 트렌드와 향후 자율주행 매출 전개가 추가 확인 포인트. ([ir.tesla.com](https://ir.tesla.com/press-release/tesla-fourth-quarter-2025-production-deliveries-deployments?utm_source=openai)) [6](https://ir.tesla.com/press-release/tesla-fourth-quarter-2025-production-deliveries-deployments?utm_source=openai)  \n- [2026-03-19] NHTSA, Tesla FSD 관련 조사 단계 'engineering analysis'로 상향(여러 충돌 사례 포함). (사실) — (해석) 리콜 가능성/규제조치 리스크가 단기 주가 불확실성의 핵심. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- [2026-03-21] Elon Musk 발언·회사 관련 보도: 'Terafab'(대규모 반도체/AI 칩 팹) 프로젝트 발표/언급(여러 매체 보도). (사실: 발표·보도 존재) — (해석) 장기적 밸류업 사이클 가능하지만 실현까지의 기술·자금·시간 리스크 큼. ([tomshardware.com](https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday?utm_source=openai)) [5](https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday?utm_source=openai)  \n- [2026-03-09 ~ 2026-03-11] 옵션 시장에서 대형 콜 거래(예: Mar-11 405 콜 등) 관찰 — 단기 상방 기대/리테일·기관의 비대칭 베팅 존재. (사실) — (해석) 옵션 베팅은 반등 시 레버리지 급등을 촉발할 수 있으나, 실패 시 급격한 IV 붕괴·하락 동반 가능. ([marketchameleon.com](https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism?utm_source=openai)) [4](https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism?utm_source=openai)\n\n## 향후 전망\n- 낙관 시나리오: Terafab·내부 AI 칩 및 FSD·Optimus 진전이 실질적 성과(허들 통과)로 연결되어 6–12개월내 실적·마진 개선 기대 → $420 돌파 후 $498 저항 도전 가능. ([tomshardware.com](https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday?utm_source=openai)) [5](https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday?utm_source=openai)  \n- 기본(베이스) 시나리오: 규제 불확실성 지속 → 박스권(약 $365–420) 내부 횡보·변동성 확대. 분할매수·분할환매 기회 존재. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- 보수 시나리오: NHTSA 추가 조사·리콜·실적 부진이 결합되면 $350 이하 재시험 및 단기 약세 심화 가능(하단은 52주 범위 근접이나 구조적 저점 아님). ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)\n\n## 맞춤 전략 제안 (투자 성향: 균형형 / 매매 스타일: 스윙 / 현재 보유: 100주)\n권장 행동: Hold + 부분적 분할추가(추세 전환 확인 전 보수적 접근)\n\n- 권장 액션: 부분 추가 매수 (예: 추가 50주 분할) — 이유: 현재가가 최근 1개월 중간값 근처이며, 확실한 하방 이탈(예: $350 미만) 전까지 리스크/리턴 균형이 괜찮음. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 진입 아이디어(실전형):  \n  - 1차 매수(분할): $375 – $365 구간에서 소량(계획 비중의 25~50% 수준) — 이 구간은 2026-03-20 저점($364.46) 인근 지지 확인 구간. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n  - 2차 매수(추가 분할): 만약 $350 초과하되 $340~$350 특별 약세시 추가(리스크 허용 시). (정밀 지지 필요시 재평가)  \n- 추가 매수 조건(확증): 거래대금 동반 저점 형성 및 3거래일 내 저항(약 $400) 돌파 시(또는 일간 종가로 $420 돌파 시) 포지션을 늘려도 좋음(모멘텀 확인). ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 무효화(invalidation): 종가 기준으로 $350 미만 또는 분명한 패턴(대량출회·볼륨 동반 하락) 발생 시 전략 전환(부분 청산 또는 손절). ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 이익실현(스윙 목표): 단기(스윙) 목표 구간 $400 ~ $420에서 부분 이익실현 권장, 전체 목표는 개인 포트폴리오·기간에 따라 설정(장기 보유 시 $498~ 상회 시 재검토). ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 모니터 포인트: NHTSA 조사 업데이트(특히 2026-03-19 이후 기술적/규모적 발표), Terafab 관련 구체적 자금·스케줄 공개, 분기실적 및 회사 IR 발표, 옵션 시장의 비정상적 흐름(대형 콜/풋). ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)\n\n(단타/스윙/장기 비교 짧게)  \n- 단타: 뉴스·옵션 베팅에 민감하므로 높은 리스크. 빠른 손절(예: 2–3% 기준) 필요.  \n- 스윙(지금 권장): 분할·방어적 진입 + $350 손절 기준.  \n- 장기: Terafab·Autonomy 실현을 신뢰한다면 더 낮은 가격에서 분할추가 후 장기 보유 고려(그러나 실행 리스크·규제 리스크 상존).\n\n## 리스크 관리\n- 포지션 사이징: 균형형 투자자 권장 예시 — 현재 100주 보유라면 추가 50~100주(포트폴리오 대비 비중 고려)로 분할매수; 한 번에 전량 매수하지 말 것. (개인 자산·리스크 허용범위에 따라 조정)  \n- 손절 규율: 무효화 수준(예: $350) 엄격히 준수. 손절은 '종가 기준'을 권장(장중 노이즈 방지). ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 이벤트 리스크: NHTSA 발표·실적·Terafab 관련 자금·정부 허가 등 이벤트 전후로 급락·급등 가능 — 이벤트 전 포지션 축소 또는 옵션 헤지 고려. ([apnews.com](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)) [3](https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007?utm_source=openai)  \n- 잘못된 가정(무효화): 규제·실적 악화로 구조적 트렌드가 하향 전환되면 추가 매수 전략을 즉시 재검토.\n\n## 최종 요약\n- 핵심 판단: 현재는 분할·보수적 추가매수 권장(스윙) — 주요 불확실성(규제·실행)이 존재하므로 손절·분할매수로 리스크 통제. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 주목 가격대: 지지 $364–372 / 단기 저항 $400–420 / 중대 공급구간 $420–498. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)  \n- 지금 행동 원칙: 1) $375–365 구간에서 소량 분할 매수, 2) $350 미만은 전략 재평가(부분 손절/헤지), 3) NHTSA·실적·Terafab 관련 뉴스에 따라 대응 강화. ([investing.com](https://www.investing.com/equities/tesla-motors-historical-data)) [2](https://www.investing.com/equities/tesla-motors-historical-data)\n\n이 자료는 정보 제공 목적의 시장·기술·뉴스 기반 분석이며 개인화된 투자자문이 아닙니다.",
+    "createdAt" : "2026-03-25T07:55:40.339745546Z",
+    "sources" : [ {
+      "title" : "stockscan.io",
+      "url" : "https://stockscan.io/stocks/TSLA/price-history",
+      "domain" : "stockscan.io"
+    }, {
+      "title" : "www.red94.net",
+      "url" : "https://www.red94.net/news/32021-tsla-stock-up-18-for-2025-hits-near-6-month-highs-as-big-moves-loom/",
+      "domain" : "www.red94.net"
+    }, {
+      "title" : "ycharts.com",
+      "url" : "https://ycharts.com/companies/TSLA/year_low",
+      "domain" : "ycharts.com"
+    }, {
+      "title" : "pandaforecast.com",
+      "url" : "https://pandaforecast.com/stock_forecasts/forecast_tsla/for2026/",
+      "domain" : "pandaforecast.com"
+    }, {
+      "title" : "midforex.com",
+      "url" : "https://midforex.com/stocks/tsla-forecast",
+      "domain" : "midforex.com"
+    }, {
+      "title" : "www.financecharts.com",
+      "url" : "https://www.financecharts.com/stocks/TSLA/summary/price",
+      "domain" : "www.financecharts.com"
+    }, {
+      "title" : "bingx.com",
+      "url" : "https://bingx.com/en/learn/article/tesla-tsla-stock-outlook-and-price-prediction-is-tsla-a-good-investment",
+      "domain" : "bingx.com"
+    }, {
+      "title" : "www.statmuse.com",
+      "url" : "https://www.statmuse.com/money/ask/tesla-stock-price-march-2025-chart",
+      "domain" : "www.statmuse.com"
+    }, {
+      "title" : "financhill.com",
+      "url" : "https://financhill.com/stock-forecast/TSLA-stock-prediction",
+      "domain" : "financhill.com"
+    }, {
+      "title" : "app.stockreportsplus.com",
+      "url" : "https://app.stockreportsplus.com/StockReportsYS/StockReportsPlus_TSLA-O.pdf?enc=190a0h2m2730290k391k2213171a2d1n23043n2n2c2i3l180m1i2j2b1b28351620091h2h15050c0d320n383m3e1g113f253a1c3i2k010l1m061j0i3k1l3g1e2l02262g0b2a2e03373621240f1f3b2f07311d3h3d100j140e34003c0g3308123j003n1c0c2b3205242n3n1319212d371b051h350d1g241n2m302e1m3g0m2c191a2n19371g3e24013g0106212k0121011l2n013g2e0l19011j2e0l190l1l1i",
+      "domain" : "app.stockreportsplus.com"
+    }, {
+      "title" : "files.cand.uscourts.gov",
+      "url" : "https://files.cand.uscourts.gov/files/18-cv-04865-EMC%20In%20re%20Tesla%20Inc.%20Securities%20Litigation/Trial%20Exhibit%200429%20-%20Morningstar%20Research.pdf",
+      "domain" : "files.cand.uscourts.gov"
+    }, {
+      "title" : "ramad.bog.ge",
+      "url" : "https://ramad.bog.ge/galt/IFTR1mbI-Global-Capital-Markets_2-March.pdf",
+      "domain" : "ramad.bog.ge"
+    }, {
+      "title" : "gist.github.com",
+      "url" : "https://gist.github.com/louisfghbvc/b4200e13422a18e5e2655e0ac5b07a5f",
+      "domain" : "gist.github.com"
+    }, {
+      "title" : "www.sec.gov",
+      "url" : "https://www.sec.gov/Archives/edgar/data/83246/000110465924104394/tm2424229d391_fwp.pdf",
+      "domain" : "www.sec.gov"
+    }, {
+      "title" : "trendspider.com",
+      "url" : "https://trendspider.com/markets/symbols/TSLA/news/",
+      "domain" : "trendspider.com"
+    }, {
+      "title" : "www.primariasantana.ro",
+      "url" : "https://www.primariasantana.ro/uploads/file/d1889fb3-a44a-484f-a40b-75775687f777.pdf",
+      "domain" : "www.primariasantana.ro"
+    }, {
+      "title" : "ramad.bog.ge",
+      "url" : "https://ramad.bog.ge/galt/Global-Capital-Markets_9-February-2026.pdf",
+      "domain" : "ramad.bog.ge"
+    }, {
+      "title" : "www.sec.gov",
+      "url" : "https://www.sec.gov/Archives/edgar/data/1318605/000095017023033872/tsla-20230630.htm",
+      "domain" : "www.sec.gov"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/wealthbranch/comments/1r0xt8g/should_you_buy_the_dip_a_technical_analysts/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/marketrodeo/comments/1pofu0l/top_stocks_hitting_52week_highslows_december_16/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "finance.yahoo.com",
+      "url" : "https://finance.yahoo.com/quote/TSLA//",
+      "domain" : "finance.yahoo.com"
+    }, {
+      "title" : "www.cnbc.com",
+      "url" : "https://www.cnbc.com/quotes//TSLA",
+      "domain" : "www.cnbc.com"
+    }, {
+      "title" : "finance.yahoo.com",
+      "url" : "https://finance.yahoo.com/quote/TSLA/",
+      "domain" : "finance.yahoo.com"
+    }, {
+      "title" : "www.fool.com",
+      "url" : "https://www.fool.com/quote/nasdaq/tsla//",
+      "domain" : "www.fool.com"
+    }, {
+      "title" : "www.statmuse.com",
+      "url" : "https://www.statmuse.com/money/ask/tesla-share-price-on-march-25-2025",
+      "domain" : "www.statmuse.com"
+    }, {
+      "title" : "www.google.com",
+      "url" : "https://www.google.com/finance/quote/TSLA%3ANasdaq",
+      "domain" : "www.google.com"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/quote/TSLA260320C00315000/history/",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/quote/TSLA260225C00362500/",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/quote/TSLA//",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "finance.yahoo.com",
+      "url" : "https://finance.yahoo.com/quote/TSLA?.tsrc=fin-srch%5C%5C%5C&p=TSLA",
+      "domain" : "finance.yahoo.com"
+    }, {
+      "title" : "finance.yahoo.com",
+      "url" : "https://finance.yahoo.com/video/tesla-stock-price-target-bumped-213519865.html/",
+      "domain" : "finance.yahoo.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1jj8ku5/tsla_daily_thread_march_25_2025/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "henryfund.tippie.uiowa.edu",
+      "url" : "https://henryfund.tippie.uiowa.edu/sites/henryfund.tippie.uiowa.edu/files/2025-11/f25_GOOGL.pdf",
+      "domain" : "henryfund.tippie.uiowa.edu"
+    }, {
+      "title" : "investor.bankofamerica.com",
+      "url" : "https://investor.bankofamerica.com/regulatory-and-other-filings/all-sec-filings/content/0001481057-24-003597/0001481057-24-003597.pdf?wcmmode=disabled",
+      "domain" : "investor.bankofamerica.com"
+    }, {
+      "title" : "www.opencode.finance",
+      "url" : "https://www.opencode.finance/reports/TSLA-2026-02-14.pdf",
+      "domain" : "www.opencode.finance"
+    }, {
+      "title" : "henryfund.tippie.uiowa.edu",
+      "url" : "https://henryfund.tippie.uiowa.edu/sites/henryfund.tippie.uiowa.edu/files/2025-09/s25_TSLA.pdf",
+      "domain" : "henryfund.tippie.uiowa.edu"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/teslainvestorsclub/comments/1ri8yl5/weekly_thread_week_of_march_01_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "norma.ncirl.ie",
+      "url" : "https://norma.ncirl.ie/6216/2/jordenanthonlopesconfigurationmanual.pdf",
+      "domain" : "norma.ncirl.ie"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/stocks/comments/pjng0j",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/stocks/comments/1jzhipc/how_bad_is_this_for_tsla/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/stocks/comments/1jjbtdb",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/wallstreetbets/comments/1jjsnrj/what_are_your_moves_tomorrow_march_26_2025/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "marketchameleon.com",
+      "url" : "https://marketchameleon.com/articles/b/2026/3/10/tsla-405-call-sees-46741-contracts-traded-low-iv-retail-led-flows-unusual-optimism",
+      "domain" : "marketchameleon.com"
+    }, {
+      "title" : "ttm.financial",
+      "url" : "https://ttm.financial/",
+      "domain" : "ttm.financial"
+    }, {
+      "title" : "marketchameleon.com",
+      "url" : "https://marketchameleon.com/articles/b/2026/3/9/tsla-mar-2026-670-call-53667-contracts-traded-pro-buying-volatility",
+      "domain" : "marketchameleon.com"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/bkk/MSFT03/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "www.intelligentinvestor.com.au",
+      "url" : "https://www.intelligentinvestor.com.au/shares/nyse-tslw/roundhill-tsla-weeklypay-etf",
+      "domain" : "www.intelligentinvestor.com.au"
+    }, {
+      "title" : "www.moomoo.com",
+      "url" : "https://www.moomoo.com/index/.IXIC-US?chain_id=Name1K9-3FXPhg.1kqf81g&global_content=%7B%22promote_id%22%3A13764%2C%22sub_promote_id%22%3A57%2C%22f%22%3A%22www.moomoo.com%2Fstock%2FSTO-AU%22%7D",
+      "domain" : "www.moomoo.com"
+    }, {
+      "title" : "polymarket.com",
+      "url" : "https://polymarket.com/event/what-price-will-tsla-hit-in-march-2026/will-tsla-reach-533-in-march",
+      "domain" : "polymarket.com"
+    }, {
+      "title" : "www.moomoo.com",
+      "url" : "https://www.moomoo.com/index/.IXIC-US?chain_id=Name1K9-3FXPhg.1kc6ok0&global_content=%7B%22promote_id%22%3A13764%2C%22sub_promote_id%22%3A33%2C%22f%22%3A%22www.moomoo.com%2Fnews%2Fpost%2F50705418%2Fconnecticut-light-power-co-4-96-prf-usd50-to-go%22%7D",
+      "domain" : "www.moomoo.com"
+    }, {
+      "title" : "ts2.tech",
+      "url" : "https://ts2.tech/en/stock-market-today-13-02-2026/",
+      "domain" : "ts2.tech"
+    }, {
+      "title" : "polymarket.com",
+      "url" : "https://polymarket.com/event/what-price-will-tsla-hit-in-february-2026",
+      "domain" : "polymarket.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/thetagang/comments/1icpokm",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/wallstreetbets/comments/1nx2lx9",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "in.investing.com",
+      "url" : "https://in.investing.com/equities/tesla-motors-historical-data",
+      "domain" : "in.investing.com"
+    }, {
+      "title" : "www.investing.com",
+      "url" : "https://www.investing.com/equities/tesla-motors-historical-data",
+      "domain" : "www.investing.com"
+    }, {
+      "title" : "schwab.wsodqa.com",
+      "url" : "https://schwab.wsodqa.com/schwab/Prospect/research/etfs/reports/reportRetrieve.asp?reportType=etfrc&symbol=TSYY",
+      "domain" : "schwab.wsodqa.com"
+    }, {
+      "title" : "ng.investing.com",
+      "url" : "https://ng.investing.com/equities/tesla-motors-historical-data",
+      "domain" : "ng.investing.com"
+    }, {
+      "title" : "investor.bankofamerica.com",
+      "url" : "https://investor.bankofamerica.com/regulatory-and-other-filings/all-sec-filings/content/0001918704-24-001702/0001918704-24-001702.pdf",
+      "domain" : "investor.bankofamerica.com"
+    }, {
+      "title" : "www.investing.com",
+      "url" : "https://www.investing.com/equities/tesla-drc-historical-data",
+      "domain" : "www.investing.com"
+    }, {
+      "title" : "www.stockmonitor.com",
+      "url" : "https://www.stockmonitor.com/quote/tsla/",
+      "domain" : "www.stockmonitor.com"
+    }, {
+      "title" : "investor.bankofamerica.com",
+      "url" : "https://investor.bankofamerica.com/regulatory-and-other-filings/all-sec-filings/content/0001481057-23-006333/0001481057-23-006333.pdf?wcmmode=disabled",
+      "domain" : "investor.bankofamerica.com"
+    }, {
+      "title" : "stocknear.com",
+      "url" : "https://stocknear.com/stocks/TSLA/history",
+      "domain" : "stocknear.com"
+    }, {
+      "title" : "uk.advfn.com",
+      "url" : "https://uk.advfn.com/stock-market/NASDAQ/TSLA/share-price-history",
+      "domain" : "uk.advfn.com"
+    }, {
+      "title" : "uk.investing.com",
+      "url" : "https://uk.investing.com/equities/tesla-motors-historical-data",
+      "domain" : "uk.investing.com"
+    }, {
+      "title" : "www.sec.gov",
+      "url" : "https://www.sec.gov/Archives/edgar/data/831001/000095010325016332/dp238952_424b2-us25a5466d.htm",
+      "domain" : "www.sec.gov"
+    }, {
+      "title" : "au.investing.com",
+      "url" : "https://au.investing.com/equities/tesla-motors-historical-data",
+      "domain" : "au.investing.com"
+    }, {
+      "title" : "ca.investing.com",
+      "url" : "https://ca.investing.com/equities/tesla-motors-historical-data",
+      "domain" : "ca.investing.com"
+    }, {
+      "title" : "mlaem.fs.ml.com",
+      "url" : "https://mlaem.fs.ml.com/content/dam/ML/ipo/equity-linked/Jan26/UHAKL.pdf",
+      "domain" : "mlaem.fs.ml.com"
+    }, {
+      "title" : "mlaem.fs.ml.com",
+      "url" : "https://mlaem.fs.ml.com/content/dam/ML/ipo/equity-linked/Dec25/UHAJU.pdf",
+      "domain" : "mlaem.fs.ml.com"
+    }, {
+      "title" : "investor.bankofamerica.com",
+      "url" : "https://investor.bankofamerica.com/regulatory-and-other-filings/all-sec-filings/content/0001481057-24-007416/0001481057-24-007416.pdf",
+      "domain" : "investor.bankofamerica.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/wallstreetbetsHUZZAH/comments/1q6rip2/what_are_your_moves_tomorrow_january_08_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.trading212.com",
+      "url" : "https://www.trading212.com/trading-instruments/invest/TSLI.GB",
+      "domain" : "www.trading212.com"
+    }, {
+      "title" : "www.sec.gov",
+      "url" : "https://www.sec.gov/Archives/edgar/data/70858/000191870425015913/form424b2.htm",
+      "domain" : "www.sec.gov"
+    }, {
+      "title" : "www.stocktitan.net",
+      "url" : "https://www.stocktitan.net/sec-filings/GS/424b2-goldman-sachs-group-inc-prospectus-supplement-1a3aba9ca22a.html",
+      "domain" : "www.stocktitan.net"
+    }, {
+      "title" : "www.stocktitan.net",
+      "url" : "https://www.stocktitan.net/sec-filings/GS/424b2-goldman-sachs-group-inc-prospectus-supplement-5ae2c41b8414.html",
+      "domain" : "www.stocktitan.net"
+    }, {
+      "title" : "www.sec.gov",
+      "url" : "https://www.sec.gov/Archives/edgar/data/83246/000110465924130949/tm2429900d117dps_fwp.htm",
+      "domain" : "www.sec.gov"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/lon/CEPG/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "www.streetinsider.com",
+      "url" : "https://www.streetinsider.com/SEC%2BFilings/Form%2B424B2%2BMORGAN%2BSTANLEY/24194001.html",
+      "domain" : "www.streetinsider.com"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/tlv/MGDL/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "www.trading212.com",
+      "url" : "https://www.trading212.com/trading-instruments/cfd/TSLA.US",
+      "domain" : "www.trading212.com"
+    }, {
+      "title" : "stockanalysis.com",
+      "url" : "https://stockanalysis.com/quote/bit/1GME/",
+      "domain" : "stockanalysis.com"
+    }, {
+      "title" : "www.benzinga.com",
+      "url" : "https://www.benzinga.com/quote/WGO/earnings",
+      "domain" : "www.benzinga.com"
+    }, {
+      "title" : "mx.advfn.com",
+      "url" : "https://mx.advfn.com/bolsa-de-valores/NASDAQ/AVAV/cotizacion",
+      "domain" : "mx.advfn.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/RealTesla/comments/1s1pjlv/tesla_and_spacex_announce_25b_terafab_chip/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/Daytrading/comments/1s20pw3/no_loss_institutional_tsla_put_signal/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/wallstreetbets/comments/1s2alrs/daily_discussion_thread_for_march_24_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/StockBreakouts/comments/1s2obhw/47t_vs_6t_the_gap_thats_shaking_confidence_in_us/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1s147rw/tsla_daily_thread_march_23_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/VestMarket/comments/1rzuw9q/do_you_think_tsla_could_drop_even_lower/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/optionstrading/comments/1s20qwi/no_loss_institutional_tsla_put_signal/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/tradingmillionaires/comments/1s20p8n/no_loss_institutional_tsla_put_signal/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/Optionmillionaires/comments/1s20mwb/no_loss_institutional_tsla_put_signal/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/Winkerpack/comments/1s19t7w/daily_discussion_read_for_monday_march_23_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/ScottGalloway/comments/1s0xfog/why_arent_people_boycotting_tesla_any_more/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/StockMarket/comments/1jicqis/removed/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "apnews.com",
+      "url" : "https://apnews.com/article/7edce5705e93775e1b8bb77b5dd54007",
+      "domain" : "apnews.com"
+    }, {
+      "title" : "en.wikipedia.org",
+      "url" : "https://en.wikipedia.org/wiki/Terafab",
+      "domain" : "en.wikipedia.org"
+    }, {
+      "title" : "www.tomshardware.com",
+      "url" : "https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-his-terafab-project-chipmaking-venture-will-launch-in-seven-days-musks-latest-moonshot-multi-billion-project-launches-on-a-saturday",
+      "domain" : "www.tomshardware.com"
+    }, {
+      "title" : "newsable.asianetnews.com",
+      "url" : "https://newsable.asianetnews.com/markets/tesla-buys-time-on-fsd-probe-nhtsa-grants-five-more-weeks-to-review-over-8-000-potential-traffic-violations-articleshow-amocr1z",
+      "domain" : "newsable.asianetnews.com"
+    }, {
+      "title" : "en.wikipedia.org",
+      "url" : "https://en.wikipedia.org/wiki/SpaceX",
+      "domain" : "en.wikipedia.org"
+    }, {
+      "title" : "electrek.co",
+      "url" : "https://electrek.co/2025/08/21/tesla-nhtsa-probe-not-properly-reporting-crashes-involving-autopilot-fsd/",
+      "domain" : "electrek.co"
+    }, {
+      "title" : "www.marketbeat.com",
+      "url" : "https://www.marketbeat.com/articles/tesla-granted-more-time-in-us-investigation-into-its-self-driving-tech-2026-01-16/",
+      "domain" : "www.marketbeat.com"
+    }, {
+      "title" : "www.law360.com",
+      "url" : "https://www.law360.com/compliance/articles/2431314/tesla-gets-5-week-extension-in-nhtsa-probe",
+      "domain" : "www.law360.com"
+    }, {
+      "title" : "www.thecarconnection.com",
+      "url" : "https://www.thecarconnection.com/news/1144801_nhtsas-probe-2-4m-full-self-driving-teslas-after-crash",
+      "domain" : "www.thecarconnection.com"
+    }, {
+      "title" : "www.law360.com",
+      "url" : "https://www.law360.com/transportation/articles/2431314/tesla-gets-5-week-extension-in-nhtsa-probe",
+      "domain" : "www.law360.com"
+    }, {
+      "title" : "www.techbuzz.ai",
+      "url" : "https://www.techbuzz.ai/articles/nhtsa-opens-probe-into-tesla-fsd-over-50-traffic-violations",
+      "domain" : "www.techbuzz.ai"
+    }, {
+      "title" : "www.cnbc.com",
+      "url" : "https://www.cnbc.com/2025/08/21/tesla-musk-safety-probe-crash-report.html",
+      "domain" : "www.cnbc.com"
+    }, {
+      "title" : "www.investing.com",
+      "url" : "https://www.investing.com/news/stock-market-news/tesla-faces-nhtsa-probe-over-full-selfdriving-system-violations-93CH-4278925",
+      "domain" : "www.investing.com"
+    }, {
+      "title" : "mobile.twstalker.com",
+      "url" : "https://mobile.twstalker.com/musk90264",
+      "domain" : "mobile.twstalker.com"
+    }, {
+      "title" : "www.bez-kabli.pl",
+      "url" : "https://www.bez-kabli.pl/technology-news-09-02-2026/",
+      "domain" : "www.bez-kabli.pl"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/YesIntelligent/comments/1s0jtep/crypto_markets_plunge_into_extreme_fear_as/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/electricvehicles/comments/1ry3p0n/us_agency_upgrades_probe_into_32_million_tesla/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/RealTesla/comments/1ry1iu0/tesla_is_one_stop_away_from_having_to_recall_fsd/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.technetbooks.com",
+      "url" : "https://www.technetbooks.com/2026/03/tesla-terafab-semiconductor-initiative.html",
+      "domain" : "www.technetbooks.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/RealTesla/comments/1rv4bxc/tsla_terathread_ides_of_march_for_the_week_of_mar/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/EnoughMuskSpam/comments/1rz8e2i/elon_musk_wants_to_build_a_tesla_terafab_heres/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/intelstock/comments/1rzwr0t/intc_terafab/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/TSLALounge/comments/1rz6ql5/tsla_super_chill_weekend_thread_march_2122_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/RealTesla/comments/1rx4kp0/no_evidence_of_terafab_being_real/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/EnoughMuskSpam/comments/1s051jq/elon_officially_launches_terafab_with_a_retweet/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/Semiconductors/comments/1rtl75d/breaking_elon_musk_announces_tesla_terafab_chip/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "en.wikipedia.org",
+      "url" : "https://en.wikipedia.org/wiki/Tesla%2C_Inc.",
+      "domain" : "en.wikipedia.org"
+    }, {
+      "title" : "www.bez-kabli.pl",
+      "url" : "https://www.bez-kabli.pl/technology-news-30-01-2026/",
+      "domain" : "www.bez-kabli.pl"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/tech_x/comments/1rtmbei/breaking_elon_musk_announces_tesla_terafab_chip/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "acecomments.mu.nu",
+      "url" : "https://acecomments.mu.nu/?post=387226%3Futm_source%3Dakdart",
+      "domain" : "acecomments.mu.nu"
+    }, {
+      "title" : "acecomments.mu.nu",
+      "url" : "https://acecomments.mu.nu/?post=392880%3Futm_source%3Dakdart",
+      "domain" : "acecomments.mu.nu"
+    }, {
+      "title" : "coincodex.com",
+      "url" : "https://coincodex.com/stock/TSLA/earnings/",
+      "domain" : "coincodex.com"
+    }, {
+      "title" : "www.advfn.com",
+      "url" : "https://www.advfn.com/stock-market/NASDAQ/NESR/news",
+      "domain" : "www.advfn.com"
+    }, {
+      "title" : "uk.finance.yahoo.com",
+      "url" : "https://uk.finance.yahoo.com/quote/TSLA/profile/",
+      "domain" : "uk.finance.yahoo.com"
+    }, {
+      "title" : "meyka.com",
+      "url" : "https://meyka.com/blog/tsla-stock-today-march-8-musks-twitter-trial-puts-legal-risk-in-focus-0703/",
+      "domain" : "meyka.com"
+    }, {
+      "title" : "midforex.com",
+      "url" : "https://midforex.com/index.php/stocks/tsla-forecast",
+      "domain" : "midforex.com"
+    }, {
+      "title" : "www.trefis.com",
+      "url" : "https://www.trefis.com/data/companies/TSLA?fromforbesandarticle=trefis200210",
+      "domain" : "www.trefis.com"
+    }, {
+      "title" : "www.trefis.com",
+      "url" : "https://www.trefis.com/data/companies/TSLA?from=TSLA-2025-03-10&source=forbes",
+      "domain" : "www.trefis.com"
+    }, {
+      "title" : "investorshub.advfn.com",
+      "url" : "https://investorshub.advfn.com/National-Energy-Services-Reunited-Corp-NESR-50360",
+      "domain" : "investorshub.advfn.com"
+    }, {
+      "title" : "www.trefis.com",
+      "url" : "https://www.trefis.com/data/companies/TSLA?from=TSLA-2025-11-25&source=forbes",
+      "domain" : "www.trefis.com"
+    }, {
+      "title" : "meyka.com",
+      "url" : "https://meyka.com/blog/tsla-stock-today-january-29-metas-66-options-move-signals-volatility-2901/",
+      "domain" : "meyka.com"
+    }, {
+      "title" : "divvydiary.com",
+      "url" : "https://divvydiary.com/en/chocoladefabriken-lindt-and-spruengli-stock-CH0010570759",
+      "domain" : "divvydiary.com"
+    }, {
+      "title" : "www.trefis.com",
+      "url" : "https://www.trefis.com/data/companies/TSLA?from=TSLA-2026-02-20&source=forbes",
+      "domain" : "www.trefis.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/QUANTUMSCAPE_Stock/comments/1qzu0kn/quantumscape_lounge_week_06_2026/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/SelfDrivingCars/comments/1rza6uc/tesla_promoting_cybercab_in_austin_as_human/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "www.reddit.com",
+      "url" : "https://www.reddit.com/r/wallstreetbets/comments/1puy95u/how_did_wsbs_stock_picks_of_2025_perform/",
+      "domain" : "www.reddit.com"
+    }, {
+      "title" : "assets-global.website-files.com",
+      "url" : "https://assets-global.website-files.com/603f2e8e820e2c0ae706359f/64638a8e61d09e9e0d00d9da_20230516%20Newsletter.pdf",
+      "domain" : "assets-global.website-files.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/press-release/earnings-consensus-fourth-quarter-2025",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/press",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/press-release/tesla-fourth-quarter-2025-production-deliveries-deployments",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/_flysystem/s3/sec/000156459017003118/tsla-10k_20161231.html",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/_flysystem/s3/sec/000156459018002956/tsla-10k_20171231.html",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/_flysystem/s3/sec/000119312513096241/d452995d10k.html",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/_flysystem/s3/sec/000119312512081990/d279413d10k.html",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/_flysystem/s3/sec/000119312514069681/d668062d10k.html",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/press?page=0",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "ir.tesla.com",
+      "url" : "https://ir.tesla.com/_flysystem/s3/sec/000156459019003165/tsla-10k_20181231.html",
+      "domain" : "ir.tesla.com"
+    }, {
+      "title" : "twitter.com",
+      "url" : "https://twitter.com/i/grok/share/TWKCNS0Cjaf17o4BVTduBhWbh",
+      "domain" : "twitter.com"
+    }, {
+      "title" : "sites.google.com",
+      "url" : "https://sites.google.com/view/zarasaamoney/",
+      "domain" : "sites.google.com"
+    }, {
+      "title" : "www.bitget.com",
+      "url" : "https://www.bitget.com/wiki/tesla-stock-quote",
+      "domain" : "www.bitget.com"
+    }, {
+      "title" : "cnbcfix.com",
+      "url" : "https://cnbcfix.com/fast-money-archive-february-2012.html",
+      "domain" : "cnbcfix.com"
+    }, {
+      "title" : "www.bitget.com",
+      "url" : "https://www.bitget.com/wiki/tsla-stock-price",
+      "domain" : "www.bitget.com"
+    }, {
+      "title" : "au.advfn.com",
+      "url" : "https://au.advfn.com/options/NYSE/DFS/DFS250718C00175000/quote",
+      "domain" : "au.advfn.com"
+    }, {
+      "title" : "money.ca",
+      "url" : "https://money.ca/investing/stocks/how-to-buy-nvidia-stock",
+      "domain" : "money.ca"
+    }, {
+      "title" : "copyright-certificate.byu.edu",
+      "url" : "https://copyright-certificate.byu.edu/news/google-finance-your-go-to-1763328995884",
+      "domain" : "copyright-certificate.byu.edu"
+    }, {
+      "title" : "www.cnbcfix.com",
+      "url" : "https://www.cnbcfix.com/fast-money-archive-february-2012.html",
+      "domain" : "www.cnbcfix.com"
+    }, {
+      "title" : "investorshub.advfn.com",
+      "url" : "https://investorshub.advfn.com/stock-market/NASDAQ/mm-EDS/news",
+      "domain" : "investorshub.advfn.com"
+    }, {
+      "title" : "www.scribd.com",
+      "url" : "https://www.scribd.com/document/668487393/Computer-Security-and-Internet",
+      "domain" : "www.scribd.com"
+    } ]
+  } ]
+}

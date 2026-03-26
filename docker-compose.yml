@@ -30,11 +30,13 @@ services:
       LOG_PATH: ${CONTAINER_LOG_PATH:-/app/backend/logs}
       APP_ERROR_LOG_STORAGE_PATH: ${CONTAINER_LOG_PATH:-/app/backend/logs}
       APP_CHAT_STORAGE_PATH: ${CONTAINER_CHAT_STORAGE_PATH:-/app/backend/chats}
+      APP_STOCK_ADVISOR_STORAGE_PATH: ${CONTAINER_STOCK_ADVISOR_CHAT_STORAGE_PATH:-/app/backend/stock-advisor-chats}
     depends_on:
       - db
     volumes:
       - ./backend/logs:/app/backend/logs
       - ./backend/chats:/app/backend/chats
+      - ./backend/stock-advisor-chats:/app/backend/stock-advisor-chats
       - ./secrets.json:/app/secrets.json:ro
 
   frontend:
