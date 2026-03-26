@@ -1,69 +1,18 @@
-import { FormEvent, KeyboardEvent, useEffect, useRef } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import AdvisorTranscript from '../components/AdvisorTranscript';
+import InvestFeatureTabs from '../components/InvestFeatureTabs';
 import { useAuthStore } from '../stores/authStore';
 import { useAiInvestStore } from '../stores/aiInvestStore';
-import { AiInvestMessage, AiInvestSource } from '../components/aiInvestTypes';
+import { AiInvestMessage } from '../components/aiInvestTypes';
 
 const RISK_PROFILES = ['공격적', '균형형', '안정적'];
 const TRADE_STYLES = ['초단타', '단타', '스윙', '장투'];
 const MARKETS = ['국내', '해외'];
 
-function formatMarkdown(content: string) {
-  return content
-    .replace(/\r\n/g, '\n')
-    .replace(/:\s+(?=\d+\.\s)/g, ':\n\n')
-    .replace(/([^\.\n])\.\s+(?=\d+\.\s)/g, '$1.\n\n')
-    .replace(/\s+-\s+(?=\*\*)/g, '\n- ')
-    .trim();
-}
-
-function MessageBubble({ msg, loading }: { msg: AiInvestMessage; loading?: boolean }) {
-  const isUser = msg.role === 'user';
-  const sources: AiInvestSource[] = msg.sources ?? [];
-  const time = msg.createdAt
-    ? new Date(msg.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
-    : '';
-
-  return (
-    <article className={`stock-advisor-bubble ${msg.role}${loading ? ' pending' : ''}`}>
-      <div className="stock-advisor-bubble-meta">
-        <strong>{isUser ? 'You' : 'AI Invest'}</strong>
-        <span>{time}</span>
-      </div>
-      {isUser ? (
-        <p className="stock-advisor-user-copy">{msg.content}</p>
-      ) : (
-        <div className="stock-advisor-markdown">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {formatMarkdown(msg.content)}
-          </ReactMarkdown>
-        </div>
-      )}
-      {!isUser && sources.length > 0 && (
-        <div className="stock-advisor-sources">
-          {sources.map((src) => (
-            <a
-              key={src.url}
-              href={src.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="stock-advisor-source-item"
-            >
-              <strong>{src.title || src.domain}</strong>
-              <span>{src.domain}</span>
-            </a>
-          ))}
-        </div>
-      )}
-    </article>
-  );
-}
-
 export default function AIInvest() {
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
-  const threadRef = useRef<HTMLDivElement | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const threads = useAiInvestStore((s) => s.threads);
@@ -106,13 +55,6 @@ export default function AIInvest() {
     el.style.height = `${Math.max(el.scrollHeight, 80)}px`;
   }, [draft]);
 
-  // Auto-scroll conversation
-  useEffect(() => {
-    if (threadRef.current) {
-      threadRef.current.scrollTop = threadRef.current.scrollHeight;
-    }
-  }, [activeThread?.messages]);
-
   const handleStart = async (e: FormEvent) => {
     e.preventDefault();
     await startThread();
@@ -129,9 +71,15 @@ export default function AIInvest() {
     if (!loading && activeThread) await sendMessage();
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen((current) => !current);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="site-frame page-stack">
+        <InvestFeatureTabs />
+
         <section className="panel callout-panel">
           <p className="section-label">AI Invest</p>
           <h1>DB금융투자 기반 투자 전략 대화</h1>
@@ -149,56 +97,76 @@ export default function AIInvest() {
 
   return (
     <div className="site-frame page-stack">
-      <section className="panel chat-shell advisor-chat-shell">
-        {/* ── Sidebar ── */}
-        <aside className="chat-sidebar">
-          <div className="chat-sidebar-head">
-            <div>
-              <p className="section-label">Investment Threads</p>
-              <h2>AI Invest</h2>
-            </div>
-            <button
-              type="button"
-              className="button button-primary"
-              onClick={beginNewThread}
-              disabled={loading}
-            >
-              New Invest
-            </button>
-          </div>
-          <div className="chat-thread-list">
-            {sidebarLoading && <p className="muted">목록을 불러오는 중입니다.</p>}
-            {!sidebarLoading && threads.length === 0 && (
-              <p className="muted">생성된 투자 대화가 없습니다.</p>
-            )}
-            {threads.map((t) => (
-              <div
-                key={t.threadId}
-                className={`chat-thread-item ${activeThread?.threadId === t.threadId ? 'active' : ''}`}
-              >
-                <button
-                  type="button"
-                  className="chat-thread-link"
-                  onClick={() => selectThread(t.threadId)}
-                >
-                  <strong>{t.title}</strong>
-                  <span>{t.stockName} · {t.market}</span>
-                  <span>{t.riskProfile} · {t.tradeStyle}</span>
-                </button>
-                <button
-                  type="button"
-                  className="chat-thread-delete"
-                  onClick={() => removeThread(t.threadId)}
-                  aria-label="Delete invest thread"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
-        </aside>
+      <InvestFeatureTabs />
 
-        {/* ── Main ── */}
+      <section className={`panel chat-shell advisor-chat-shell advisor-history-shell ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <div className="advisor-sidebar-rail">
+          <button
+            type="button"
+            className={`advisor-history-toggle${sidebarOpen ? ' active' : ''}`}
+            onClick={toggleSidebar}
+            aria-label={sidebarOpen ? 'AI Invest 대화 기록 닫기' : 'AI Invest 대화 기록 열기'}
+            aria-expanded={sidebarOpen}
+          >
+            <span className="advisor-history-toggle-icon" aria-hidden="true">
+              <span className="advisor-history-toggle-rail" />
+              <span className="advisor-history-toggle-lines">
+                <span />
+                <span />
+              </span>
+            </span>
+          </button>
+        </div>
+
+        {sidebarOpen && (
+          <aside className="chat-sidebar advisor-history-sidebar">
+            <div className="chat-sidebar-head">
+              <div>
+                <p className="section-label">Investment Threads</p>
+                <h2>AI Invest</h2>
+              </div>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={beginNewThread}
+                disabled={loading}
+              >
+                New Invest
+              </button>
+            </div>
+            <div className="chat-thread-list">
+              {sidebarLoading && <p className="muted">목록을 불러오는 중입니다.</p>}
+              {!sidebarLoading && threads.length === 0 && (
+                <p className="muted">생성된 투자 대화가 없습니다.</p>
+              )}
+              {threads.map((t) => (
+                <div
+                  key={t.threadId}
+                  className={`chat-thread-item ${activeThread?.threadId === t.threadId ? 'active' : ''}`}
+                >
+                  <button
+                    type="button"
+                    className="chat-thread-link"
+                    onClick={() => selectThread(t.threadId)}
+                  >
+                    <strong>{t.title}</strong>
+                    <span>{t.stockName} · {t.market}</span>
+                    <span>{t.riskProfile} · {t.tradeStyle}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="chat-thread-delete"
+                    onClick={() => removeThread(t.threadId)}
+                    aria-label="Delete invest thread"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          </aside>
+        )}
+
         <div className="chat-main advisor-chat-main">
           <div className="chat-main-head">
             <div>
@@ -312,26 +280,13 @@ export default function AIInvest() {
                     <p className="muted">이후 매수·매도 타이밍, 목표가, 손절선 등 추가 질문을 이어갈 수 있습니다.</p>
                   </div>
                 ) : (
-                  <div
-                    ref={threadRef}
-                    className="stock-advisor-thread"
-                  >
-                    {activeThread.messages.map((msg, i) => (
-                      <MessageBubble
-                        key={msg.id ?? `${msg.createdAt}-${i}`}
-                        msg={msg}
-                        loading={loading && i === activeThread.messages.length - 1 && msg.role === 'user'}
-                      />
-                    ))}
-                    {loading && activeThread.messages[activeThread.messages.length - 1]?.role === 'user' && (
-                      <article className="stock-advisor-bubble assistant pending">
-                        <div className="stock-advisor-bubble-meta">
-                          <strong>AI Invest</strong>
-                        </div>
-                        <p className="muted">분석 중...</p>
-                      </article>
-                    )}
-                  </div>
+                  <AdvisorTranscript
+                    threadKey={activeThread.threadId}
+                    messages={activeThread.messages as AiInvestMessage[]}
+                    loading={loading}
+                    pendingTitle="AI Invest"
+                    pendingText="DB금융투자 데이터와 시장 정보를 정리해서 투자 전략을 분석하고 있습니다."
+                  />
                 )}
               </section>
 

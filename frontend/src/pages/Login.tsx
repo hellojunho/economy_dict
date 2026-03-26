@@ -33,32 +33,50 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-layout">
-      <section className="auth-panel">
-        <p className="section-label">Sign In</p>
-        <h1>서비스에 로그인</h1>
-        <p className="panel-copy">경제 용어 검색, 데일리 퀴즈, 개인 학습 기록을 이어서 이용할 수 있습니다.</p>
+    <div className="auth-layout toss-auth-layout">
+      <Link to="/" className="toss-auth-brand">경제사전</Link>
 
-        <form className="form-stack" onSubmit={handleSubmit}>
-          <label>
-            <span>User ID</span>
-            <input value={credentials.userId} onChange={(event) => setCredentials((current) => ({ ...current, userId: event.target.value }))} />
-          </label>
-          <label>
-            <span>Password</span>
-            <input type="password" value={credentials.password} onChange={(event) => setCredentials((current) => ({ ...current, password: event.target.value }))} />
-          </label>
-          <button type="submit" className="button button-primary" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
+      <section className="toss-auth-shell">
+        <h1>경제사전 로그인</h1>
 
-        {message && <p className="form-message error-text">{message}</p>}
+        <div className="toss-auth-card">
+          <div className="toss-auth-tabs">
+            <button type="button" className="toss-auth-tab active">아이디 로그인</button>
+            <Link to="/signup" className="toss-auth-tab toss-auth-tab-link">회원가입</Link>
+          </div>
 
-        <div className="auth-footer-links">
-          <Link to="/terms">이용약관</Link>
-          <Link to="/signup">회원가입</Link>
+          <form className="form-stack toss-auth-form" onSubmit={handleSubmit}>
+            <label>
+              <input
+                placeholder="아이디"
+                value={credentials.userId}
+                onChange={(event) => setCredentials((current) => ({ ...current, userId: event.target.value }))}
+              />
+            </label>
+            <label>
+              <input
+                type="password"
+                placeholder="비밀번호"
+                value={credentials.password}
+                onChange={(event) => setCredentials((current) => ({ ...current, password: event.target.value }))}
+              />
+            </label>
+
+            <button type="submit" className="button button-primary toss-auth-submit" disabled={loading}>
+              {loading ? '로그인 중' : '로그인'}
+            </button>
+          </form>
+
+          {message && <p className="form-message error-text">{message}</p>}
+
+          <div className="auth-footer-links toss-auth-links">
+            <Link to="/terms">이용약관 보기</Link>
+          </div>
         </div>
+
+        <p className="toss-auth-bottom-link">
+          아직 경제사전 회원이 아닌가요? <Link to="/signup">가입하기</Link>
+        </p>
       </section>
     </div>
   );

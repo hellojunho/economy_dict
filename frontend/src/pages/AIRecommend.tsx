@@ -1,8 +1,9 @@
-import { FormEvent, KeyboardEvent, useEffect, useRef } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import AdvisorTranscript from '../components/AdvisorTranscript';
 import AdvisorChartSnapshot from '../components/AdvisorChartSnapshot';
+import InvestFeatureTabs from '../components/InvestFeatureTabs';
 import StockAdvisorControls from '../components/StockAdvisorControls';
-import StockAdvisorConversation from '../components/StockAdvisorConversation';
 import { TradingViewSymbolOption } from '../components/stockAdvisorTypes';
 import { useAuthStore } from '../stores/authStore';
 import { useStockAdvisorStore } from '../stores/stockAdvisorStore';
@@ -28,6 +29,7 @@ function toSelectedSymbol(symbol: string): TradingViewSymbolOption | null {
 
 export default function AIRecommend() {
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const threads = useStockAdvisorStore((state) => state.threads);
   const activeThread = useStockAdvisorStore((state) => state.activeThread);
@@ -99,9 +101,15 @@ export default function AIRecommend() {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen((current) => !current);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="site-frame page-stack">
+        <InvestFeatureTabs recommendHref={symbolParam ? `/ai-recommend?symbol=${encodeURIComponent(symbolParam)}` : '/ai-recommend'} />
+
         <section className="panel callout-panel">
           <p className="section-label">AI Recommend</p>
           <h1>투자 전략 대화</h1>
@@ -119,47 +127,69 @@ export default function AIRecommend() {
 
   return (
     <div className="site-frame page-stack">
-      <section className="panel chat-shell advisor-chat-shell">
-        <aside className="chat-sidebar">
-          <div className="chat-sidebar-head">
-            <div>
-              <p className="section-label">Investment Threads</p>
-              <h2>AI Recommend</h2>
-            </div>
-            <button
-              type="button"
-              className="button button-primary"
-              onClick={() => beginNewThread(symbolParam || symbol || undefined)}
-              disabled={loading}
-            >
-              New Recommend
-            </button>
-          </div>
-          <div className="chat-thread-list">
-            {sidebarLoading && <p className="muted">목록을 불러오는 중입니다.</p>}
-            {!sidebarLoading && threads.length === 0 && <p className="muted">생성된 추천 대화가 없습니다.</p>}
-            {threads.map((thread) => (
-              <div
-                key={thread.threadId}
-                className={`chat-thread-item ${activeThread?.threadId === thread.threadId ? 'active' : ''}`}
-              >
-                <button type="button" className="chat-thread-link" onClick={() => selectThread(thread.threadId)}>
-                  <strong>{thread.title}</strong>
-                  <span>{thread.symbol}</span>
-                  <span>{thread.riskProfile} · {thread.tradeStyle}</span>
-                </button>
-                <button
-                  type="button"
-                  className="chat-thread-delete"
-                  onClick={() => removeThread(thread.threadId)}
-                  aria-label="Delete recommendation thread"
-                >
-                  Delete
-                </button>
+      <InvestFeatureTabs recommendHref={symbolParam ? `/ai-recommend?symbol=${encodeURIComponent(symbolParam)}` : '/ai-recommend'} />
+
+      <section className={`panel chat-shell advisor-chat-shell advisor-history-shell ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <div className="advisor-sidebar-rail">
+          <button
+            type="button"
+            className={`advisor-history-toggle${sidebarOpen ? ' active' : ''}`}
+            onClick={toggleSidebar}
+            aria-label={sidebarOpen ? 'AI Recommend 대화 기록 닫기' : 'AI Recommend 대화 기록 열기'}
+            aria-expanded={sidebarOpen}
+          >
+            <span className="advisor-history-toggle-icon" aria-hidden="true">
+              <span className="advisor-history-toggle-rail" />
+              <span className="advisor-history-toggle-lines">
+                <span />
+                <span />
+              </span>
+            </span>
+          </button>
+        </div>
+
+        {sidebarOpen && (
+          <aside className="chat-sidebar advisor-history-sidebar">
+            <div className="chat-sidebar-head">
+              <div>
+                <p className="section-label">Investment Threads</p>
+                <h2>AI Recommend</h2>
               </div>
-            ))}
-          </div>
-        </aside>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={() => beginNewThread(symbolParam || symbol || undefined)}
+                disabled={loading}
+              >
+                New Recommend
+              </button>
+            </div>
+            <div className="chat-thread-list">
+              {sidebarLoading && <p className="muted">목록을 불러오는 중입니다.</p>}
+              {!sidebarLoading && threads.length === 0 && <p className="muted">생성된 추천 대화가 없습니다.</p>}
+              {threads.map((thread) => (
+                <div
+                  key={thread.threadId}
+                  className={`chat-thread-item ${activeThread?.threadId === thread.threadId ? 'active' : ''}`}
+                >
+                  <button type="button" className="chat-thread-link" onClick={() => selectThread(thread.threadId)}>
+                    <strong>{thread.title}</strong>
+                    <span>{thread.symbol}</span>
+                    <span>{thread.riskProfile} · {thread.tradeStyle}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="chat-thread-delete"
+                    onClick={() => removeThread(thread.threadId)}
+                    aria-label="Delete recommendation thread"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          </aside>
+        )}
 
         <div className="chat-main advisor-chat-main">
           <div className="chat-main-head">
@@ -212,7 +242,13 @@ export default function AIRecommend() {
                 )}
 
                 {activeThread && (
-                  <StockAdvisorConversation messages={activeThread.messages} loading={loading} />
+                  <AdvisorTranscript
+                    threadKey={activeThread.threadId}
+                    messages={activeThread.messages}
+                    loading={loading}
+                    pendingTitle="분석 중"
+                    pendingText="최근 공시, 뉴스, 시장 분위기를 수집해서 전략을 정리하고 있습니다."
+                  />
                 )}
               </section>
 

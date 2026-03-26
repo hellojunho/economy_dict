@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -17,18 +17,20 @@ import Stock from './pages/Stock';
 import KrStock from './pages/KrStock';
 import client from './api/client';
 import { useAuthStore } from './stores/authStore';
-import { useThemeStore } from './stores/themeStore';
-import ThemeToggle from './components/ThemeToggle';
 
 const publicNav = [
-  { to: '/', label: 'Overview' },
-  { to: '/words', label: 'Words' },
-  { to: '/stocks', label: 'Stock' },
-  { to: '/kr-stocks', label: 'KR Stock' },
-  { to: '/quiz', label: 'Daily Quiz' },
-  { to: '/chat', label: 'AI Chat' },
-  { to: '/ai-recommend', label: 'AI Recommend' },
-  { to: '/ai-invest', label: 'AI Invest' }
+  { to: '/', label: '홈' },
+  { to: '/words', label: '용어' },
+  { to: '/quiz', label: '퀴즈' },
+  { to: '/chat', label: 'AI 채팅' },
+  { to: '/stocks', label: '주식' }
+];
+
+const utilityRail = [
+  { to: '/mypage', label: '내 학습', short: '내' },
+  { to: '/incorrect-note', label: '오답노트', short: '오' },
+  { to: '/ai-recommend', label: 'AI 추천', short: '추' },
+  { to: '/stocks', label: '주식', short: '주' }
 ];
 
 export default function App() {
@@ -41,8 +43,6 @@ export default function App() {
   const hydrateAuth = useAuthStore((state) => state.hydrateAuth);
   const clearSession = useAuthStore((state) => state.clearSession);
   const isAdmin = role === 'ADMIN';
-  const isDark = useThemeStore((state) => state.theme === 'dark');
-  const toggleTheme = useThemeStore((state) => state.toggle);
 
   useEffect(() => {
     hydrateAuth();
@@ -65,30 +65,36 @@ export default function App() {
         <header className="site-header">
           <div className="site-frame site-header-inner">
             <Link to="/" className="brand-mark">
-              <span className="brand-eyebrow">Economy Dictionary & Quiz</span>
-              <strong>Economic Learning Platform</strong>
+              <span className="brand-badge" aria-hidden="true">E</span>
+              <div className="brand-copy">
+                <span className="brand-eyebrow">Economy Dictionary</span>
+                <strong>경제사전</strong>
+              </div>
             </Link>
 
             <nav className="site-nav">
               {publicNav.map((item) => (
-                <Link key={item.to} to={item.to} className="site-nav-link">
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) => `site-nav-link${isActive ? ' active' : ''}`}
+                >
                   {item.label}
-                </Link>
+                </NavLink>
               ))}
               {isAuthenticated && !isAdmin && (
-                <Link to="/mypage" className="site-nav-link">
-                  My Page
-                </Link>
+                <NavLink to="/mypage" className={({ isActive }) => `site-nav-link${isActive ? ' active' : ''}`}>내 학습</NavLink>
               )}
               {isAuthenticated && isAdmin && (
-                <Link to="/admin/overview" className="site-nav-link">
-                  Admin
-                </Link>
+                <NavLink to="/admin/overview" className={({ isActive }) => `site-nav-link${isActive ? ' active' : ''}`}>관리</NavLink>
               )}
             </nav>
 
             <div className="site-actions">
-              <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+              <Link to="/words" className="site-search-shortcut">
+                <span>/</span>
+                <strong>용어 검색</strong>
+              </Link>
               {!isAuthenticated && (
                 <>
                   <Link to="/signin" className="button button-secondary">
@@ -100,9 +106,14 @@ export default function App() {
                 </>
               )}
               {isAuthenticated && (
-                <button type="button" className="button button-secondary" onClick={handleLogout}>
-                  Logout
-                </button>
+                <>
+                  <Link to={isAdmin ? '/admin/overview' : '/mypage'} className="button button-secondary">
+                    {isAdmin ? 'Admin' : '내 학습'}
+                  </Link>
+                  <button type="button" className="button button-secondary" onClick={handleLogout}>
+                    로그아웃
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -138,6 +149,21 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      {!isAuthPage && (
+        <aside className="site-utility-rail">
+          {utilityRail.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `site-utility-item${isActive ? ' active' : ''}`}
+            >
+              <span className="site-utility-icon">{item.short}</span>
+              <strong>{item.label}</strong>
+            </NavLink>
+          ))}
+        </aside>
+      )}
     </div>
   );
 }

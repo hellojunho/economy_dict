@@ -52,7 +52,6 @@ export default function Search() {
         <div>
           <p className="section-label">Word Search</p>
           <h1>경제 용어 검색</h1>
-          <p className="panel-copy">입력한 용어를 우선 조회하고, 미등록 용어는 AI 정의를 생성해 DB에 반영합니다.</p>
         </div>
         <form className="search-form" onSubmit={handleSearch}>
           <input
