@@ -26,7 +26,17 @@ public class TradingViewSymbolService {
             fallback("NYSE:PLTR", "Palantir Technologies Inc.", "NYSE", "stock", "US", false),
             fallback("NYSE:BRK.B", "Berkshire Hathaway Inc.", "NYSE", "stock", "US", false),
             fallback("KRX:005930", "Samsung Electronics Co., Ltd.", "KRX", "stock", "KR", true),
-            fallback("KRX:000660", "SK hynix, Inc.", "KRX", "stock", "KR", true)
+            fallback("KRX:000660", "SK hynix, Inc.", "KRX", "stock", "KR", true),
+            fallback("KRX:035420", "NAVER Corporation", "KRX", "stock", "KR", true),
+            fallback("KRX:051910", "LG Chem, Ltd.", "KRX", "stock", "KR", true),
+            fallback("KRX:005380", "Hyundai Motor Company", "KRX", "stock", "KR", true),
+            fallback("KRX:035720", "Kakao Corp.", "KRX", "stock", "KR", true),
+            fallback("KRX:207940", "Samsung Biologics Co., Ltd.", "KRX", "stock", "KR", true),
+            fallback("KRX:000270", "Kia Corporation", "KRX", "stock", "KR", true),
+            fallback("KRX:068270", "Celltrion, Inc.", "KRX", "stock", "KR", true),
+            fallback("KRX:005490", "POSCO Holdings Inc.", "KRX", "stock", "KR", true),
+            fallback("KRX:105560", "KB Financial Group Inc.", "KRX", "stock", "KR", true),
+            fallback("KRX:012450", "Hanwha Aerospace Co., Ltd.", "KRX", "stock", "KR", true)
     );
 
     private final WebClient webClient;

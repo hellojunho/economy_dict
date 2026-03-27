@@ -2269,6 +2269,118 @@ textarea {
   align-items: center;
 }
 
+.kr-stock-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 960px) {
+  .kr-stock-toolbar {
+    grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.kr-stock-symbol-picker {
+  position: relative;
+  max-width: 360px;
+}
+
+.kr-stock-symbol-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: left;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+}
+
+.kr-stock-symbol-trigger-copy,
+.kr-stock-symbol-option-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.kr-stock-symbol-trigger-copy span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kr-stock-symbol-trigger-copy strong,
+.kr-stock-symbol-option-copy strong {
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.kr-stock-symbol-trigger-copy small,
+.kr-stock-symbol-option-copy span,
+.kr-stock-symbol-option-code {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.kr-stock-symbol-trigger-caret {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.kr-stock-symbol-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 30;
+  width: min(420px, calc(100vw - 48px));
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.kr-stock-symbol-search {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.kr-stock-symbol-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.kr-stock-symbol-option {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #eef0f3;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: left;
+}
+
+.kr-stock-symbol-option.active {
+  border-color: #191f28;
+  background: #f8fafc;
+}
+
 .stock-preset-row,
 .stock-mode-row {
   display: flex;
@@ -2278,6 +2390,10 @@ textarea {
 
 .stock-summary-layout {
   align-items: start;
+}
+
+.stock-chart-tabs {
+  flex: 1;
 }
 
 .stock-page {
@@ -2976,6 +3092,14 @@ textarea {
   .stock-metric-row {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .kr-stock-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .kr-stock-symbol-picker {
+    max-width: none;
   }
 
   .stock-tv-copy {

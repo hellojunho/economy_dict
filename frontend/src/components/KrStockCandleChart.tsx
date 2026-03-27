@@ -18,11 +18,11 @@ type KrStockCandleChartProps = {
     low: number;
     close: number;
   }>;
-  mode: 'intraday' | 'daily';
+  showIntradayTime: boolean;
   theme?: 'dark' | 'light';
 };
 
-export default function KrStockCandleChart({ candles, mode, theme = 'dark' }: KrStockCandleChartProps) {
+export default function KrStockCandleChart({ candles, showIntradayTime, theme = 'dark' }: KrStockCandleChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -60,7 +60,7 @@ export default function KrStockCandleChart({ candles, mode, theme = 'dark' }: Kr
       },
       timeScale: {
         borderColor,
-        timeVisible: mode === 'intraday',
+        timeVisible: showIntradayTime,
         secondsVisible: false
       }
     });
@@ -93,7 +93,7 @@ export default function KrStockCandleChart({ candles, mode, theme = 'dark' }: Kr
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, [mode, theme]);
+  }, [showIntradayTime, theme]);
 
   useEffect(() => {
     if (!seriesRef.current || !chartRef.current) {

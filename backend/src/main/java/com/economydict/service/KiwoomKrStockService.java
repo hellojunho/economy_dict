@@ -84,8 +84,10 @@ public class KiwoomKrStockService {
 
         Map<String, String> quoteMap = toFlatMap(quoteNode);
         Map<String, String> orderMap = toFlatMap(orderBookNode);
-        List<KrStockCandleResponse> intradayCandles = toCandles(findLargestObjectArray(intradayNode), true);
-        List<KrStockCandleResponse> dailyCandles = toCandles(findLargestObjectArray(dailyNode), false);
+        List<KrStockCandleResponse> intradayCandles = toCandles(extractObjectArray(intradayNode, "stk_min_pole_chart_qry"), true);
+        List<KrStockCandleResponse> dailyCandles = toCandles(extractObjectArray(dailyNode, "stk_dt_pole_chart_qry"), false);
+        ensureChartData(symbol, "intraday", intradayCandles, intradayNode);
+        ensureChartData(symbol, "daily", dailyCandles, dailyNode);
         KrStockQuoteResponse quote = toQuote(symbol, quoteMap, intradayCandles);
         KrStockOrderBookResponse orderBook = toOrderBook(orderMap);
 
@@ -114,12 +116,15 @@ public class KiwoomKrStockService {
         String brokerSymbol = toBrokerSymbol(symbol);
         JsonNode quoteNode = post("/api/dostk/mrkcond", "ka10006", Map.of("stk_cd", brokerSymbol));
         JsonNode orderBookNode = post("/api/dostk/mrkcond", "ka10004", Map.of("stk_cd", brokerSymbol));
+        Map<String, String> quoteMap = toFlatMap(quoteNode);
+        Map<String, String> orderMap = toFlatMap(orderBookNode);
+        ensureRealtimeData(symbol, quoteMap, quoteNode);
 
         KrStockRealtimeResponse response = new KrStockRealtimeResponse();
         response.setSymbol(symbol);
         response.setFetchedAt(Instant.now());
-        response.setQuote(toQuote(symbol, toFlatMap(quoteNode), Collections.emptyList()));
-        response.setOrderBook(toOrderBook(toFlatMap(orderBookNode)));
+        response.setQuote(toQuote(symbol, quoteMap, Collections.emptyList()));
+        response.setOrderBook(toOrderBook(orderMap));
         return response;
     }
 
@@ -145,10 +150,7 @@ public class KiwoomKrStockService {
         if (normalized.contains(":")) {
             normalized = normalized.substring(normalized.indexOf(':') + 1);
         }
-        normalized = normalized.replaceAll("[^0-9A-Za-z_]", "");
-        if (normalized.contains("_")) {
-            return normalized;
-        }
+        normalized = normalized.replaceAll("[^0-9]", "");
         if (normalized.length() < 6) {
             normalized = String.format("%6s", normalized).replace(' ', '0');
         }
@@ -159,13 +161,7 @@ public class KiwoomKrStockService {
     }
 
     private String toBrokerSymbol(String symbol) {
-        if (symbol.startsWith(exchange + ":")) {
-            return symbol;
-        }
-        if (symbol.contains("_")) {
-            return exchange + ":" + symbol;
-        }
-        return exchange + ":" + symbol;
+        return symbol;
     }
 
     private synchronized String accessToken() {
@@ -241,7 +237,7 @@ public class KiwoomKrStockService {
         double low = absDouble(source, "low_pric", "low");
         long volume = absLong(source, "trde_qty", "acc_trde_qty");
         long tradeValue = absLong(source, "acc_trde_prica", "trde_prica");
-        double change = signedDouble(source, "pred_pre");
+        double change = signedDouble(source, "pred_pre", "pre");
         Double previousClose = latestPrice > 0D ? latestPrice - change : null;
 
         if (open == 0D && !intradayCandles.isEmpty()) {
@@ -268,7 +264,7 @@ public class KiwoomKrStockService {
         quote.setPreviousClose(previousClose);
         quote.setVolume(volume > 0L ? volume : null);
         quote.setTradeValue(tradeValue > 0L ? tradeValue : null);
-        quote.setTradeTimeLabel(formatTradeTime(firstNonBlank(source, "tm", "trde_tm", "bid_req_base_tm")));
+        quote.setTradeTimeLabel(formatTradeTime(firstNonBlank(source, "tm", "trde_tm", "bid_req_base_tm", "cntr_tm")));
         return quote;
     }
 
@@ -286,30 +282,66 @@ public class KiwoomKrStockService {
 
     private KrStockOrderBookResponse toOrderBook(Map<String, String> source) {
         KrStockOrderBookResponse orderBook = new KrStockOrderBookResponse();
-        orderBook.setAsks(buildLevels(source, true));
-        orderBook.setBids(buildLevels(source, false));
+        orderBook.setAsks(buildAskLevels(source));
+        orderBook.setBids(buildBidLevels(source));
         orderBook.setTotalAskQuantity(optionalLong(source, "tot_sel_req"));
         orderBook.setTotalBidQuantity(optionalLong(source, "tot_buy_req"));
         orderBook.setBaseTime(formatTradeTime(firstNonBlank(source, "bid_req_base_tm")));
         return orderBook;
     }
 
-    private List<KrStockOrderBookLevelResponse> buildLevels(Map<String, String> source, boolean ask) {
+    private List<KrStockOrderBookLevelResponse> buildAskLevels(Map<String, String> source) {
         List<KrStockOrderBookLevelResponse> levels = new ArrayList<>();
         for (int index = 10; index >= 1; index--) {
-            String ordinal = ordinal(index);
-            Double price = optionalDouble(source,
-                    (ask ? "sel_" : "buy_") + ordinal + "_pre_bid",
-                    (ask ? "sel_" : "buy_") + index + "th_pre_bid");
-            Long quantity = optionalLong(source,
-                    (ask ? "sel_" : "buy_") + ordinal + "_pre_req",
-                    (ask ? "sel_" : "buy_") + index + "th_pre_req");
+            Double price = optionalDouble(source, askPriceKeys(index));
+            Long quantity = optionalLong(source, askQuantityKeys(index));
             if (price == null && quantity == null) {
                 continue;
             }
             levels.add(new KrStockOrderBookLevelResponse(price == null ? 0D : Math.abs(price), quantity == null ? 0L : Math.abs(quantity)));
         }
         return levels;
+    }
+
+    private List<KrStockOrderBookLevelResponse> buildBidLevels(Map<String, String> source) {
+        List<KrStockOrderBookLevelResponse> levels = new ArrayList<>();
+        for (int index = 1; index <= 10; index++) {
+            Double price = optionalDouble(source, bidPriceKeys(index));
+            Long quantity = optionalLong(source, bidQuantityKeys(index));
+            if (price == null && quantity == null) {
+                continue;
+            }
+            levels.add(new KrStockOrderBookLevelResponse(price == null ? 0D : Math.abs(price), quantity == null ? 0L : Math.abs(quantity)));
+        }
+        return levels;
+    }
+
+    private String[] askPriceKeys(int index) {
+        if (index == 1) {
+            return new String[]{"sel_fpr_bid", "sel_1th_pre_bid", "sel_1st_pre_bid"};
+        }
+        return new String[]{"sel_" + index + "th_pre_bid", "sel_" + ordinal(index) + "_pre_bid"};
+    }
+
+    private String[] askQuantityKeys(int index) {
+        if (index == 1) {
+            return new String[]{"sel_fpr_req", "sel_1th_pre_req", "sel_1st_pre_req"};
+        }
+        return new String[]{"sel_" + index + "th_pre_req", "sel_" + ordinal(index) + "_pre_req"};
+    }
+
+    private String[] bidPriceKeys(int index) {
+        if (index == 1) {
+            return new String[]{"buy_fpr_bid", "buy_1th_pre_bid", "buy_1st_pre_bid"};
+        }
+        return new String[]{"buy_" + index + "th_pre_bid", "buy_" + ordinal(index) + "_pre_bid"};
+    }
+
+    private String[] bidQuantityKeys(int index) {
+        if (index == 1) {
+            return new String[]{"buy_fpr_req", "buy_1th_pre_req", "buy_1st_pre_req"};
+        }
+        return new String[]{"buy_" + index + "th_pre_req", "buy_" + ordinal(index) + "_pre_req"};
     }
 
     private String ordinal(int value) {
@@ -413,6 +445,58 @@ public class KiwoomKrStockService {
             return 0L;
         }
         return 0L;
+    }
+
+    private void ensureChartData(String symbol, String seriesType, List<KrStockCandleResponse> candles, JsonNode rawNode) {
+        if (!candles.isEmpty()) {
+            return;
+        }
+        throw new IllegalStateException(
+                "Kiwoom returned an empty " + seriesType + " payload for symbol " + symbol
+                        + ". The request succeeded but contained no usable chart rows. "
+                        + "Check the symbol format, allowed IP registration, and Kiwoom market-data permissions. "
+                        + "return_code=" + rawNode.path("return_code").asText("")
+                        + ", return_msg=" + rawNode.path("return_msg").asText("")
+        );
+    }
+
+    private void ensureRealtimeData(String symbol, Map<String, String> quoteMap, JsonNode rawNode) {
+        if (hasAnyValue(quoteMap, "cur_prc", "close_pric", "open_pric", "trde_qty")) {
+            return;
+        }
+        throw new IllegalStateException(
+                "Kiwoom returned an empty realtime payload for symbol " + symbol
+                        + ". The request succeeded but the quote fields were blank. "
+                        + "Check the symbol format, allowed IP registration, and Kiwoom market-data permissions. "
+                        + "return_code=" + rawNode.path("return_code").asText("")
+                        + ", return_msg=" + rawNode.path("return_msg").asText("")
+        );
+    }
+
+    private boolean hasAnyValue(Map<String, String> source, String... keys) {
+        for (String key : keys) {
+            String value = source.get(key);
+            if (value != null && !value.isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<Map<String, String>> extractObjectArray(JsonNode node, String preferredField) {
+        JsonNode preferred = node.path(preferredField);
+        if (preferred.isArray()) {
+            List<Map<String, String>> mapped = new ArrayList<>();
+            for (JsonNode child : preferred) {
+                if (child.isObject()) {
+                    mapped.add(toFlatMap(child));
+                }
+            }
+            if (!mapped.isEmpty()) {
+                return mapped;
+            }
+        }
+        return findLargestObjectArray(node);
     }
 
     private List<Map<String, String>> findLargestObjectArray(JsonNode node) {
