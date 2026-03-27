@@ -37,8 +37,8 @@ export default function KrStockCandleChart({ candles, showIntradayTime, theme = 
     const textColor = isDark ? 'rgba(255,255,255,0.5)' : '#6b7280';
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
     const borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#e5e7eb';
-    const upColor = isDark ? '#22c55e' : '#111827';
-    const downColor = isDark ? '#ef4444' : '#b91c1c';
+    const upColor = isDark ? '#f04452' : '#ef4444';
+    const downColor = isDark ? '#3b82f6' : '#3182f6';
 
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
