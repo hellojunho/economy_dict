@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 "/api/search",
                                 "/api/stocks/**",
                                 "/api/kr-stocks/**",
+                                "/api/ws/kr-stocks/**",
                                 "/api/auth/signup",
                                 "/api/auth/login"
                         ).permitAll()

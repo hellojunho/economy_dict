@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import client from '../api/client';
 import { getApiErrorMessage } from '../utils/apiError';
 
-export type SectionKey = 'overview' | 'chart' | 'users' | 'words' | 'uploads' | 'quizzes';
+export type SectionKey = 'overview' | 'users' | 'words' | 'uploads' | 'quizzes';
 
 export type AdminUser = {
   id: number;
@@ -162,6 +162,7 @@ type AdminState = {
   editWord: (word: AdminWord) => void;
   resetUserForm: () => void;
   resetWordForm: () => void;
+  clearSelectedQuiz: () => void;
   clearMessage: () => void;
   refreshCurrentSection: (sectionOverride?: SectionKey) => Promise<void>;
   changeWordPage: (page: number) => Promise<void>;
@@ -169,12 +170,13 @@ type AdminState = {
   applyUploadModel: () => Promise<void>;
   saveUser: () => Promise<boolean>;
   deleteUser: (id: number) => Promise<void>;
-  saveWord: () => Promise<void>;
+  loadWord: (id: number) => Promise<void>;
+  saveWord: () => Promise<boolean>;
   deleteWord: (id: number) => Promise<void>;
   translateWordsToEnglish: () => Promise<void>;
   uploadSelectedFile: () => Promise<void>;
   selectQuiz: (id: number) => Promise<void>;
-  generateQuiz: () => Promise<void>;
+  generateQuiz: () => Promise<AdminQuiz | null>;
 };
 
 const WORDS_PAGE_SIZE = 10;
@@ -226,6 +228,11 @@ async function fetchWords(page: number) {
       size: WORDS_PAGE_SIZE
     }
   });
+  return response.data;
+}
+
+async function fetchWord(id: number) {
+  const response = await client.get<AdminWord>(`/admin/words/${id}`);
   return response.data;
 }
 
@@ -339,12 +346,13 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   }),
   resetUserForm: () => set({ userForm: defaultUserForm }),
   resetWordForm: () => set({ wordForm: defaultWordForm }),
+  clearSelectedQuiz: () => set({ selectedQuiz: null }),
   clearMessage: () => set({ message: '' }),
   refreshCurrentSection: async (sectionOverride) => {
     const section = sectionOverride ?? get().section;
     set({ loading: true, message: '' });
     try {
-      if (section === 'overview' || section === 'chart') {
+      if (section === 'overview') {
         const { summary, stats } = await fetchOverview();
         set({ summary, stats });
       }
@@ -383,9 +391,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }
       if (section === 'quizzes') {
         const quizzes = await fetchQuizzes();
-        const selectedQuizId = get().selectedQuiz?.id ?? quizzes[0]?.id ?? null;
-        const selectedQuiz = selectedQuizId ? await fetchQuiz(selectedQuizId) : null;
-        set({ quizzes, selectedQuiz });
+        set({ quizzes, selectedQuiz: null });
       }
     } catch (error) {
       set({ message: getApiErrorMessage(error, '관리자 데이터를 불러오지 못했습니다.') });
@@ -461,6 +467,22 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ message: getApiErrorMessage(error, '사용자 삭제에 실패했습니다.') });
     }
   },
+  loadWord: async (id) => {
+    set({ loading: true, message: '' });
+    try {
+      const [word, sourceOptions, fileTypeOptions] = await Promise.all([
+        fetchWord(id),
+        fetchSources(),
+        fetchFileTypes()
+      ]);
+      set({ sourceOptions, fileTypeOptions });
+      get().editWord(word);
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '단어 정보를 불러오지 못했습니다.') });
+    } finally {
+      set({ loading: false });
+    }
+  },
   saveWord: async () => {
     const { wordForm } = get();
     set({ message: '' });
@@ -482,8 +504,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         fileTypeOptions,
         message: '단어 정보가 저장되었습니다.'
       });
+      return true;
     } catch (error) {
       set({ message: getApiErrorMessage(error, '단어 정보를 저장하지 못했습니다.') });
+      return false;
     }
   },
   deleteWord: async (id) => {
@@ -580,8 +604,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         section: 'quizzes',
         message: 'AI 퀴즈가 생성되었습니다.'
       });
+      return response.data;
     } catch (error) {
       set({ message: getApiErrorMessage(error, 'AI 퀴즈 생성에 실패했습니다.') });
+      return null;
     } finally {
       set({ generatingQuiz: false });
     }

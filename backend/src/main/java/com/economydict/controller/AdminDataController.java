@@ -204,6 +204,13 @@ public class AdminDataController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/words/{id}")
+    public ResponseEntity<DictionaryEntryDto> getDictionary(@PathVariable Long id) {
+        DictionaryEntry entry = dictionaryEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Dictionary not found"));
+        return ResponseEntity.ok(toDictionaryDto(entry));
+    }
+
     @GetMapping("/sources")
     public ResponseEntity<List<SourceOptionDto>> listSources() {
         return ResponseEntity.ok(wordMetadataService.listSources());

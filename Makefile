@@ -18,6 +18,7 @@ stop-prod:
 
 restart:
 	$(MAKE) stop
+	git pull origin main
 	$(MAKE) start
 
 build:

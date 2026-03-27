@@ -6,7 +6,6 @@ import { AdminQuizQuestion, AdminUser, DIRECT_SOURCE_OPTION, SectionKey, Summary
 
 const sections: { key: SectionKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
-  { key: 'chart', label: 'Chart' },
   { key: 'users', label: 'Users' },
   { key: 'words', label: 'Words' },
   { key: 'uploads', label: 'Uploads' },
@@ -15,7 +14,6 @@ const sections: { key: SectionKey; label: string }[] = [
 
 const sectionPathMap: Record<SectionKey, string> = {
   overview: '/admin/overview',
-  chart: '/admin/chart',
   users: '/admin/users',
   words: '/admin/words',
   uploads: '/admin/uploads',
@@ -34,6 +32,12 @@ const uploadModelPricing = [
 function resolveSection(pathname: string): SectionKey {
   if (pathname.startsWith('/admin/users')) {
     return 'users';
+  }
+  if (pathname.startsWith('/admin/words')) {
+    return 'words';
+  }
+  if (pathname.startsWith('/admin/quizzes')) {
+    return 'quizzes';
   }
   const matched = sections.find((item) => pathname === sectionPathMap[item.key]);
   return matched?.key ?? 'overview';
@@ -323,7 +327,7 @@ function AdminChartCanvas({ title, description, config, emptyMessage, highlight 
 export default function Admin() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userEntry } = useParams();
+  const { userEntry, wordEntry, quizEntry, questionEntry } = useParams();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const role = useAuthStore((state) => state.role);
   const summary = useAdminStore((state) => state.summary);
@@ -336,6 +340,7 @@ export default function Admin() {
   const wordPage = useAdminStore((state) => state.wordPage);
   const uploads = useAdminStore((state) => state.uploads);
   const sourceOptions = useAdminStore((state) => state.sourceOptions);
+  const fileTypeOptions = useAdminStore((state) => state.fileTypeOptions);
   const message = useAdminStore((state) => state.message);
   const loading = useAdminStore((state) => state.loading);
   const uploading = useAdminStore((state) => state.uploading);
@@ -359,12 +364,14 @@ export default function Admin() {
   const editWord = useAdminStore((state) => state.editWord);
   const resetUserForm = useAdminStore((state) => state.resetUserForm);
   const resetWordForm = useAdminStore((state) => state.resetWordForm);
+  const clearSelectedQuiz = useAdminStore((state) => state.clearSelectedQuiz);
   const refreshCurrentSection = useAdminStore((state) => state.refreshCurrentSection);
   const changeWordPage = useAdminStore((state) => state.changeWordPage);
   const loadUploads = useAdminStore((state) => state.loadUploads);
   const applyUploadModel = useAdminStore((state) => state.applyUploadModel);
   const saveUser = useAdminStore((state) => state.saveUser);
   const deleteUser = useAdminStore((state) => state.deleteUser);
+  const loadWord = useAdminStore((state) => state.loadWord);
   const saveWord = useAdminStore((state) => state.saveWord);
   const deleteWord = useAdminStore((state) => state.deleteWord);
   const translateWordsToEnglish = useAdminStore((state) => state.translateWordsToEnglish);
@@ -382,8 +389,44 @@ export default function Admin() {
     () => users.find((user) => String(user.id) === userEntry) ?? null,
     [userEntry, users]
   );
+  const editingWord = useMemo(
+    () => words.find((word) => String(word.id) === wordEntry) ?? null,
+    [wordEntry, words]
+  );
   const isNewUserPage = userEntry === 'new';
   const isUserEditPage = currentSection === 'users' && Boolean(userEntry);
+  const isNewWordPage = wordEntry === 'new';
+  const isWordEditPage = currentSection === 'words' && Boolean(wordEntry);
+  const isQuizDetailPage = currentSection === 'quizzes' && Boolean(quizEntry);
+  const selectedQuestion = useMemo(
+    () => selectedQuiz?.questions.find((question) => String(question.id) === questionEntry) ?? null,
+    [questionEntry, selectedQuiz]
+  );
+  const isQuizQuestionDetailPage = isQuizDetailPage && Boolean(questionEntry);
+  const wordsWithoutEnglishCount = useMemo(
+    () => words.filter((word) => !word.englishWord || !word.englishWord.trim()).length,
+    [words]
+  );
+  const quizQuestionTotal = useMemo(
+    () => quizzes.reduce((total, quiz) => total + quiz.questionCount, 0),
+    [quizzes]
+  );
+  const quizParticipantTotal = useMemo(
+    () => quizzes.reduce((total, quiz) => total + quiz.participantCount, 0),
+    [quizzes]
+  );
+  const latestQuiz = useMemo(() => quizzes[0] ?? null, [quizzes]);
+  const selectedQuizAverageAccuracy = useMemo(() => {
+    if (!selectedQuiz || selectedQuiz.questions.length === 0) {
+      return '-';
+    }
+    const average = selectedQuiz.questions.reduce((total, question) => total + question.correctRate, 0) / selectedQuiz.questions.length;
+    return `${Math.round(average * 100)}%`;
+  }, [selectedQuiz]);
+  const selectedQuizAttemptedTotal = useMemo(
+    () => selectedQuiz?.questions.reduce((total, question) => total + question.attemptedUsers, 0) ?? 0,
+    [selectedQuiz]
+  );
 
   if (!isAuthenticated || role !== 'ADMIN') {
     return <Navigate to="/signin" replace />;
@@ -421,6 +464,47 @@ export default function Admin() {
     editUser(editingUser);
   }, [currentSection, editUser, editingUser, isNewUserPage, resetUserForm, userEntry]);
 
+  useEffect(() => {
+    if (currentSection !== 'words') {
+      return;
+    }
+
+    if (isNewWordPage) {
+      resetWordForm();
+      return;
+    }
+
+    if (!wordEntry) {
+      return;
+    }
+
+    if (editingWord) {
+      editWord(editingWord);
+      return;
+    }
+
+    const wordId = Number(wordEntry);
+    if (!Number.isNaN(wordId)) {
+      void loadWord(wordId);
+    }
+  }, [currentSection, editWord, editingWord, isNewWordPage, loadWord, resetWordForm, wordEntry]);
+
+  useEffect(() => {
+    if (currentSection !== 'quizzes') {
+      return;
+    }
+
+    if (!quizEntry) {
+      clearSelectedQuiz();
+      return;
+    }
+
+    const quizId = Number(quizEntry);
+    if (!Number.isNaN(quizId)) {
+      void selectQuiz(quizId);
+    }
+  }, [clearSelectedQuiz, currentSection, quizEntry, selectQuiz]);
+
   const handleSaveUser = async (event: FormEvent) => {
     event.preventDefault();
     const saved = await saveUser();
@@ -431,7 +515,17 @@ export default function Admin() {
 
   const handleSaveWord = async (event: FormEvent) => {
     event.preventDefault();
-    await saveWord();
+    const saved = await saveWord();
+    if (saved) {
+      navigate('/admin/words');
+    }
+  };
+
+  const handleGenerateQuiz = async () => {
+    const quiz = await generateQuiz();
+    if (quiz) {
+      navigate(`/admin/quizzes/${quiz.id}`);
+    }
   };
 
   const currentUpload = useMemo(() => uploads[0] ?? null, [uploads]);
@@ -459,7 +553,7 @@ export default function Admin() {
       </aside>
 
       <main className="admin-main formal-admin-main">
-        {currentSection !== 'users' && (
+        {!['users', 'words', 'quizzes'].includes(currentSection) && (
           <header className="admin-topbar">
             <div>
               <p className="section-label">{currentSection}</p>
@@ -481,48 +575,6 @@ export default function Admin() {
               <article className="stat-card"><span>Total Words</span><strong>{summary?.totalWords ?? '-'}</strong><p>등록 경제 용어 수</p></article>
               <article className="stat-card"><span>Recent Uploads</span><strong>{summary?.recentUploads ?? '-'}</strong><p>최근 업로드 작업 수</p></article>
             </section>
-            <section className="panel">
-              <div className="panel-head compact">
-                <div>
-                  <p className="section-label">Daily Metrics</p>
-                  <h2>일간 지표</h2>
-                </div>
-              </div>
-              <div className="table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>New Users</th>
-                      <th>Logins</th>
-                      <th>Active Users</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.map((item) => (
-                      <tr key={item.targetDate}>
-                        <td>{item.targetDate}</td>
-                        <td>{item.newUsersCount}</td>
-                        <td>{item.loginCount}</td>
-                        <td>{item.activeUsersCount}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {currentSection === 'chart' && (
-          <div className="page-stack">
-            <section className="stat-grid admin-stats-grid">
-              <article className="stat-card"><span>Total Users</span><strong>{formatMetricNumber(summary?.totalUsers)}</strong><p>전체 등록 사용자</p></article>
-              <article className="stat-card"><span>Active Users</span><strong>{formatMetricNumber(summary?.activeUsers)}</strong><p>활성 사용자 수</p></article>
-              <article className="stat-card"><span>Total Words</span><strong>{formatMetricNumber(summary?.totalWords)}</strong><p>등록 경제 용어 수</p></article>
-              <article className="stat-card"><span>Recent Uploads</span><strong>{formatMetricNumber(summary?.recentUploads)}</strong><p>최근 업로드 작업 수</p></article>
-            </section>
-
             <section className="chart-card-grid">
               <AdminChartCanvas
                 title="Overview Snapshot"
@@ -544,44 +596,6 @@ export default function Admin() {
                 emptyMessage="표시할 일간 지표가 없습니다."
                 highlight={stats.length > 0 ? `${Math.min(stats.length, 7)} Days` : 'No Data'}
               />
-            </section>
-
-            <section className="panel">
-              <div className="panel-head compact">
-                <div>
-                  <p className="section-label">Source Data</p>
-                  <h2>차트 원본 데이터</h2>
-                  <p className="panel-copy">차트 아래에서 Overview와 동일한 일간 지표 값을 함께 확인할 수 있습니다.</p>
-                </div>
-              </div>
-              <div className="table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>New Users</th>
-                      <th>Logins</th>
-                      <th>Active Users</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.length > 0 ? (
-                      stats.map((item) => (
-                        <tr key={item.targetDate}>
-                          <td>{item.targetDate}</td>
-                          <td>{formatMetricNumber(item.newUsersCount)}</td>
-                          <td>{formatMetricNumber(item.loginCount)}</td>
-                          <td>{formatMetricNumber(item.activeUsersCount)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="table-empty">일간 지표 데이터가 없습니다.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
             </section>
           </div>
         )}
@@ -677,44 +691,28 @@ export default function Admin() {
           </div>
         )}
 
-        {currentSection === 'words' && (
-          <div className="content-grid columns-1-2">
-            <section className="panel">
-              <div className="panel-head compact"><div><p className="section-label">CRUD</p><h2>단어 편집</h2></div></div>
-              <form className="form-stack" onSubmit={handleSaveWord}>
-                <label><span>Word</span><input value={wordForm.word} onChange={(e) => updateWordForm({ word: e.target.value })} /></label>
-                <label><span>Meaning</span><textarea rows={5} value={wordForm.meaning} onChange={(e) => updateWordForm({ meaning: e.target.value })} /></label>
-                <label><span>English Word</span><input value={wordForm.englishWord} onChange={(e) => updateWordForm({ englishWord: e.target.value })} /></label>
-                <label><span>English Meaning</span><textarea rows={4} value={wordForm.englishMeaning} onChange={(e) => updateWordForm({ englishMeaning: e.target.value })} /></label>
-                <label>
-                  <span>Source</span>
-                  <select value={wordForm.sourceId} onChange={(e) => updateWordForm({ sourceId: e.target.value, sourceName: e.target.value === DIRECT_SOURCE_OPTION ? wordForm.sourceName : '' })}>
-                    <option value="">선택 안 함</option>
-                    {sourceOptions.map((source) => (
-                      <option key={source.id} value={String(source.id)}>{source.name}</option>
-                    ))}
-                    <option value={DIRECT_SOURCE_OPTION}>직접입력</option>
-                  </select>
-                </label>
-                {wordForm.sourceId === DIRECT_SOURCE_OPTION && (
-                  <label><span>New Source</span><input value={wordForm.sourceName} onChange={(e) => updateWordForm({ sourceName: e.target.value })} placeholder="예: 한국경제용어 700선" /></label>
-                )}
-                <div className="button-row">
-                  <button type="submit" className="button button-primary">Save Word</button>
-                  <button type="button" className="button button-secondary" onClick={() => resetWordForm()}>Clear</button>
-                </div>
-              </form>
+        {currentSection === 'words' && !isWordEditPage && (
+          <div className="page-stack">
+            <section className="stat-grid admin-stats-grid">
+              <article className="stat-card"><span>Total Words</span><strong>{formatMetricNumber(wordListResponse?.totalElements ?? 0)}</strong><p>등록된 전체 단어 수</p></article>
+              <article className="stat-card"><span>Current Page</span><strong>{formatMetricNumber(words.length)}</strong><p>현재 페이지에 표시 중인 단어</p></article>
+              <article className="stat-card"><span>Missing English</span><strong>{formatMetricNumber(wordsWithoutEnglishCount)}</strong><p>현재 페이지 기준 영문 필드 미완성</p></article>
+              <article className="stat-card"><span>Sources</span><strong>{formatMetricNumber(sourceOptions.length)}</strong><p>선택 가능한 출처 수</p></article>
             </section>
+
             <section className="panel">
               <div className="panel-head compact">
                 <div>
-                  <p className="section-label">Records</p>
+                  <p className="section-label">Words Dashboard</p>
                   <h2>단어 목록</h2>
-                  <p className="panel-copy">Words Dashboard는 페이지당 10개씩 표시되며, 영문 필드가 비어 있는 용어만 비동기로 영문화합니다.</p>
+                  <p className="panel-copy">단어를 클릭하면 별도 편집 화면으로 이동합니다. 영문 필드가 비어 있는 용어는 현재 페이지 기준으로 영문화할 수 있습니다.</p>
                 </div>
                 <div className="admin-actions">
                   <button type="button" className="button button-secondary" onClick={() => translateWordsToEnglish()} disabled={translatingWords}>
                     {translatingWords ? 'Translating...' : 'To English'}
+                  </button>
+                  <button type="button" className="button button-secondary" onClick={() => navigate('/admin/words/new')}>
+                    New Word
                   </button>
                 </div>
               </div>
@@ -725,12 +723,16 @@ export default function Admin() {
                     {words.length > 0 ? (
                       words.map((word) => (
                         <tr key={word.id}>
-                          <td>{word.word}</td>
+                          <td>
+                            <button type="button" className="link-button" onClick={() => navigate(`/admin/words/${word.id}`)}>
+                              {word.word}
+                            </button>
+                          </td>
                           <td>{word.englishWord ?? '-'}</td>
                           <td>{word.sourceName ?? '-'}</td>
                           <td>
                             <div className="table-actions">
-                              <button type="button" className="link-button" onClick={() => editWord(word)}>Edit</button>
+                              <button type="button" className="link-button" onClick={() => navigate(`/admin/words/${word.id}`)}>Edit</button>
                               <button type="button" className="link-button danger-text" onClick={() => deleteWord(word.id)}>Delete</button>
                             </div>
                           </td>
@@ -762,6 +764,67 @@ export default function Admin() {
                   </div>
                 </div>
               </div>
+            </section>
+          </div>
+        )}
+
+        {currentSection === 'words' && isWordEditPage && (
+          <div className="page-stack">
+            <section className="panel admin-detail-panel">
+              <div className="panel-head compact">
+                <div>
+                  <p className="section-label">CRUD</p>
+                  <h2>{isNewWordPage ? '단어 생성' : '단어 편집'}</h2>
+                  <p className="panel-copy">
+                    {isNewWordPage
+                      ? '새 단어와 뜻을 입력한 뒤 저장합니다.'
+                      : wordForm.id
+                        ? `${wordForm.word} 항목을 수정합니다.`
+                        : '단어 정보를 불러오는 중입니다.'}
+                  </p>
+                </div>
+                <div className="admin-actions">
+                  <button type="button" className="button button-secondary" onClick={() => navigate('/admin/words')}>
+                    Back To List
+                  </button>
+                </div>
+              </div>
+
+              {(isNewWordPage || wordForm.id) ? (
+                <form className="form-stack" onSubmit={handleSaveWord}>
+                  <label><span>Word</span><input value={wordForm.word} onChange={(e) => updateWordForm({ word: e.target.value })} /></label>
+                  <label><span>Meaning</span><textarea rows={8} value={wordForm.meaning} onChange={(e) => updateWordForm({ meaning: e.target.value })} /></label>
+                  <label><span>English Word</span><input value={wordForm.englishWord} onChange={(e) => updateWordForm({ englishWord: e.target.value })} /></label>
+                  <label><span>English Meaning</span><textarea rows={4} value={wordForm.englishMeaning} onChange={(e) => updateWordForm({ englishMeaning: e.target.value })} /></label>
+                  <label>
+                    <span>File Type</span>
+                    <select value={wordForm.fileType} onChange={(e) => updateWordForm({ fileType: e.target.value })}>
+                      {fileTypeOptions.map((option) => (
+                        <option key={option.code} value={option.code}>{option.displayName}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Source</span>
+                    <select value={wordForm.sourceId} onChange={(e) => updateWordForm({ sourceId: e.target.value, sourceName: e.target.value === DIRECT_SOURCE_OPTION ? wordForm.sourceName : '' })}>
+                      <option value="">선택 안 함</option>
+                      {sourceOptions.map((source) => (
+                        <option key={source.id} value={String(source.id)}>{source.name}</option>
+                      ))}
+                      <option value={DIRECT_SOURCE_OPTION}>직접입력</option>
+                    </select>
+                  </label>
+                  {wordForm.sourceId === DIRECT_SOURCE_OPTION && (
+                    <label><span>New Source</span><input value={wordForm.sourceName} onChange={(e) => updateWordForm({ sourceName: e.target.value })} placeholder="예: 한국경제용어 700선" /></label>
+                  )}
+                  <div className="button-row">
+                    <button type="submit" className="button button-primary">Save Word</button>
+                    <button type="button" className="button button-secondary" onClick={() => resetWordForm()}>Clear</button>
+                  </div>
+                </form>
+              ) : (
+                <p className="muted">해당 단어를 찾지 못했습니다.</p>
+              )}
             </section>
           </div>
         )}
@@ -916,17 +979,24 @@ export default function Admin() {
           </div>
         )}
 
-        {currentSection === 'quizzes' && (
-          <div className="content-grid columns-1-2">
+        {currentSection === 'quizzes' && !isQuizDetailPage && (
+          <div className="page-stack">
+            <section className="stat-grid admin-stats-grid">
+              <article className="stat-card"><span>Total Quizzes</span><strong>{formatMetricNumber(quizzes.length)}</strong><p>생성된 전체 퀴즈 수</p></article>
+              <article className="stat-card"><span>Total Questions</span><strong>{formatMetricNumber(quizQuestionTotal)}</strong><p>모든 퀴즈의 문항 수 합계</p></article>
+              <article className="stat-card"><span>Total Participants</span><strong>{formatMetricNumber(quizParticipantTotal)}</strong><p>퀴즈별 참여 인원 합계</p></article>
+              <article className="stat-card"><span>Latest Quiz</span><strong>{latestQuiz ? formatDateTime(latestQuiz.createdAt) : '-'}</strong><p>가장 최근 생성된 퀴즈</p></article>
+            </section>
+
             <section className="panel">
               <div className="panel-head compact">
                 <div>
-                  <p className="section-label">AI Quiz Builder</p>
-                  <h2>퀴즈 생성</h2>
-                  <p className="panel-copy">Words 테이블의 용어와 뜻을 바탕으로 AI가 객관식 경제 퀴즈를 생성합니다. 생성된 퀴즈는 문항별 정답률과 참여 사용자 기준으로 바로 확인할 수 있습니다.</p>
+                  <p className="section-label">Quiz Dashboard</p>
+                  <h2>퀴즈 목록</h2>
+                  <p className="panel-copy">퀴즈를 선택하면 별도 상세 화면에서 문항별 보기, 참여 사용자, 정답률을 확인할 수 있습니다.</p>
                 </div>
                 <div className="admin-actions">
-                  <button type="button" className="button button-primary" onClick={() => generateQuiz()} disabled={generatingQuiz}>
+                  <button type="button" className="button button-primary" onClick={handleGenerateQuiz} disabled={generatingQuiz}>
                     {generatingQuiz ? 'Creating...' : 'Create Quiz'}
                   </button>
                 </div>
@@ -946,12 +1016,16 @@ export default function Admin() {
                     {quizzes.length > 0 ? (
                       quizzes.map((quiz) => (
                         <tr key={quiz.id}>
-                          <td>{quiz.title}</td>
+                          <td>
+                            <button type="button" className="link-button" onClick={() => navigate(`/admin/quizzes/${quiz.id}`)}>
+                              {quiz.title}
+                            </button>
+                          </td>
                           <td>{quiz.questionCount}</td>
                           <td>{quiz.participantCount}</td>
                           <td>{formatDateTime(quiz.createdAt)}</td>
                           <td>
-                            <button type="button" className="link-button" onClick={() => selectQuiz(quiz.id)}>
+                            <button type="button" className="link-button" onClick={() => navigate(`/admin/quizzes/${quiz.id}`)}>
                               View
                             </button>
                           </td>
@@ -966,88 +1040,169 @@ export default function Admin() {
                 </table>
               </div>
             </section>
+          </div>
+        )}
 
-            <section className="panel">
-              <div className="panel-head compact">
-                <div>
-                  <p className="section-label">Quiz Detail</p>
-                  <h2>{selectedQuiz ? selectedQuiz.title : '퀴즈를 선택하세요'}</h2>
-                  {selectedQuiz && (
-                    <p className="panel-copy">
-                      Quiz ID {selectedQuiz.quizId} · 문항 {selectedQuiz.questionCount}개 · 참여 사용자 {selectedQuiz.participantCount}명
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {selectedQuiz ? (
-                <div className="page-stack">
-                  {selectedQuiz.questions.map((question, index) => (
-                    <div key={question.id} className="panel">
-                      <div className="panel-head compact">
-                        <div>
-                          <p className="section-label">Question {index + 1}</p>
-                          <h3>{question.questionText}</h3>
-                        </div>
+        {currentSection === 'quizzes' && isQuizDetailPage && (
+          <div className="page-stack">
+            {selectedQuiz ? (
+              isQuizQuestionDetailPage ? (
+                selectedQuestion ? (
+                  <section className="panel admin-detail-panel">
+                    <div className="panel-head compact">
+                      <div>
+                        <p className="section-label">Question Detail</p>
+                        <h2>{selectedQuestion.questionText}</h2>
+                        <p className="panel-copy">선택한 문제의 응답 현황과 보기 구성을 확인합니다.</p>
                       </div>
-                      <div className="stat-grid admin-stats-grid">
-                        <article className="stat-card">
-                          <span>Attempted</span>
-                          <strong>{question.attemptedUsers}</strong>
-                          <p>문제를 푼 사용자 수</p>
-                        </article>
-                        <article className="stat-card">
-                          <span>Correct</span>
-                          <strong>{question.correctUsers}</strong>
-                          <p>정답을 맞힌 사용자 수</p>
-                        </article>
-                        <article className="stat-card">
-                          <span>Accuracy</span>
-                          <strong>{renderQuestionRate(question)}</strong>
-                          <p>정답률</p>
-                        </article>
-                      </div>
-                      <div className="table-wrap">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Order</th>
-                              <th>Option</th>
-                              <th>Answer</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {question.options.map((option) => (
-                              <tr key={option.id}>
-                                <td>{option.optionOrder}</td>
-                                <td>{option.optionText}</td>
-                                <td>{option.correct ? 'Correct' : '-'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      <div className="content-grid columns-1-2">
-                        <div>
-                          <p className="section-label">Participants</p>
-                          <p className="muted">
-                            {question.participants.length > 0 ? question.participants.join(', ') : '아직 응답한 사용자가 없습니다.'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="section-label">Correct Users</p>
-                          <p className="muted">
-                            {question.correctParticipants.length > 0 ? question.correctParticipants.join(', ') : '아직 정답자가 없습니다.'}
-                          </p>
-                        </div>
+                      <div className="admin-actions">
+                        <button
+                          type="button"
+                          className="button button-secondary"
+                          onClick={() => navigate(`/admin/quizzes/${selectedQuiz.id}`)}
+                        >
+                          Back To Questions
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="stat-grid admin-stats-grid">
+                      <article className="stat-card">
+                        <span>Attempted</span>
+                        <strong>{selectedQuestion.attemptedUsers}</strong>
+                        <p>문제를 푼 사용자 수</p>
+                      </article>
+                      <article className="stat-card">
+                        <span>Correct</span>
+                        <strong>{selectedQuestion.correctUsers}</strong>
+                        <p>정답을 맞힌 사용자 수</p>
+                      </article>
+                      <article className="stat-card">
+                        <span>Accuracy</span>
+                        <strong>{renderQuestionRate(selectedQuestion)}</strong>
+                        <p>정답률</p>
+                      </article>
+                    </div>
+                    <div className="table-wrap">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Order</th>
+                            <th>Option</th>
+                            <th>Answer</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedQuestion.options.map((option) => (
+                            <tr key={option.id}>
+                              <td>{option.optionOrder}</td>
+                              <td>{option.optionText}</td>
+                              <td>{option.correct ? 'Correct' : '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="content-grid columns-1-2">
+                      <div>
+                        <p className="section-label">Participants</p>
+                        <p className="muted">
+                          {selectedQuestion.participants.length > 0 ? selectedQuestion.participants.join(', ') : '아직 응답한 사용자가 없습니다.'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="section-label">Correct Users</p>
+                        <p className="muted">
+                          {selectedQuestion.correctParticipants.length > 0 ? selectedQuestion.correctParticipants.join(', ') : '아직 정답자가 없습니다.'}
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+                ) : (
+                  <p className="muted">해당 문제를 찾지 못했습니다.</p>
+                )
               ) : (
-                <p className="muted">왼쪽 목록에서 퀴즈를 선택하면 문항별 보기, 참여 사용자, 정답률을 확인할 수 있습니다.</p>
-              )}
-            </section>
+                <section className="panel admin-detail-panel">
+                  <div className="panel-head compact">
+                    <div>
+                      <p className="section-label">Quiz Dashboard</p>
+                      <h2>문제 목록</h2>
+                      <p className="panel-copy">문제를 클릭하면 개별 문제의 Attempted, Correct, Accuracy와 보기를 확인할 수 있습니다.</p>
+                    </div>
+                    <div className="admin-actions">
+                      <button type="button" className="button button-secondary" onClick={() => navigate('/admin/quizzes')}>
+                        Back To List
+                      </button>
+                    </div>
+                  </div>
+                  <section className="stat-grid admin-stats-grid">
+                    <article className="stat-card">
+                      <span>Questions</span>
+                      <strong>{selectedQuiz.questionCount}</strong>
+                      <p>이 퀴즈에 포함된 전체 문항 수</p>
+                    </article>
+                    <article className="stat-card">
+                      <span>Participants</span>
+                      <strong>{selectedQuiz.participantCount}</strong>
+                      <p>퀴즈에 참여한 전체 사용자 수</p>
+                    </article>
+                    <article className="stat-card">
+                      <span>Total Attempted</span>
+                      <strong>{selectedQuizAttemptedTotal}</strong>
+                      <p>문항 단위 응답 수 합계</p>
+                    </article>
+                    <article className="stat-card">
+                      <span>Average Accuracy</span>
+                      <strong>{selectedQuizAverageAccuracy}</strong>
+                      <p>문항 평균 정답률</p>
+                    </article>
+                  </section>
+                  <div className="table-wrap">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>No.</th>
+                          <th>Question</th>
+                          <th>Attempted</th>
+                          <th>Correct</th>
+                          <th>Accuracy</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedQuiz.questions.map((question, index) => (
+                          <tr key={question.id}>
+                            <td>{index + 1}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className="link-button"
+                                onClick={() => navigate(`/admin/quizzes/${selectedQuiz.id}/questions/${question.id}`)}
+                              >
+                                {question.questionText}
+                              </button>
+                            </td>
+                            <td>{question.attemptedUsers}</td>
+                            <td>{question.correctUsers}</td>
+                            <td>{renderQuestionRate(question)}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className="link-button"
+                                onClick={() => navigate(`/admin/quizzes/${selectedQuiz.id}/questions/${question.id}`)}
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              )
+            ) : (
+              <p className="muted">해당 퀴즈를 찾지 못했거나 아직 불러오는 중입니다.</p>
+            )}
           </div>
         )}
       </main>
