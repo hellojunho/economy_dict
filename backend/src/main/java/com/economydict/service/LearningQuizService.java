@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -45,10 +46,13 @@ public class LearningQuizService {
         this.analyticsService = analyticsService;
     }
 
-    public DailyQuizResponse getDailyQuiz() {
+    public Optional<DailyQuizResponse> getDailyQuiz() {
+        Optional<Quiz> quizOptional = quizRepository.findFirstByOrderByCreatedAtDesc();
+        if (quizOptional.isEmpty()) {
+            return Optional.empty();
+        }
         User user = userService.getCurrentUser();
-        Quiz quiz = quizRepository.findFirstByOrderByCreatedAtDesc()
-                .orElseThrow(() -> new IllegalArgumentException("관리자에서 생성한 퀴즈가 없습니다. 먼저 Admin에서 Create Quiz를 실행하세요."));
+        Quiz quiz = quizOptional.get();
 
         List<DailyQuizQuestionResponse> questions = quiz.getQuestions().stream()
                 .sorted(Comparator.comparing(QuizQuestion::getId))
@@ -68,7 +72,7 @@ public class LearningQuizService {
         QuizRecordSummary summary = summarizeStatuses(statuses);
         response.setRecordedCorrectCount(summary.recordedCorrectCount());
         response.setRecordedIncorrectCount(summary.recordedIncorrectCount());
-        return response;
+        return Optional.of(response);
     }
 
     public List<IncorrectQuizQuestionResponse> getIncorrectQuestions() {

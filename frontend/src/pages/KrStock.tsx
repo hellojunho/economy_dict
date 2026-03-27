@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import client from '../api/client';
+import InvestFeatureTabs from '../components/InvestFeatureTabs';
 import KrStockCandleChart from '../components/KrStockCandleChart';
 import StockMarketWarning from '../components/StockMarketWarning';
 import { useThemeStore } from '../stores/themeStore';
@@ -265,6 +266,8 @@ export default function KrStock() {
 
   return (
     <div className="site-frame page-stack">
+      <InvestFeatureTabs />
+
       <section className="panel stock-hero">
         <div className="stock-topbar">
           <div>

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { Chart as ChartInstance, ChartConfiguration } from 'chart.js';
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
@@ -21,6 +21,15 @@ const sectionPathMap: Record<SectionKey, string> = {
   uploads: '/admin/uploads',
   quizzes: '/admin/quizzes'
 };
+
+const uploadModelPricing = [
+  { value: 'gpt-5.4', label: 'GPT-5.4', standardPrice: '$2.00', batchPrice: '$1.00' },
+  { value: 'gpt-5.4-mini', label: 'GPT-5.4 mini (5mini)', standardPrice: '$0.60', batchPrice: '$0.30' },
+  { value: 'gpt-5.4-nano', label: 'GPT-5.4 nano', standardPrice: '$0.1625', batchPrice: '$0.08125' },
+  { value: 'gpt-4.1', label: 'GPT-4.1', standardPrice: '$1.40', batchPrice: '$0.70' },
+  { value: 'gpt-4.1-mini', label: 'GPT-4.1 mini', standardPrice: '$0.28', batchPrice: '$0.14' },
+  { value: 'gpt-4.1-nano', label: 'GPT-4.1 nano', standardPrice: '$0.07', batchPrice: '$0.035' }
+];
 
 function resolveSection(pathname: string): SectionKey {
   if (pathname.startsWith('/admin/users')) {
@@ -330,16 +339,20 @@ export default function Admin() {
   const message = useAdminStore((state) => state.message);
   const loading = useAdminStore((state) => state.loading);
   const uploading = useAdminStore((state) => state.uploading);
+  const applyingUploadModel = useAdminStore((state) => state.applyingUploadModel);
   const translatingWords = useAdminStore((state) => state.translatingWords);
   const generatingQuiz = useAdminStore((state) => state.generatingQuiz);
   const uploadSourceId = useAdminStore((state) => state.uploadSourceId);
   const uploadSourceName = useAdminStore((state) => state.uploadSourceName);
+  const uploadModel = useAdminStore((state) => state.uploadModel);
+  const uploadModelDraft = useAdminStore((state) => state.uploadModelDraft);
   const userForm = useAdminStore((state) => state.userForm);
   const wordForm = useAdminStore((state) => state.wordForm);
   const setSection = useAdminStore((state) => state.setSection);
   const setSelectedFile = useAdminStore((state) => state.setSelectedFile);
   const setUploadSourceId = useAdminStore((state) => state.setUploadSourceId);
   const setUploadSourceName = useAdminStore((state) => state.setUploadSourceName);
+  const setUploadModelDraft = useAdminStore((state) => state.setUploadModelDraft);
   const updateUserForm = useAdminStore((state) => state.updateUserForm);
   const updateWordForm = useAdminStore((state) => state.updateWordForm);
   const editUser = useAdminStore((state) => state.editUser);
@@ -349,6 +362,7 @@ export default function Admin() {
   const refreshCurrentSection = useAdminStore((state) => state.refreshCurrentSection);
   const changeWordPage = useAdminStore((state) => state.changeWordPage);
   const loadUploads = useAdminStore((state) => state.loadUploads);
+  const applyUploadModel = useAdminStore((state) => state.applyUploadModel);
   const saveUser = useAdminStore((state) => state.saveUser);
   const deleteUser = useAdminStore((state) => state.deleteUser);
   const saveWord = useAdminStore((state) => state.saveWord);
@@ -357,6 +371,8 @@ export default function Admin() {
   const uploadSelectedFile = useAdminStore((state) => state.uploadSelectedFile);
   const selectQuiz = useAdminStore((state) => state.selectQuiz);
   const generateQuiz = useAdminStore((state) => state.generateQuiz);
+  const [showUploadModelInfo, setShowUploadModelInfo] = useState(false);
+  const resolvedUploadModel = uploadModel || uploadModelDraft || 'gpt-4.1-nano';
   const currentSection = useMemo(() => resolveSection(location.pathname), [location.pathname]);
   const summaryChartConfig = useMemo(() => buildSummaryChartConfig(summary), [summary]);
   const trendChartConfig = useMemo(() => buildTrendChartConfig(stats), [stats]);
@@ -764,6 +780,78 @@ export default function Admin() {
                   <span>Supported File</span>
                   <input type="file" accept=".pdf,.txt,.xlsx,.csv,.json,.zip,application/pdf,text/plain,text/csv,application/json,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
                 </label>
+                <div className="upload-model-block">
+                  <div className="upload-model-head">
+                    <label className="upload-model-label">
+                      <span className="upload-model-label-row">
+                        <span>GPT API Model</span>
+                        <button
+                          type="button"
+                          className={`upload-model-info-button${showUploadModelInfo ? ' active' : ''}`}
+                          onClick={() => setShowUploadModelInfo((value) => !value)}
+                          aria-expanded={showUploadModelInfo}
+                          aria-label="GPT 모델 과금 정보 보기"
+                        >
+                          i
+                        </button>
+                      </span>
+                      <select
+                        className="upload-model-select"
+                        value={uploadModelDraft || resolvedUploadModel}
+                        onChange={(event) => setUploadModelDraft(event.target.value)}
+                      >
+                        {uploadModelPricing.map((item) => (
+                          <option key={item.value} value={item.value}>{item.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="upload-model-actions">
+                      <button
+                        type="button"
+                        className="button button-secondary"
+                        onClick={() => applyUploadModel()}
+                        disabled={applyingUploadModel || !uploadModelDraft || uploadModelDraft === resolvedUploadModel}
+                      >
+                        {applyingUploadModel ? 'Applying...' : 'Apply'}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="muted">현재 적용 모델: {resolvedUploadModel}</p>
+
+                  {showUploadModelInfo && (
+                    <div className="upload-model-info-panel">
+                      <div className="table-wrap">
+                        <table className="data-table upload-pricing-table">
+                          <thead>
+                            <tr>
+                              <th>모델</th>
+                              <th>일반 호출</th>
+                              <th>Batch API 사용 시</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {uploadModelPricing.map((item) => (
+                              <tr key={item.value}>
+                                <td>{item.label}</td>
+                                <td><strong>{item.standardPrice}</strong></td>
+                                <td><strong>{item.batchPrice}</strong></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="upload-model-callout">
+                        <div>
+                          <strong>Batch API란?</strong>
+                          <p>
+                            Batch API는 요청을 실시간으로 바로 응답받는 대신, 여러 작업을 묶어 비동기로 처리하는 방식입니다.
+                            처리 시간이 더 걸릴 수 있지만 단가가 낮아서 대량 업로드나 대량 용어 정리에 유리합니다.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <label>
                   <span>Source (Optional)</span>
                   <select value={uploadSourceId} onChange={(event) => setUploadSourceId(event.target.value)}>

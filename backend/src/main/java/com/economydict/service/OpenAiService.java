@@ -83,6 +83,10 @@ public class OpenAiService {
     }
 
     public List<ExtractedTerm> extractDictionaryTerms(String documentText) {
+        return extractDictionaryTerms(documentText, model);
+    }
+
+    public List<ExtractedTerm> extractDictionaryTerms(String documentText, String requestModel) {
         String prompt = """
                 You are an expert extractor of economics glossary terms.
                 Task: Extract economics terms from the document for insertion into our database.
@@ -110,7 +114,7 @@ public class OpenAiService {
                 3) Resolve duplicates to a single entry.
                 Document:
                 """ + documentText;
-        ChatRequest request = new ChatRequest(model, List.of(
+        ChatRequest request = new ChatRequest(resolveModel(requestModel), List.of(
                 new ChatMessage("system", "You are an expert in economics glossary extraction."),
                 new ChatMessage("user", prompt)
         ));
@@ -139,9 +143,17 @@ public class OpenAiService {
                 Return ONLY valid JSON object with EXACT keys: word, meaning, englishWord, englishMeaning.
                 Rules:
                 - word must be the input term.
-                - meaning must be a concise Korean explanation suitable for an economics glossary.
+                - meaning must follow this exact markdown structure:
+                  1) first line: **"한 문장 요약"**
+                  2) blank line
+                  3) one Korean explanatory paragraph that starts with the term itself and contains 1 to 2 sentences only
+                  4) blank line
+                  5) heading: 핵심 정리
+                  6) 3 to 5 bullet points
+                - Do not repeat the same sentence, phrase, or bullet with minor wording changes.
+                - Do not restate the paragraph verbatim inside the bullet list.
                 - englishWord and englishMeaning should be null if uncertain.
-                - No markdown, no prose, no code fences.
+                - Do not use code fences or extra prose outside the JSON.
                 Term: """ + term;
         ChatRequest request = new ChatRequest(model, List.of(
                 new ChatMessage("system", "You answer in strict JSON only."),
@@ -163,6 +175,10 @@ public class OpenAiService {
     }
 
     public DefinitionResult summarizeUploadedTerm(String term, String rawMeaning) {
+        return summarizeUploadedTerm(term, rawMeaning, model);
+    }
+
+    public DefinitionResult summarizeUploadedTerm(String term, String rawMeaning, String requestModel) {
         DefinitionResult fallback = new DefinitionResult();
         fallback.setWord(term);
         fallback.setMeaning(rawMeaning);
@@ -177,12 +193,14 @@ public class OpenAiService {
                 word, meaning, englishWord, englishMeaning
 
                 Output rules for meaning:
-                1. The first line must be a short Korean explanation wrapped in double quotes.
+                1. The first line must be **"짧은 한국어 요약"** exactly in markdown bold.
                 2. Add one blank line.
-                3. Add one explanatory paragraph that starts with the term itself.
+                3. Add one explanatory paragraph that starts with the term itself and stays within 1 to 2 sentences.
                 4. Add one blank line.
-                5. Add the heading **핵심 정리**
+                5. Add the heading 핵심 정리
                 6. Add 3 to 5 bullet points summarizing the concept.
+                7. Do not repeat the same sentence or bullet with slightly different wording.
+                8. Do not copy the explanatory paragraph directly into the bullet list.
 
                 Output rules for englishWord and englishMeaning:
                 - englishWord must be the commonly used English economics term.
@@ -202,7 +220,7 @@ public class OpenAiService {
                 Original meaning: %s
                 """.formatted(term, rawMeaning);
 
-        ChatRequest request = new ChatRequest(model, List.of(
+        ChatRequest request = new ChatRequest(resolveModel(requestModel), List.of(
                 new ChatMessage("system", "You return strict JSON for Korean economics glossary entries."),
                 new ChatMessage("user", prompt)
         ));
@@ -229,6 +247,10 @@ public class OpenAiService {
     }
 
     public DefinitionResult enrichImportedTerm(String term, String rawMeaning) {
+        return enrichImportedTerm(term, rawMeaning, model);
+    }
+
+    public DefinitionResult enrichImportedTerm(String term, String rawMeaning, String requestModel) {
         DefinitionResult fallback = new DefinitionResult();
         fallback.setWord(term);
         fallback.setMeaning(rawMeaning);
@@ -254,7 +276,7 @@ public class OpenAiService {
                 Original meaning: %s
                 """.formatted(term, rawMeaning == null ? "" : rawMeaning);
 
-        ChatRequest request = new ChatRequest(model, List.of(
+        ChatRequest request = new ChatRequest(resolveModel(requestModel), List.of(
                 new ChatMessage("system", "You return strict JSON for glossary enrichment."),
                 new ChatMessage("user", prompt)
         ));
@@ -415,6 +437,10 @@ public class OpenAiService {
             return normalized;
         }
         return normalized.substring(0, 240);
+    }
+
+    private String resolveModel(String requestedModel) {
+        return requestedModel == null || requestedModel.isBlank() ? model : requestedModel.trim();
     }
 
     private ChatResponse executeChatRequest(ChatRequest request) {

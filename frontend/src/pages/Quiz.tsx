@@ -208,10 +208,10 @@ export default function Quiz() {
         </form>
       )}
 
-      {isAuthenticated && !dailyQuiz && message && (
+      {isAuthenticated && !dailyQuiz && (
         <section className="panel callout-panel">
           <h2>표시할 퀴즈가 없습니다.</h2>
-          <p className="panel-copy">{message}</p>
+          <p className="panel-copy">{message || '아직 생성된 데일리 퀴즈가 없습니다. Admin에서 Create Quiz를 실행하세요.'}</p>
         </section>
       )}
 

@@ -26,7 +26,9 @@ public class LearningQuizController {
 
     @GetMapping("/daily")
     public ResponseEntity<DailyQuizResponse> daily() {
-        return ResponseEntity.ok(learningQuizService.getDailyQuiz());
+        return learningQuizService.getDailyQuiz()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping("/submit")

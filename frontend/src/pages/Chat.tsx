@@ -73,12 +73,11 @@ export default function Chat() {
     return (
       <div className="site-frame page-stack">
         <section className="panel callout-panel">
-          <p className="section-label">AI Chat</p>
-          <h1>ChatGPT 대화 기능</h1>
-          <p className="panel-copy">대화는 사용자별 JSON 파일로 저장되며, 새로고침 후에도 이전 대화 목록과 내용을 유지합니다.</p>
+          <p className="section-label">AI 채팅</p>
+          <h1>로그인 후 이용할 수 있어요</h1>
           <div className="button-row">
-            <Link to="/signin" className="button button-primary">Sign In</Link>
-            <Link to="/signup" className="button button-secondary">Create Account</Link>
+            <Link to="/signin" className="button button-primary">로그인</Link>
+            <Link to="/signup" className="button button-secondary">가입하기</Link>
           </div>
         </section>
       </div>
@@ -86,88 +85,108 @@ export default function Chat() {
   }
 
   return (
-    <div className="site-frame page-stack">
-      <section className="panel chat-shell">
-        <aside className="chat-sidebar">
-          <div className="chat-sidebar-head">
-            <div>
-              <p className="section-label">Conversation</p>
-              <h2>AI Chat</h2>
-            </div>
-            <button type="button" className="button button-primary" onClick={() => createThread()} disabled={loading}>
-              New Chat
-            </button>
-          </div>
-          <div className="chat-thread-list">
-            {sidebarLoading && <p className="muted">목록을 불러오는 중입니다.</p>}
-            {!sidebarLoading && threads.length === 0 && <p className="muted">생성된 대화가 없습니다.</p>}
-            {threads.map((thread) => (
-              <div key={thread.threadId} className={`chat-thread-item ${activeThread?.threadId === thread.threadId ? 'active' : ''}`}>
-                <button type="button" className="chat-thread-link" onClick={() => selectThread(thread.threadId)}>
-                  <strong>{thread.title}</strong>
-                  <span>{new Date(thread.updatedAt).toLocaleString()}</span>
-                </button>
-                <button type="button" className="chat-thread-delete" onClick={() => removeThread(thread.threadId)} aria-label="Delete chat">
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
+    <div className="site-frame page-stack toss-feed-screen real-chat-screen">
+      <section className="toss-feed-layout real-chat-layout">
+        <aside className="toss-feed-menu real-chat-menu">
+          <button type="button" className="toss-feed-menu-item active">전체 대화</button>
+          <button type="button" className="toss-feed-menu-item" onClick={() => createThread()} disabled={loading}>새 대화</button>
         </aside>
 
-        <div className="chat-main">
-          <div className="chat-main-head">
-            <div>
-              <p className="section-label">Economics Expert Role</p>
-              <h2>{activeThread?.title ?? '새 대화를 시작하세요'}</h2>
+        <div className="toss-feed-main real-chat-main">
+          <section className="toss-feed-composer-card real-chat-topbar">
+            <div className="toss-feed-composer-copy">
+              <div className="toss-feed-avatar">AI</div>
+              <strong>경제 개념과 용어를 질문해 보세요</strong>
             </div>
-          </div>
+            <button type="button" className="button button-primary" onClick={() => createThread()} disabled={loading}>
+              새 대화
+            </button>
+          </section>
 
-          <div className="chat-conversation-shell">
-            <section className="chat-transcript-panel">
-              <div className="chat-message-list">
-                {(activeThread?.messages ?? []).length === 0 && (
-                  <div className="chat-empty-state">
-                    <p>경제 용어, 정책, 투자 개념을 질문하면 경제 전문가처럼 답변합니다.</p>
-                    <p className="muted">대화는 `backend/chats` 아래 JSON 파일로 저장됩니다.</p>
-                  </div>
-                )}
-                {(activeThread?.messages ?? []).map((item, index) => (
-                  <article key={`${item.createdAt}-${index}`} className={`chat-bubble ${item.role}`}>
-                    <span>{item.role === 'assistant' ? 'AI' : 'You'}</span>
-                    <div className="chat-bubble-content">
-                      {item.role === 'assistant' ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{formatAssistantMarkdown(item.content)}</ReactMarkdown>
-                      ) : (
-                        <p>{item.content}</p>
-                      )}
+          <div className="toss-feed-list real-chat-thread-list">
+            {sidebarLoading && <p className="muted">목록을 불러오는 중입니다.</p>}
+            {!sidebarLoading && threads.length === 0 && (
+              <article className="toss-feed-card">
+                <strong>저장된 대화가 없습니다.</strong>
+                <p className="muted">새 대화 버튼으로 시작하세요.</p>
+              </article>
+            )}
+
+            {threads.map((thread) => (
+              <article key={thread.threadId} className={`toss-feed-card${activeThread?.threadId === thread.threadId ? ' active' : ''}`}>
+                <div className="toss-feed-card-head">
+                  <div className="toss-feed-user">
+                    <div className="toss-feed-avatar small">{thread.title.slice(0, 1)}</div>
+                    <div>
+                      <strong>{thread.title}</strong>
+                      <span>{new Date(thread.updatedAt).toLocaleString()}</span>
                     </div>
-                  </article>
-                ))}
-              </div>
-            </section>
+                  </div>
+                  <div className="button-row">
+                    <button type="button" className="toss-follow-chip" onClick={() => selectThread(thread.threadId)}>
+                      열기
+                    </button>
+                    <button type="button" className="toss-follow-chip muted" onClick={() => removeThread(thread.threadId)}>
+                      삭제
+                    </button>
+                  </div>
+                </div>
 
-            <form className="chat-composer" onSubmit={handleSubmit}>
-              <textarea
-                ref={composerRef}
-                rows={1}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={handleComposerKeyDown}
-                placeholder="경제 용어 또는 경제 이슈를 입력하세요."
-                className="chat-composer-textarea"
-              />
-              <div className="button-row chat-composer-actions">
-                <p className="chat-composer-hint">`Enter` 전송, `Cmd+Enter` 또는 `Ctrl+Enter` 줄바꿈</p>
-                <button type="submit" className="button button-primary" disabled={loading}>
-                  {loading ? 'Sending...' : 'Send'}
-                </button>
-              </div>
-            </form>
+                {activeThread?.threadId === thread.threadId && activeThread.messages.length > 0 ? (
+                  <div className="toss-feed-content">
+                    {activeThread.messages.slice(-2).map((item, index) => (
+                      <div key={`${item.createdAt}-${index}`} className="toss-feed-message">
+                        <span>{item.role === 'assistant' ? 'AI' : 'You'}</span>
+                        <div className="toss-feed-markdown">
+                          {item.role === 'assistant' ? (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{formatAssistantMarkdown(item.content)}</ReactMarkdown>
+                          ) : (
+                            <p>{item.content}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <aside className="toss-feed-side real-chat-side">
+          <div className="toss-feed-side-head">
+            <h2>현재 대화</h2>
           </div>
 
-          {error && <p className="form-message error-text">{error}</p>}
-        </div>
+          <div className="toss-feed-side-panel">
+            {activeThread ? (
+              <>
+                <strong>{activeThread.title}</strong>
+                <span>{activeThread.messages.length}개 메시지</span>
+                <form className="toss-feed-side-form" onSubmit={handleSubmit}>
+                  <textarea
+                    ref={composerRef}
+                    rows={1}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={handleComposerKeyDown}
+                    placeholder="경제 용어 또는 이슈를 입력하세요."
+                    className="chat-composer-textarea"
+                  />
+                  <button type="submit" className="button button-primary" disabled={loading}>
+                    {loading ? '전송 중' : '보내기'}
+                  </button>
+                </form>
+                {error && <p className="form-message error-text">{error}</p>}
+              </>
+            ) : (
+              <>
+                <strong>대화를 선택하세요</strong>
+                <span>왼쪽 목록에서 대화를 열면 이 영역에서 이어서 질문할 수 있습니다.</span>
+              </>
+            )}
+          </div>
+        </aside>
       </section>
     </div>
   );

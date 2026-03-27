@@ -6,6 +6,7 @@ import com.economydict.entity.WordSource;
 import com.economydict.repository.FileTypeRepository;
 import com.economydict.repository.DictionaryEntryRepository;
 import com.economydict.repository.WordSourceRepository;
+import com.economydict.service.DictionaryMeaningFormatService;
 import com.economydict.service.OpenAiService;
 import java.util.List;
 import org.springframework.batch.item.Chunk;
@@ -16,15 +17,18 @@ public class TermWriter implements ItemWriter<List<OpenAiService.ExtractedTerm>>
     private final FileTypeRepository fileTypeRepository;
     private final WordSourceRepository wordSourceRepository;
     private final Long sourceId;
+    private final DictionaryMeaningFormatService dictionaryMeaningFormatService;
 
     public TermWriter(DictionaryEntryRepository dictionaryEntryRepository,
                       FileTypeRepository fileTypeRepository,
                       WordSourceRepository wordSourceRepository,
-                      Long sourceId) {
+                      Long sourceId,
+                      DictionaryMeaningFormatService dictionaryMeaningFormatService) {
         this.dictionaryEntryRepository = dictionaryEntryRepository;
         this.fileTypeRepository = fileTypeRepository;
         this.wordSourceRepository = wordSourceRepository;
         this.sourceId = sourceId;
+        this.dictionaryMeaningFormatService = dictionaryMeaningFormatService;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class TermWriter implements ItemWriter<List<OpenAiService.ExtractedTerm>>
                 }
                 DictionaryEntry entry = new DictionaryEntry();
                 entry.setWord(word);
-                entry.setMeaning(term.getMeaning() == null ? "" : term.getMeaning());
+                entry.setMeaning(dictionaryMeaningFormatService.formatMeaning(word, term.getMeaning() == null ? "" : term.getMeaning()));
                 entry.setEnglishWord(term.getEnglishWord());
                 entry.setEnglishMeaning(term.getEnglishMeaning());
                 String fileTypeCode = term.getSource() == null || term.getSource().isBlank() ? "AI_IMPORT" : term.getSource();

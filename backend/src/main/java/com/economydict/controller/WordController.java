@@ -22,9 +22,10 @@ public class WordController {
     @GetMapping
     public ResponseEntity<PagedResponse<WordResponse>> list(
             @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "initial", required = false) String initial,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "12") int size) {
-        return ResponseEntity.ok(wordService.getWords(query, page, size));
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(wordService.getWords(query, initial, page, size));
     }
 
     @GetMapping("/{id:\\d+}")

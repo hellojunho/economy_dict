@@ -14,6 +14,8 @@ public interface DictionaryEntryRepository extends JpaRepository<DictionaryEntry
     Optional<DictionaryEntry> findByWordIgnoreCase(String word);
     Page<DictionaryEntry> findByWordContainingIgnoreCaseOrMeaningContainingIgnoreCase(String word, String meaning, Pageable pageable);
 
+    Page<DictionaryEntry> findByWordGreaterThanEqualAndWordLessThan(String start, String end, org.springframework.data.domain.Pageable pageable);
+
     @Query("""
             select e
             from DictionaryEntry e

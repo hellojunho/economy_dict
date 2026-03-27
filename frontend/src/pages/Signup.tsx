@@ -31,39 +31,53 @@ export default function Signup() {
   };
 
   return (
-    <div className="auth-layout">
-      <section className="auth-panel">
-        <p className="section-label">Sign Up</p>
-        <h1>신규 계정 등록</h1>
-        <p className="panel-copy">기본 정보 등록 후 바로 학습 기능을 사용할 수 있습니다.</p>
+    <div className="auth-layout auth-library-layout">
+      <Link to="/" className="auth-library-brand">
+        <span className="auth-library-mark" aria-hidden="true">E</span>
+        <span>경제사전</span>
+      </Link>
 
-        <form className="form-stack" onSubmit={handleSubmit}>
+      <section className="auth-library-shell">
+        <div className="auth-library-intro">
+          <p className="section-label">New Account</p>
+          <h1>학습 계정을 만드세요</h1>
+          <p className="panel-copy">기본 정보만 등록하면 용어 학습, 퀴즈, AI 기능을 바로 사용할 수 있습니다.</p>
+        </div>
+
+        <div className="auth-library-card">
+          <div className="auth-library-switch">
+            <Link to="/signin" className="auth-library-switch-item">로그인</Link>
+            <button type="button" className="auth-library-switch-item active">회원가입</button>
+          </div>
+
+          <form className="form-stack auth-library-form" onSubmit={handleSubmit}>
           <label>
-            <span>User ID</span>
+            <span>아이디</span>
             <input value={form.userId} onChange={(event) => setForm((current) => ({ ...current, userId: event.target.value }))} />
           </label>
           <label>
-            <span>Username</span>
+            <span>이름</span>
             <input value={form.username} onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))} />
           </label>
           <label>
-            <span>Password</span>
+            <span>비밀번호</span>
             <input type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
           </label>
           <label>
-            <span>Email</span>
+            <span>이메일</span>
             <input value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
           </label>
-          <button type="submit" className="button button-primary" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Account'}
+          <button type="submit" className="button button-primary auth-library-submit" disabled={loading}>
+            {loading ? '가입 중' : '계정 만들기'}
           </button>
         </form>
 
         {message && <p className="form-message error-text">{message}</p>}
 
-        <div className="auth-footer-links">
+        <div className="auth-footer-links auth-library-links">
           <Link to="/terms">이용약관</Link>
           <Link to="/signin">로그인으로 이동</Link>
+        </div>
         </div>
       </section>
     </div>

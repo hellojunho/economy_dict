@@ -7,10 +7,12 @@ import org.springframework.batch.item.ItemProcessor;
 
 public class PdfExtractProcessor implements ItemProcessor<ImportChunk, List<OpenAiService.ExtractedTerm>> {
     private final OpenAiService openAiService;
+    private final String uploadModel;
     private static final int MAX_CHARS = 12000;
 
-    public PdfExtractProcessor(OpenAiService openAiService) {
+    public PdfExtractProcessor(OpenAiService openAiService, String uploadModel) {
         this.openAiService = openAiService;
+        this.uploadModel = uploadModel;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class PdfExtractProcessor implements ItemProcessor<ImportChunk, List<Open
             return Collections.emptyList();
         }
         text = text.length() > MAX_CHARS ? text.substring(0, MAX_CHARS) : text;
-        return openAiService.extractDictionaryTerms(text);
+        return openAiService.extractDictionaryTerms(text, uploadModel);
     }
 
     private OpenAiService.ExtractedTerm formatImportedTerm(OpenAiService.ExtractedTerm term) {
@@ -41,7 +43,7 @@ public class PdfExtractProcessor implements ItemProcessor<ImportChunk, List<Open
         formatted.setSource(term.getSource());
 
         if ("JSON_IMPORT".equals(term.getSource())) {
-            OpenAiService.DefinitionResult summary = openAiService.summarizeUploadedTerm(term.getWord(), term.getMeaning());
+            OpenAiService.DefinitionResult summary = openAiService.summarizeUploadedTerm(term.getWord(), term.getMeaning(), uploadModel);
             formatted.setMeaning(summary.getMeaning());
             formatted.setEnglishWord(selectValue(summary.getEnglishWord(), term.getEnglishWord()));
             formatted.setEnglishMeaning(selectValue(summary.getEnglishMeaning(), term.getEnglishMeaning()));
@@ -50,7 +52,7 @@ public class PdfExtractProcessor implements ItemProcessor<ImportChunk, List<Open
 
         formatted.setMeaning(term.getMeaning());
         if (isBlank(term.getEnglishWord()) || isBlank(term.getEnglishMeaning())) {
-            OpenAiService.DefinitionResult enriched = openAiService.enrichImportedTerm(term.getWord(), term.getMeaning());
+            OpenAiService.DefinitionResult enriched = openAiService.enrichImportedTerm(term.getWord(), term.getMeaning(), uploadModel);
             formatted.setEnglishWord(selectValue(term.getEnglishWord(), enriched.getEnglishWord()));
             formatted.setEnglishMeaning(selectValue(term.getEnglishMeaning(), enriched.getEnglishMeaning()));
             return formatted;
