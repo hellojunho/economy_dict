@@ -21,17 +21,20 @@ public class PdfImportJobService {
     private final ImportTaskService taskService;
     private final ImportContentExtractor importContentExtractor;
     private final WordMetadataService wordMetadataService;
+    private final UploadAiModelSettingsService uploadAiModelSettingsService;
 
     public PdfImportJobService(JobLauncher jobLauncher,
                                Job pdfImportJob,
                                ImportTaskService taskService,
                                ImportContentExtractor importContentExtractor,
-                               WordMetadataService wordMetadataService) {
+                               WordMetadataService wordMetadataService,
+                               UploadAiModelSettingsService uploadAiModelSettingsService) {
         this.jobLauncher = jobLauncher;
         this.pdfImportJob = pdfImportJob;
         this.taskService = taskService;
         this.importContentExtractor = importContentExtractor;
         this.wordMetadataService = wordMetadataService;
+        this.uploadAiModelSettingsService = uploadAiModelSettingsService;
     }
 
     public WordUploadStatusResponse submit(MultipartFile file, Long sourceId, String sourceName) {
@@ -49,15 +52,16 @@ public class PdfImportJobService {
             resolvedSourceId = wordMetadataService.resolveSource(sourceId, sourceName).getId();
         }
         taskService.updateTotalUnits(task.getTaskId(), countUnits(filePath));
-        runAsync(task.getTaskId(), filePath, resolvedSourceId);
+        runAsync(task.getTaskId(), filePath, resolvedSourceId, uploadAiModelSettingsService.getCurrentUploadModel());
         return taskService.toWordUploadStatus(taskService.getTask(task.getTaskId()));
     }
 
     @Async
-    public void runAsync(String taskId, String filePath, Long sourceId) {
+    public void runAsync(String taskId, String filePath, Long sourceId, String uploadModel) {
         JobParametersBuilder paramsBuilder = new JobParametersBuilder()
                 .addString("taskId", taskId)
                 .addString("filePath", filePath)
+                .addString("uploadModel", uploadModel)
                 .addLong("timestamp", System.currentTimeMillis());
         if (sourceId != null) {
             paramsBuilder.addString("sourceId", sourceId.toString());

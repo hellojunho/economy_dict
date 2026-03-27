@@ -2,6 +2,7 @@ package com.economydict.batch;
 
 import com.economydict.service.ImportContentExtractor;
 import com.economydict.service.ImportTaskService;
+import com.economydict.service.DictionaryMeaningFormatService;
 import com.economydict.service.OpenAiService;
 import com.economydict.repository.DictionaryEntryRepository;
 import com.economydict.repository.FileTypeRepository;
@@ -68,8 +69,11 @@ public class PdfImportJobConfig {
     }
 
     @Bean
-    public ItemProcessor<ImportChunk, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor(OpenAiService openAiService) {
-        return new PdfExtractProcessor(openAiService);
+    @StepScope
+    public ItemProcessor<ImportChunk, java.util.List<OpenAiService.ExtractedTerm>> pdfExtractProcessor(
+            OpenAiService openAiService,
+            @Value("#{jobParameters['uploadModel']}") String uploadModel) {
+        return new PdfExtractProcessor(openAiService, uploadModel);
     }
 
     @Bean
@@ -78,9 +82,10 @@ public class PdfImportJobConfig {
             DictionaryEntryRepository dictionaryEntryRepository,
             FileTypeRepository fileTypeRepository,
             WordSourceRepository wordSourceRepository,
+            DictionaryMeaningFormatService dictionaryMeaningFormatService,
             @Value("#{jobParameters['sourceId']}") String sourceIdValue) {
         Long sourceId = sourceIdValue == null || sourceIdValue.isBlank() ? null : Long.valueOf(sourceIdValue);
-        return new TermWriter(dictionaryEntryRepository, fileTypeRepository, wordSourceRepository, sourceId);
+        return new TermWriter(dictionaryEntryRepository, fileTypeRepository, wordSourceRepository, sourceId, dictionaryMeaningFormatService);
     }
 
     @Bean

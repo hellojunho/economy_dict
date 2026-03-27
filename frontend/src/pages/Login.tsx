@@ -33,20 +33,30 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-layout toss-auth-layout">
-      <Link to="/" className="toss-auth-brand">경제사전</Link>
+    <div className="auth-layout auth-library-layout">
+      <Link to="/" className="auth-library-brand">
+        <span className="auth-library-mark" aria-hidden="true">E</span>
+        <span>경제사전</span>
+      </Link>
 
-      <section className="toss-auth-shell">
-        <h1>경제사전 로그인</h1>
+      <section className="auth-library-shell">
+        <div className="auth-library-intro">
+          <p className="section-label">Member Access</p>
+          <h1>학습을 다시 이어가세요</h1>
+          <p className="panel-copy">
+            저장된 오답노트, AI 대화, 주식 학습 기록을 한 곳에서 이어볼 수 있습니다.
+          </p>
+        </div>
 
-        <div className="toss-auth-card">
-          <div className="toss-auth-tabs">
-            <button type="button" className="toss-auth-tab active">아이디 로그인</button>
-            <Link to="/signup" className="toss-auth-tab toss-auth-tab-link">회원가입</Link>
+        <div className="auth-library-card">
+          <div className="auth-library-switch">
+            <button type="button" className="auth-library-switch-item active">로그인</button>
+            <Link to="/signup" className="auth-library-switch-item">회원가입</Link>
           </div>
 
-          <form className="form-stack toss-auth-form" onSubmit={handleSubmit}>
+          <form className="form-stack auth-library-form" onSubmit={handleSubmit}>
             <label>
+              <span>아이디</span>
               <input
                 placeholder="아이디"
                 value={credentials.userId}
@@ -54,6 +64,7 @@ export default function Login() {
               />
             </label>
             <label>
+              <span>비밀번호</span>
               <input
                 type="password"
                 placeholder="비밀번호"
@@ -62,19 +73,19 @@ export default function Login() {
               />
             </label>
 
-            <button type="submit" className="button button-primary toss-auth-submit" disabled={loading}>
+            <button type="submit" className="button button-primary auth-library-submit" disabled={loading}>
               {loading ? '로그인 중' : '로그인'}
             </button>
           </form>
 
           {message && <p className="form-message error-text">{message}</p>}
 
-          <div className="auth-footer-links toss-auth-links">
+          <div className="auth-footer-links auth-library-links">
             <Link to="/terms">이용약관 보기</Link>
           </div>
         </div>
 
-        <p className="toss-auth-bottom-link">
+        <p className="auth-library-footnote">
           아직 경제사전 회원이 아닌가요? <Link to="/signup">가입하기</Link>
         </p>
       </section>

@@ -20,7 +20,7 @@ import { useAuthStore } from './stores/authStore';
 
 const publicNav = [
   { to: '/', label: '홈' },
-  { to: '/words', label: '용어' },
+  { to: '/words', label: '사전' },
   { to: '/quiz', label: '퀴즈' },
   { to: '/chat', label: 'AI 채팅' },
   { to: '/stocks', label: '주식' }
@@ -93,7 +93,7 @@ export default function App() {
             <div className="site-actions">
               <Link to="/words" className="site-search-shortcut">
                 <span>/</span>
-                <strong>용어 검색</strong>
+                <strong>사전 검색</strong>
               </Link>
               {!isAuthenticated && (
                 <>

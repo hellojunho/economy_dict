@@ -52,6 +52,13 @@ export type UploadTask = {
   errorLog?: string | null;
 };
 
+export type UploadAiModelConfig = {
+  currentModel: string;
+  defaultModel: string;
+};
+
+const DEFAULT_UPLOAD_MODEL = 'gpt-4.1-nano';
+
 export type DailyStat = {
   targetDate: string;
   newUsersCount: number;
@@ -134,17 +141,21 @@ type AdminState = {
   message: string;
   loading: boolean;
   uploading: boolean;
+  applyingUploadModel: boolean;
   translatingWords: boolean;
   generatingQuiz: boolean;
   selectedFile: File | null;
   uploadSourceId: string;
   uploadSourceName: string;
+  uploadModel: string;
+  uploadModelDraft: string;
   userForm: UserFormState;
   wordForm: WordFormState;
   setSection: (section: SectionKey) => void;
   setSelectedFile: (file: File | null) => void;
   setUploadSourceId: (sourceId: string) => void;
   setUploadSourceName: (sourceName: string) => void;
+  setUploadModelDraft: (model: string) => void;
   updateUserForm: (patch: Partial<UserFormState>) => void;
   updateWordForm: (patch: Partial<WordFormState>) => void;
   editUser: (user: AdminUser) => void;
@@ -155,6 +166,7 @@ type AdminState = {
   refreshCurrentSection: (sectionOverride?: SectionKey) => Promise<void>;
   changeWordPage: (page: number) => Promise<void>;
   loadUploads: () => Promise<void>;
+  applyUploadModel: () => Promise<void>;
   saveUser: () => Promise<boolean>;
   deleteUser: (id: number) => Promise<void>;
   saveWord: () => Promise<void>;
@@ -222,6 +234,11 @@ async function fetchUploads() {
   return response.data;
 }
 
+async function fetchUploadAiModelConfig() {
+  const response = await client.get<UploadAiModelConfig>('/admin/openai/upload-model');
+  return response.data;
+}
+
 async function fetchQuizzes() {
   const response = await client.get<AdminQuiz[]>('/admin/quizzes');
   return response.data;
@@ -280,17 +297,21 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   message: '',
   loading: false,
   uploading: false,
+  applyingUploadModel: false,
   translatingWords: false,
   generatingQuiz: false,
   selectedFile: null,
   uploadSourceId: '',
   uploadSourceName: '',
+  uploadModel: DEFAULT_UPLOAD_MODEL,
+  uploadModelDraft: DEFAULT_UPLOAD_MODEL,
   userForm: defaultUserForm,
   wordForm: defaultWordForm,
   setSection: (section) => set({ section }),
   setSelectedFile: (file) => set({ selectedFile: file }),
   setUploadSourceId: (sourceId) => set({ uploadSourceId: sourceId, uploadSourceName: sourceId === DIRECT_SOURCE_OPTION ? get().uploadSourceName : '' }),
   setUploadSourceName: (sourceName) => set({ uploadSourceName: sourceName }),
+  setUploadModelDraft: (model) => set({ uploadModelDraft: model }),
   updateUserForm: (patch) => set((state) => ({ userForm: { ...state.userForm, ...patch } })),
   updateWordForm: (patch) => set((state) => ({ wordForm: { ...state.wordForm, ...patch } })),
   editUser: (user) => set({
@@ -342,8 +363,23 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         });
       }
       if (section === 'uploads') {
-        const [uploads, sourceOptions] = await Promise.all([fetchUploads(), fetchSources()]);
-        set({ uploads, sourceOptions });
+        const [uploads, sourceOptions] = await Promise.all([
+          fetchUploads(),
+          fetchSources()
+        ]);
+        let resolvedModel = DEFAULT_UPLOAD_MODEL;
+        try {
+          const uploadAiModelConfig = await fetchUploadAiModelConfig();
+          resolvedModel = uploadAiModelConfig.currentModel || uploadAiModelConfig.defaultModel || DEFAULT_UPLOAD_MODEL;
+        } catch {
+          resolvedModel = get().uploadModel || get().uploadModelDraft || DEFAULT_UPLOAD_MODEL;
+        }
+        set({
+          uploads,
+          sourceOptions,
+          uploadModel: resolvedModel,
+          uploadModelDraft: resolvedModel
+        });
       }
       if (section === 'quizzes') {
         const quizzes = await fetchQuizzes();
@@ -377,6 +413,24 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ uploads: await fetchUploads() });
     } catch {
       // polling failure is intentionally silent
+    }
+  },
+  applyUploadModel: async () => {
+    const { uploadModelDraft } = get();
+    set({ applyingUploadModel: true, message: '' });
+    try {
+      const response = await client.put<UploadAiModelConfig>('/admin/openai/upload-model', {
+        model: uploadModelDraft
+      });
+      set({
+        uploadModel: response.data.currentModel,
+        uploadModelDraft: response.data.currentModel,
+        message: `업로드 GPT 모델이 ${response.data.currentModel}로 적용되었습니다.`
+      });
+    } catch (error) {
+      set({ message: getApiErrorMessage(error, '업로드 GPT 모델을 적용하지 못했습니다.') });
+    } finally {
+      set({ applyingUploadModel: false });
     }
   },
   saveUser: async () => {

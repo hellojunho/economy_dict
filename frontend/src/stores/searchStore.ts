@@ -19,6 +19,7 @@ export type WordPage = {
 
 type SearchState = {
   query: string;
+  listQuery: string;
   lookupResult: WordRecord | null;
   listResponse: WordPage | null;
   selectedWord: WordRecord | null;
@@ -26,7 +27,7 @@ type SearchState = {
   message: string;
   page: number;
   setQuery: (value: string) => void;
-  selectWord: (word: WordRecord) => void;
+  selectWord: (word: WordRecord | null) => void;
   initialize: () => Promise<void>;
   search: () => Promise<void>;
   changePage: (nextPage: number) => Promise<void>;
@@ -53,6 +54,7 @@ async function fetchLookup(query: string) {
 
 export const useSearchStore = create<SearchState>((set, get) => ({
   query: '',
+  listQuery: '',
   lookupResult: null,
   listResponse: null,
   selectedWord: null,
@@ -67,7 +69,9 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       const listResponse = await fetchWords('', 0);
       set({
         listResponse,
-        selectedWord: listResponse.content[0] ?? null,
+        listQuery: '',
+        lookupResult: null,
+        selectedWord: null,
         page: 0
       });
     } catch (error) {
@@ -81,15 +85,11 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     try {
       const query = get().query;
       const [listResponse, lookupResult] = await Promise.all([fetchWords(query, 0), fetchLookup(query)]);
-      const selectedWord = lookupResult
-        ?? listResponse.content.find((item) => item.id === get().selectedWord?.id)
-        ?? listResponse.content[0]
-        ?? null;
-
       set({
+        listQuery: query.trim(),
         listResponse,
         lookupResult,
-        selectedWord,
+        selectedWord: null,
         page: 0
       });
     } catch (error) {
@@ -101,11 +101,8 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   changePage: async (nextPage) => {
     set({ loading: true, message: '' });
     try {
-      const listResponse = await fetchWords(get().query, nextPage);
-      const selectedWord = get().selectedWord && listResponse.content.some((item) => item.id === get().selectedWord?.id)
-        ? get().selectedWord
-        : listResponse.content[0] ?? null;
-      set({ listResponse, selectedWord, page: nextPage });
+      const listResponse = await fetchWords(get().listQuery, nextPage);
+      set({ listResponse, selectedWord: null, page: nextPage });
     } catch (error) {
       set({ message: getApiErrorMessage(error, '페이지를 이동하지 못했습니다.') });
     } finally {

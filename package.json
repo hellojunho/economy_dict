@@ -5,6 +5,7 @@
     "start": "node scripts/runtime-runner.mjs docker-up",
     "stop": "node scripts/runtime-runner.mjs docker-down",
     "logs": "node scripts/runtime-runner.mjs docker-logs",
+    "chatlog": "node scripts/append-agent-chat-log.mjs",
     "backend": "node scripts/runtime-runner.mjs backend",
     "backend:test": "node scripts/runtime-runner.mjs backend-test",
     "frontend": "node scripts/runtime-runner.mjs frontend",

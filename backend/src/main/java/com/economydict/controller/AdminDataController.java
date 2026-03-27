@@ -6,6 +6,8 @@ import com.economydict.dto.AdminQuestionDto;
 import com.economydict.dto.AdminQuestionRequest;
 import com.economydict.dto.AdminQuizDto;
 import com.economydict.dto.AdminQuizRequest;
+import com.economydict.dto.AdminUploadAiModelRequest;
+import com.economydict.dto.AdminUploadAiModelResponse;
 import com.economydict.dto.AdminUserDto;
 import com.economydict.dto.AdminUserRequest;
 import com.economydict.dto.DailyUserStatResponse;
@@ -28,10 +30,12 @@ import com.economydict.repository.QuizQuestionRepository;
 import com.economydict.repository.QuizRepository;
 import com.economydict.repository.UserRepository;
 import com.economydict.service.AnalyticsService;
+import com.economydict.service.DictionaryMeaningFormatService;
 import com.economydict.service.EnglishTranslationJobService;
 import com.economydict.service.ImportTaskService;
 import com.economydict.service.PdfImportJobService;
 import com.economydict.service.QuizService;
+import com.economydict.service.UploadAiModelSettingsService;
 import com.economydict.service.WordMetadataService;
 import jakarta.validation.Valid;
 import java.time.Instant;
@@ -71,6 +75,8 @@ public class AdminDataController {
     private final WordMetadataService wordMetadataService;
     private final EnglishTranslationJobService englishTranslationJobService;
     private final QuizService quizService;
+    private final DictionaryMeaningFormatService dictionaryMeaningFormatService;
+    private final UploadAiModelSettingsService uploadAiModelSettingsService;
 
     public AdminDataController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -83,7 +89,9 @@ public class AdminDataController {
                                AnalyticsService analyticsService,
                                WordMetadataService wordMetadataService,
                                EnglishTranslationJobService englishTranslationJobService,
-                               QuizService quizService) {
+                               QuizService quizService,
+                               DictionaryMeaningFormatService dictionaryMeaningFormatService,
+                               UploadAiModelSettingsService uploadAiModelSettingsService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.dictionaryEntryRepository = dictionaryEntryRepository;
@@ -96,6 +104,8 @@ public class AdminDataController {
         this.wordMetadataService = wordMetadataService;
         this.englishTranslationJobService = englishTranslationJobService;
         this.quizService = quizService;
+        this.dictionaryMeaningFormatService = dictionaryMeaningFormatService;
+        this.uploadAiModelSettingsService = uploadAiModelSettingsService;
     }
 
     @GetMapping("/users")
@@ -208,7 +218,7 @@ public class AdminDataController {
     public ResponseEntity<DictionaryEntryDto> createDictionary(@Valid @RequestBody DictionaryEntryDto dto) {
         DictionaryEntry entry = new DictionaryEntry();
         entry.setWord(dto.getWord());
-        entry.setMeaning(dto.getMeaning());
+        entry.setMeaning(dictionaryMeaningFormatService.formatMeaning(dto.getWord(), dto.getMeaning()));
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
         entry.setFileType(wordMetadataService.resolveFileType(dto.getFileType()));
@@ -234,11 +244,22 @@ public class AdminDataController {
         return ResponseEntity.ok(importTaskService.listRecentTasks());
     }
 
+    @GetMapping("/openai/upload-model")
+    public ResponseEntity<AdminUploadAiModelResponse> getUploadAiModel() {
+        return ResponseEntity.ok(uploadAiModelSettingsService.getUploadModelConfig());
+    }
+
+    @PutMapping("/openai/upload-model")
+    public ResponseEntity<AdminUploadAiModelResponse> updateUploadAiModel(
+            @Valid @RequestBody AdminUploadAiModelRequest request) {
+        return ResponseEntity.ok(uploadAiModelSettingsService.updateUploadModel(request.getModel()));
+    }
+
     @PutMapping("/words/{id}")
     public ResponseEntity<DictionaryEntryDto> updateDictionary(@PathVariable Long id, @Valid @RequestBody DictionaryEntryDto dto) {
         DictionaryEntry entry = dictionaryEntryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Dictionary not found"));
         entry.setWord(dto.getWord());
-        entry.setMeaning(dto.getMeaning());
+        entry.setMeaning(dictionaryMeaningFormatService.formatMeaning(dto.getWord(), dto.getMeaning()));
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
         entry.setFileType(wordMetadataService.resolveFileType(dto.getFileType()));

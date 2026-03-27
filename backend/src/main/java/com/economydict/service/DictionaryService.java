@@ -11,10 +11,14 @@ import org.springframework.stereotype.Service;
 public class DictionaryService {
     private final DictionaryEntryRepository repository;
     private final WordMetadataService wordMetadataService;
+    private final DictionaryMeaningFormatService dictionaryMeaningFormatService;
 
-    public DictionaryService(DictionaryEntryRepository repository, WordMetadataService wordMetadataService) {
+    public DictionaryService(DictionaryEntryRepository repository,
+                             WordMetadataService wordMetadataService,
+                             DictionaryMeaningFormatService dictionaryMeaningFormatService) {
         this.repository = repository;
         this.wordMetadataService = wordMetadataService;
+        this.dictionaryMeaningFormatService = dictionaryMeaningFormatService;
     }
 
     public List<DictionaryEntryDto> search(String keyword) {
@@ -27,7 +31,7 @@ public class DictionaryService {
     public DictionaryEntryDto create(DictionaryEntryDto dto) {
         DictionaryEntry entry = new DictionaryEntry();
         entry.setWord(dto.getWord());
-        entry.setMeaning(dto.getMeaning());
+        entry.setMeaning(dictionaryMeaningFormatService.formatMeaning(dto.getWord(), dto.getMeaning()));
         entry.setEnglishWord(dto.getEnglishWord());
         entry.setEnglishMeaning(dto.getEnglishMeaning());
         entry.setFileType(wordMetadataService.resolveFileType(dto.getFileType()));
