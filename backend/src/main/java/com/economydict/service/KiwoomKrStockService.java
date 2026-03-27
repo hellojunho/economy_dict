@@ -123,6 +123,10 @@ public class KiwoomKrStockService {
         return response;
     }
 
+    public int getLiveRefreshIntervalSeconds() {
+        return liveRefreshIntervalSeconds;
+    }
+
     private void ensureConfigured() {
         if (isUnset(appKey) || isUnset(secretKey)) {
             throw new IllegalStateException("Kiwoom API credentials are not configured. Set STOCK_KIWOOM_APP_KEY and STOCK_KIWOOM_SECRET_KEY.");

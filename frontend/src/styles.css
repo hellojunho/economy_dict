@@ -1528,8 +1528,8 @@ textarea {
 /* ── Charts (Admin) ── */
 .chart-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
-  gap: var(--section-gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 1.8vw, 22px);
   align-items: stretch;
 }
 
@@ -1537,28 +1537,28 @@ textarea {
   position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
-  min-height: 360px;
+  min-height: 348px;
   height: 100%;
-  padding: clamp(18px, 2.4vw, 22px);
+  padding: clamp(18px, 2.2vw, 22px);
 }
 
 .chart-panel .panel-head {
-  min-height: 108px;
+  min-height: 104px;
   margin-bottom: 12px;
-  padding-right: 112px;
+  padding-right: 104px;
 }
 
 .chart-canvas-wrap {
   position: relative;
   width: 100%;
-  min-height: 190px;
+  min-height: 188px;
   display: grid;
   place-items: center;
 }
 
 .chart-canvas-wrap canvas {
   width: 100% !important;
-  height: 190px !important;
+  height: 188px !important;
   max-width: 100%;
   max-height: 100%;
 }

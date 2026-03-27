@@ -137,12 +137,15 @@ export default function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin/overview" element={<Admin />} />
-          <Route path="/admin/chart" element={<Admin />} />
+          <Route path="/admin/chart" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin/users" element={<Admin />} />
           <Route path="/admin/users/:userEntry" element={<Admin />} />
           <Route path="/admin/words" element={<Admin />} />
+          <Route path="/admin/words/:wordEntry" element={<Admin />} />
           <Route path="/admin/uploads" element={<Admin />} />
           <Route path="/admin/quizzes" element={<Admin />} />
+          <Route path="/admin/quizzes/:quizEntry" element={<Admin />} />
+          <Route path="/admin/quizzes/:quizEntry/questions/:questionEntry" element={<Admin />} />
           <Route path="/signin" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/terms" element={<Terms />} />

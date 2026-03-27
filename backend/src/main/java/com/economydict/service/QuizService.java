@@ -141,10 +141,10 @@ public class QuizService {
             status.setLastAttemptAt(now);
             if (isRetryAttempt) {
                 status.setLatestRetryCorrect(isCorrect);
-            }
-            if (isCorrect && !status.isCorrect()) {
-                status.setCorrect(true);
-                status.setCorrectAt(now);
+            } else {
+                status.setCorrect(isCorrect);
+                status.setCorrectAt(isCorrect ? now : null);
+                status.setLatestRetryCorrect(null);
             }
             statusRepository.save(status);
 

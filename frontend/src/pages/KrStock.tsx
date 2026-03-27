@@ -129,6 +129,11 @@ function getErrorMessage(error: unknown) {
   return '키움 국내주식 데이터를 불러오지 못했습니다. 앱키, 시크릿키, 허용 IP를 확인하세요.';
 }
 
+function buildKrStockWebSocketUrl(symbol: string) {
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${protocol}://${window.location.host}/api/ws/kr-stocks/${encodeURIComponent(symbol)}`;
+}
+
 function mergeRealtimeCandle(candles: KrStockCandle[], quote: KrStockQuote) {
   if (!quote.lastPrice || !quote.tradeTimeLabel) {
     return candles;
@@ -192,6 +197,7 @@ export default function KrStock() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<'intraday' | 'daily'>('intraday');
+  const [streamConnected, setStreamConnected] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -224,33 +230,46 @@ export default function KrStock() {
   }, [activeSymbol]);
 
   useEffect(() => {
-    const refreshMs = Math.max(2, snapshot?.liveRefreshIntervalSeconds ?? 2) * 1000;
+    const socket = new WebSocket(buildKrStockWebSocketUrl(activeSymbol));
 
-    const timer = window.setInterval(() => {
-      client.get<KrStockRealtime>(`/kr-stocks/${activeSymbol}/realtime`)
-        .then((response) => {
-          setSnapshot((current) => {
-            if (!current) {
-              return current;
-            }
-            return {
-              ...current,
-              fetchedAt: response.data.fetchedAt,
-              quote: response.data.quote,
-              orderBook: response.data.orderBook,
-              intradayCandles: mergeRealtimeCandle(current.intradayCandles, response.data.quote)
-            };
-          });
-        })
-        .catch((error) => {
-          setMessage(getErrorMessage(error));
+    socket.onopen = () => {
+      setStreamConnected(true);
+      setMessage('');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as KrStockRealtime;
+        setSnapshot((current) => {
+          if (!current) {
+            return current;
+          }
+          return {
+            ...current,
+            fetchedAt: payload.fetchedAt,
+            quote: payload.quote,
+            orderBook: payload.orderBook,
+            intradayCandles: mergeRealtimeCandle(current.intradayCandles, payload.quote)
+          };
         });
-    }, refreshMs);
+      } catch {
+        setMessage('실시간 시세 메시지를 해석하지 못했습니다.');
+      }
+    };
+
+    socket.onerror = () => {
+      setStreamConnected(false);
+      setMessage('실시간 WebSocket 연결에 실패했습니다. 키움 API 설정과 서버 연결을 확인하세요.');
+    };
+
+    socket.onclose = () => {
+      setStreamConnected(false);
+    };
 
     return () => {
-      window.clearInterval(timer);
+      socket.close();
     };
-  }, [activeSymbol, snapshot?.liveRefreshIntervalSeconds]);
+  }, [activeSymbol]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -274,12 +293,12 @@ export default function KrStock() {
             <p className="section-label">KR Stock</p>
             <h1>키움 국내주식 차트</h1>
             <p className="panel-copy">
-              키움 REST API 기준으로 국내 주식 시세, 호가, 분봉, 일봉을 백엔드에서 직접 가져와 표시합니다.
+              키움 REST API로 초기 시세와 차트를 불러오고, WebSocket 스트림으로 실시간 체결과 호가를 이어서 반영합니다.
             </p>
           </div>
           <div className="stock-live-pill">
             <strong>{snapshot?.provider ?? 'Kiwoom'}</strong>
-            <span>{snapshot ? `${snapshot.liveRefreshIntervalSeconds}초 갱신` : '연결 대기'}</span>
+            <span>{streamConnected ? 'WebSocket Live' : (snapshot ? '연결 대기' : '연결 대기')}</span>
           </div>
         </div>
 
